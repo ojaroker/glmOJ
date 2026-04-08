@@ -2,5 +2,7 @@
 
 ## All functions
 
-- [`fullGLM()`](http://oscar.jaroker.com/glmOJ/reference/fullGLM.md) :
-  Title for fullGLM
+- [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md) :
+  Title for countGLM
+- [`summarizeCountData()`](http://oscar.jaroker.com/glmOJ/reference/summarizeCountData.md)
+  : Summarize count data
