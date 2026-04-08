@@ -1,6 +1,6 @@
-#' Title for fullGLM
+#' Title for countGLM
 #'
-#' Short description of what fullGLM does.
+#' Short description of what countGLM does.
 #'
 #' @param formula A model formula (e.g. \code{y ~ x1 + x2}).
 #' @param data A data frame containing the variables in \code{formula}.
@@ -12,22 +12,22 @@
 #' @param offset Optional offset.
 #' @param ... Additional arguments passed to lower-level methods.
 #'
-#' @return An object of class \code{fullGLM} (a list containing at least: \code{coefficients}, \code{fitted.values}, \code{residuals}, \code{vcov}, \code{converged}). Describe components precisely.
+#' @return An object of class \code{countGLM} (a list containing at least: \code{coefficients}, \code{fitted.values}, \code{residuals}, \code{vcov}, \code{converged}). Describe components precisely.
 #'
 #' @details Longer description of algorithm, assumptions, and any important notes (e.g. handling of singularities, convergence criteria, warnings produced).
 #'
 #' @examples
-#' # basic usage
-#' # fm <- fullGLM(y ~ x1 + x2, data = mydf, family = binomial())
-#' # summary(fm)
+#' # fm = countGLM(y ~ x1 + x2, data = dat, family = poisson())
+#'
+#'
 #'
 #' @seealso \link[stats]{glm}, \link[stats]{model.frame}
 #' @keywords regression models
 #' @export
-fullGLM <- function(
+countGLM <- function(
   formula,
   data,
-  family = gaussian(),
+  family = poisson(),
   weights = NULL,
   subset = NULL,
   na.action = getOption("na.action"),
@@ -36,7 +36,15 @@ fullGLM <- function(
   ...
 ) {
   stopifnot(inherits(formula, "formula"))
-  # Implementation here...
+  
+
+
+
+
+
+
+
+
   structure(
     list(
       coefficients = NULL,
@@ -45,6 +53,6 @@ fullGLM <- function(
       vcov = NULL,
       converged = logical(1)
     ),
-    class = "fullGLM"
+    class = "countGLM"
   )
 }
