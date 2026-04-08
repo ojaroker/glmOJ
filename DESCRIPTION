@@ -1,9 +1,14 @@
 Package: glmOJ
-Title: What the Package Does (One Line, Title Case)
+Title: Toolkit for Count Regression Modeling
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R:
+    person("Oscar", "Jaroker", , "ojaroker@colgate.edu", role = c("aut", "cre"))
+Description: Provides a workflow for fitting, diagnosing, and interpreting
+    count regression models. Supports Poisson, negative binomial, zero-inflated
+    Poisson, and zero-inflated negative binomial models. Includes data
+    summarization tools, randomized quantile residual diagnostics, and a
+    general-purpose wrapper that fits all four model families and selects the
+    best by AIC.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
@@ -11,10 +16,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 URL: https://github.com/ojaroker/glmOJ, http://oscar.jaroker.com/glmOJ/
 BugReports: https://github.com/ojaroker/glmOJ/issues
-Imports: 
+Imports:
     dplyr,
     ggplot2,
-    rlang
+    MASS,
+    patchwork,
+    pscl,
+    rlang,
+    statmod
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

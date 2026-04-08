@@ -1,58 +1,166 @@
-#' Title for countGLM
+#' Fit and compare count regression models
 #'
-#' Short description of what countGLM does.
+#' Fits all four count regression models supported by glmOJ (Poisson, negative
+#' binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
+#' the best by AIC, and provides a plain-language recommendation informed by
+#' dispersion and zero-inflation diagnostics.
 #'
-#' @param formula A model formula (e.g. \code{y ~ x1 + x2}).
-#' @param data A data frame containing the variables in \code{formula}.
-#' @param family A description of the error distribution and link function to be used in the model (default: \code{gaussian()}).
-#' @param weights Optional numeric vector of observation weights.
-#' @param subset Optional expression indicating subset of rows to use.
-#' @param na.action Function which indicates what should happen when the data contain \code{NA}s.
-#' @param control A list of control parameters (document the elements you use; e.g. from \code{glm.control}).
-#' @param offset Optional offset.
-#' @param ... Additional arguments passed to lower-level methods.
+#' @param formula A model formula for the count component (e.g. `y ~ x1 + x2`).
+#'   The response must be a non-negative integer count variable.
+#' @param data A data frame containing the variables in `formula` (and
+#'   `ziformula` if provided).
+#' @param ziformula A one-sided formula for the zero-inflation component passed
+#'   to [zeroinflPoissonGLM()] and [zeroinflNegbinGLM()]. When `NULL`
+#'   (default), the same right-hand side as `formula` is used.
+#' @param ... Additional arguments passed to each individual model fitter.
 #'
-#' @return An object of class \code{countGLM} (a list containing at least: \code{coefficients}, \code{fitted.values}, \code{residuals}, \code{vcov}, \code{converged}). Describe components precisely.
+#' @return An object of class `"countGLM"`, a list with:
+#'   \describe{
+#'     \item{`call`}{The matched call.}
+#'     \item{`fits`}{A named list of successfully fitted model objects
+#'       (`poisson`, `negbin`, `zeroinfl_poisson`, `zeroinfl_negbin`). Any
+#'       model that failed to converge is omitted.}
+#'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
+#'     \item{`best_model`}{Character name of the model with the lowest AIC.}
+#'     \item{`recommendation`}{A plain-language character string explaining
+#'       the selection, including dispersion and zero-inflation context.}
+#'   }
 #'
-#' @details Longer description of algorithm, assumptions, and any important notes (e.g. handling of singularities, convergence criteria, warnings produced).
+#' @details
+#' **Model selection:** AIC is the primary criterion. Lower AIC indicates a
+#' better balance of fit and parsimony.
+#'
+#' **Heuristic diagnostics** (computed from the Poisson fit and used to
+#' annotate the recommendation, not to override AIC):
+#' - *Overdispersion*: Pearson dispersion ratio > 1.5 from the Poisson fit
+#'   suggests the negative binomial family may be more appropriate.
+#' - *Zero-inflation*: If the observed number of zeros exceeds 1.3x the
+#'   number of zeros expected under a Poisson model, excess zeros are flagged.
+#'
+#' Individual models can be accessed via `result$fits$negbin`, etc., and
+#' support `print()`, `summary()`, and `plot()`.
 #'
 #' @examples
-#' # fm = countGLM(y ~ x1 + x2, data = dat, family = poisson())
+#' df <- data.frame(
+#'   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+#'   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
+#' )
+#' result <- countGLM(y ~ x1, data = df)
+#' print(result)
+#' summary(result)
 #'
-#'
-#'
-#' @seealso \link[stats]{glm}, \link[stats]{model.frame}
-#' @keywords regression models
+#' @seealso [poissonGLM()], [negbinGLM()], [zeroinflPoissonGLM()],
+#'   [zeroinflNegbinGLM()]
 #' @export
-countGLM <- function(
-  formula,
-  data,
-  family = poisson(),
-  weights = NULL,
-  subset = NULL,
-  na.action = getOption("na.action"),
-  control = glm.control(),
-  offset = NULL,
-  ...
-) {
-  stopifnot(inherits(formula, "formula"))
-  
+countGLM <- function(formula, data, ziformula = NULL, ...) {
+  stopifnot(
+    "formula must be a formula object"    = inherits(formula, "formula"),
+    "data must be a data frame"           = is.data.frame(data),
+    "ziformula must be a formula or NULL" =
+      is.null(ziformula) || inherits(ziformula, "formula")
+  )
 
+  # Fit all four models, capturing any failures 
+  fits <- list(
+    poisson          = tryCatch(poissonGLM(formula, data, ...),
+                                error = function(e) e),
+    negbin           = tryCatch(negbinGLM(formula, data, ...),
+                                error = function(e) e),
+    zeroinfl_poisson = tryCatch(zeroinflPoissonGLM(formula, data,
+                                                    ziformula = ziformula, ...),
+                                error = function(e) e),
+    zeroinfl_negbin  = tryCatch(zeroinflNegbinGLM(formula, data,
+                                                   ziformula = ziformula, ...),
+                                error = function(e) e)
+  )
 
+  # Keep only successful fits
+  ok   <- !vapply(fits, inherits, logical(1), "error")
+  fits <- fits[ok]
 
+  if (length(fits) == 0L) {
+    stop("All four model fits failed. Check your formula and data.")
+  }
 
+  aics      <- vapply(fits, `[[`, numeric(1), "aic")
+  aic_table <- sort(aics)
+  best_name <- names(which.min(aics))
 
-
-
+  recommendation <- build_recommendation(fits, best_name, aic_table)
 
   structure(
     list(
-      coefficients = NULL,
-      fitted.values = NULL,
-      residuals = NULL,
-      vcov = NULL,
-      converged = logical(1)
+      call           = match.call(),
+      fits           = fits,
+      aic_table      = aic_table,
+      best_model     = best_name,
+      recommendation = recommendation
     ),
     class = "countGLM"
   )
+}
+
+# ---------------------------------------------------------------------------
+# Internal: build plain-language recommendation string
+# ---------------------------------------------------------------------------
+
+build_recommendation <- function(fits, best_name, aic_table) {
+  disp_msg <- zi_msg <- ""
+
+  pois_fit <- fits[["poisson"]]
+  if (!is.null(pois_fit)) {
+    disp_ratio <- pois_fit$diagnostics$dispersion_ratio
+
+    if (!is.na(disp_ratio)) {
+      if (disp_ratio > 1.5) {
+        disp_msg <- sprintf(
+          "The Poisson dispersion ratio is %.2f (> 1.5), indicating overdispersion.",
+          disp_ratio
+        )
+      } else {
+        disp_msg <- sprintf(
+          "The Poisson dispersion ratio is %.2f, consistent with equidispersion.",
+          disp_ratio
+        )
+      }
+    }
+
+    pois_model <- pois_fit$model
+    y          <- pois_model$y
+    obs_zeros  <- sum(y == 0L)
+    exp_zeros  <- sum(stats::dpois(0, stats::fitted(pois_model)))
+    zi_ratio   <- if (exp_zeros > 0) obs_zeros / exp_zeros else NA_real_
+
+    if (!is.na(zi_ratio)) {
+      if (zi_ratio > 1.3) {
+        zi_msg <- sprintf(
+          "There are %.1fx more zeros than expected under Poisson (observed: %d, expected: %.1f), suggesting zero-inflation.",
+          zi_ratio, obs_zeros, exp_zeros
+        )
+      } else {
+        zi_msg <- sprintf(
+          "The zero count (observed: %d, expected: %.1f) is consistent with a standard count model.",
+          obs_zeros, exp_zeros
+        )
+      }
+    }
+  }
+
+  best_aic <- aic_table[best_name]
+  model_label <- switch(best_name,
+    poisson          = "Poisson",
+    negbin           = "Negative Binomial",
+    zeroinfl_poisson = "Zero-Inflated Poisson",
+    zeroinfl_negbin  = "Zero-Inflated Negative Binomial",
+    best_name
+  )
+
+  selection_msg <- sprintf(
+    "%s was selected by AIC (AIC = %.2f).",
+    model_label, best_aic
+  )
+
+  parts <- c(selection_msg, disp_msg, zi_msg)
+  parts <- parts[nchar(parts) > 0L]
+  paste(parts, collapse = " ")
 }

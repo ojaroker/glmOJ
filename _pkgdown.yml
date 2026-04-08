@@ -1,4 +1,61 @@
 url: http://oscar.jaroker.com/glmOJ/
+
 template:
   bootstrap: 5
 
+home:
+  title: "glmOJ — Count Regression Modeling"
+  description: >
+    An R package for fitting, diagnosing, and interpreting count regression
+    models: Poisson, negative binomial, zero-inflated Poisson, and
+    zero-inflated negative binomial.
+
+navbar:
+  structure:
+    left:  [intro, reference, articles]
+    right: [github]
+  components:
+    reference:
+      text: Reference
+      href: reference/index.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/ojaroker/glmOJ
+      aria-label: GitHub
+
+reference:
+  - title: "Data Summarization"
+    desc: >
+      Explore count response variables numerically and graphically before
+      fitting a model.
+    contents:
+      - summarizeCountData
+
+  - title: "Model Fitting"
+    desc: >
+      Individual model fitters. Each returns exponentiated coefficients with
+      95% Wald confidence intervals, randomized quantile residuals, a Pearson
+      dispersion ratio, and a two-panel diagnostic plot.
+
+  - subtitle: "Poisson"
+    contents:
+      - poissonGLM
+
+  - subtitle: "Negative Binomial"
+    contents:
+      - negbinGLM
+
+  - subtitle: "Zero-Inflated Poisson"
+    contents:
+      - zeroinflPoissonGLM
+
+  - subtitle: "Zero-Inflated Negative Binomial"
+    contents:
+      - zeroinflNegbinGLM
+
+  - title: "Model Selection"
+    desc: >
+      Fit all four model families and select the best by AIC, with
+      plain-language diagnostics to guide interpretation.
+    contents:
+      - countGLM
