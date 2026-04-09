@@ -24,6 +24,10 @@ navbar:
       aria-label: GitHub
 
 reference:
+  - title: "Package"
+    contents:
+      - glmOJ-package
+
   - title: "Data Summarization"
     desc: >
       Explore count response variables numerically and graphically before
