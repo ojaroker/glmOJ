@@ -27,8 +27,11 @@ Imports:
     statmod,
     tibble,
     tidyr
-Suggests: 
+Suggests:
+    emmeans,
     knitr,
+    lmtest,
+    nonnest2,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

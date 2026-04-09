@@ -59,17 +59,26 @@ compute_rqr <- function(model,
   stats::qnorm(u)
 }
 
-#' Build the two-panel RQR diagnostic plot
+#' Build the two-panel RQR diagnostic plot and the squared Pearson residual plot
 #'
-#' Returns a patchwork of (1) fitted values vs RQR scatter and (2) normal histo-QQ
-#' plot of the RQR, with the dispersion ratio annotated in the scatter title.
+#' Returns a named list of two plots:
+#' * `rqr_plot`: a patchwork of (1) fitted values vs RQR scatter and (2) a
+#'   histo-QQ of the RQR, with the dispersion ratio annotated in the title.
+#'   The title turns red and a subtitle warns of overdispersion when the ratio
+#'   exceeds 1.2.
+#' * `r2_plot`: squared Pearson residuals vs fitted values, with a horizontal
+#'   reference line at 1 and a loess/GAM smooth. Useful for diagnosing
+#'   mean-variance misspecification.
 #'
 #' @param rqr Numeric vector of randomized quantile residuals.
+#' @param pearson_resid Numeric vector of Pearson residuals (same length as
+#'   `rqr`).
 #' @param fitted_vals Numeric vector of fitted (predicted) values.
 #' @param dispersion_ratio Scalar; the Pearson dispersion ratio.
-#' @return A `patchwork` / `gg` object.
+#' @return A named list with elements `rqr_plot` and `r2_plot` (both `gg`
+#'   objects).
 #' @noRd
-plot_diagnostics <- function(rqr, fitted_vals, dispersion_ratio) {
+plot_diagnostics <- function(rqr, pearson_resid, fitted_vals, dispersion_ratio) {
   df_diag <- data.frame(fitted = fitted_vals, rqr = rqr)
 
   overdispersed <- !is.na(dispersion_ratio) && dispersion_ratio > 1.2
@@ -103,5 +112,21 @@ plot_diagnostics <- function(rqr, fitted_vals, dispersion_ratio) {
   p_qq <- histoqq(rqr) +
     ggplot2::labs(title = "Histo-QQ of RQR")
 
-  patchwork::wrap_plots(p_scatter, p_qq, ncol = 2)
+  df_r2 <- data.frame(fitted = fitted_vals, r2 = pearson_resid^2)
+  p_r2 <- ggplot2::ggplot(df_r2, ggplot2::aes(x = .data$fitted, y = .data$r2)) +
+    ggplot2::geom_point(alpha = 0.5) +
+    ggplot2::geom_hline(yintercept = 1, linetype = "dotted", color = "firebrick") +
+    ggplot2::geom_smooth(ggplot2::aes(x = .data$fitted, y = .data$r2),
+                         color = "black", se = TRUE) +
+    ggplot2::labs(
+      x     = "Fitted values",
+      y     = expression(r^2),
+      title = "Squared Pearson residuals vs fitted"
+    ) +
+    ggplot2::theme_bw()
+
+  list(
+    rqr_plot = patchwork::wrap_plots(p_scatter, p_qq, ncol = 2),
+    r2_plot  = p_r2
+  )
 }

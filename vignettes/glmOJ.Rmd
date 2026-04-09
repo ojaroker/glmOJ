@@ -1,8 +1,8 @@
 ---
-title: "glmOJ"
+title: "glmOJ: Count Regression Modeling"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{glmOJ}
+  %\VignetteIndexEntry{glmOJ: Count Regression Modeling}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,7 +10,11 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 4,
+  warning = FALSE,
+  message = FALSE
 )
 ```
 
@@ -18,30 +22,200 @@ knitr::opts_chunk$set(
 library(glmOJ)
 ```
 
+## Overview
 
-```{r}
+`glmOJ` provides a streamlined workflow for fitting, diagnosing, and
+interpreting count regression models. The four supported families are:
+
+| Function | Model |
+|---|---|
+| `poissonGLM()` | Poisson GLM |
+| `negbinGLM()` | Negative Binomial GLM |
+| `zeroinflPoissonGLM()` | Zero-Inflated Poisson |
+| `zeroinflNegbinGLM()` | Zero-Inflated Negative Binomial |
+
+A general-purpose wrapper `countGLM()` fits all four and selects the best by
+AIC.
+
+---
+
+## Case Study: Federal Environmental Crime Prosecutions
+
+Greenberg et al. (2026) investigate how environmental and social factors
+influence where EPA criminal prosecutions occur across 3,143 US counties
+(2011–2020). The response variable `FinalEC` is a count of criminal
+prosecutions per county.
+
+```{r load-data}
 data("Greenberg26.dat")
+```
 
+### 1. Data Exploration
 
+Before fitting, `summarizeCountData()` gives a quick numerical and graphical
+overview of the count response alongside each predictor.
 
-summarizeCountData(FinalEC ~ eqi_2jan2018_vc +
+```{r summarize, fig.height = 6}
+summarizeCountData(
+  FinalEC ~ eqi_2jan2018_vc +
     pctnonwhite10 +
     metro +
     gdp2017b +
     fac_penalty_count +
     CIDDist +
     EPAregion,
-    data = Greenberg26.dat)
+  data = Greenberg26.dat
+)
+```
 
+### 2. Poisson Regression
 
-mod.pois = poissonGLM(FinalEC ~ eqi_2jan2018_vc +
+We first fit a Poisson GLM with the Overall Environmental Quality Index and
+demographic/geographic controls.
+
+```{r poisson, cache = TRUE}
+mod.pois <- poissonGLM(
+  FinalEC ~ eqi_2jan2018_vc +
     pctnonwhite10 +
     metro +
     gdp2017b +
     fac_penalty_count +
     CIDDist +
     EPAregion,
-  data = Greenberg26.dat)
+  data = Greenberg26.dat
+)
+```
 
+#### Coefficients (exponentiated)
+
+```{r pois-coef}
+mod.pois$coefficients
+```
+
+#### Model fit
+
+```{r pois-diag, fig.height = 4}
 mod.pois$diagnostics$plot
 ```
+
+The dispersion ratio of `r round(mod.pois$diagnostics$dispersion_ratio, 3)`
+is flagged in red — the observed variance is ~60% larger than expected under
+Poisson, suggesting overdispersion. We also inspect the squared Pearson
+residual plot:
+
+```{r pois-r2, fig.height = 4, fig.width = 5}
+mod.pois$diagnostics$r2_plot
+```
+
+The wedge shape confirms the mean-variance relationship is not well captured
+by the Poisson assumption.
+
+### 3. Negative Binomial Regression (Model 1b)
+
+The negative binomial adds a free dispersion parameter $\theta$ to handle
+overdispersion.
+
+```{r negbin, cache = TRUE}
+mod.nb <- negbinGLM(
+  FinalEC ~ eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+  data = Greenberg26.dat,
+  control = stats::glm.control(maxit = 100)
+)
+```
+
+#### Coefficients (exponentiated)
+
+```{r nb-coef}
+mod.nb$coefficients
+```
+
+#### Model fit
+
+```{r nb-diag, fig.height = 4}
+mod.nb$diagnostics$plot
+```
+
+```{r nb-r2, fig.height = 4, fig.width = 5}
+mod.nb$diagnostics$r2_plot
+```
+
+The dispersion ratio is now
+`r round(mod.nb$diagnostics$dispersion_ratio, 3)` — much closer to 1. The
+estimated $\theta$ is `r round(mod.nb$theta, 3)`.
+
+### 4. Comparing Models: Likelihood Ratio Test
+
+Because the Poisson model is nested within the negative binomial (Poisson is
+NB with $\theta \to \infty$), we can use a likelihood ratio test. The
+underlying `glm`/`glm.nb` fit objects are available via `$model`:
+
+```{r lrt}
+lmtest::lrtest(mod.pois$model, mod.nb$model)
+```
+
+The negative binomial model is significantly better ($p < 0.0001$), confirming
+that overdispersion is a genuine problem for the Poisson fit.
+
+### 5. Poisson Regression with Specific Quality Indices 
+
+The researchers also evaluated whether separate Water, Air, Land, and
+Socioeconomic indices were more informative than the composite Overall EQI.
+
+```{r pois2, cache = TRUE}
+mod.pois2 <- poissonGLM(
+  FinalEC ~ water_eqi_2jan2018_vc +
+    land_eqi_2jan2018_vc +
+    air_eqi_2jan2018_vc +
+    sociod_eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+  data = Greenberg26.dat
+)
+
+mod.pois2$diagnostics$plot
+```
+
+Dispersion ratio: `r round(mod.pois2$diagnostics$dispersion_ratio, 3)` —
+again flagging overdispersion.
+
+### 6. Negative Binomial with Specific Quality Indices
+
+```{r nb2, cache = TRUE}
+mod.nb2 <- negbinGLM(
+  FinalEC ~ water_eqi_2jan2018_vc +
+    land_eqi_2jan2018_vc +
+    air_eqi_2jan2018_vc +
+    sociod_eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+  data = Greenberg26.dat,
+  control = stats::glm.control(maxit = 100)
+)
+
+mod.nb2$diagnostics$plot
+```
+
+Dispersion ratio: `r round(mod.nb2$diagnostics$dispersion_ratio, 3)`.
+
+
+---
+
+## References
+
+Greenberg, Pierce, Erik W Johnson, Jennifer Schwartz, and Rylie Wartinger.
+2026. "Social Factors Shape Federal Environmental Crime Prosecution Patterns
+in the USA." *Nature Sustainability*, 1–5.

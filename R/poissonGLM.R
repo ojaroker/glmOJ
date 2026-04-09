@@ -25,6 +25,9 @@
 #'         \item{`plot`}{A patchwork ggplot: fitted values vs RQR (left) and
 #'           histo-QQ of RQR (right). The dispersion ratio is shown in red with
 #'           an overdispersion warning if it exceeds 1.2.}
+#'         \item{`r2_plot`}{Squared Pearson residuals vs fitted values, with a
+#'           red dotted reference line at 1 and a smooth. Useful for diagnosing
+#'           mean-variance misspecification.}
 #'       }
 #'     }
 #'     \item{`aic`}{AIC of the fitted model.}
@@ -73,9 +76,10 @@ poissonGLM <- function(formula, data, ...) {
     stringsAsFactors = FALSE
   )
 
-  rqr  <- compute_rqr(fit, "poisson")
-  disp <- check_dispersion(fit)
-  diag_plot <- plot_diagnostics(rqr, fit$fitted.values, disp)
+  rqr           <- compute_rqr(fit, "poisson")
+  pearson_resid <- residuals(fit, type = "pearson")
+  disp          <- check_dispersion(fit)
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
 
   structure(
     list(
@@ -86,7 +90,8 @@ poissonGLM <- function(formula, data, ...) {
       diagnostics  = list(
         rqr              = rqr,
         dispersion_ratio = disp,
-        plot             = diag_plot
+        plot             = diag_plots$rqr_plot,
+        r2_plot          = diag_plots$r2_plot
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)

@@ -80,9 +80,10 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, ...) {
 
   coef_tables <- zi_coef_tables(fit, count_label = "exp.coef", zero_label = "exp.coef")
 
-  rqr  <- compute_rqr(fit, "zeroinfl_negbin")
-  disp <- check_dispersion(fit)
-  diag_plot <- plot_diagnostics(rqr, fit$fitted.values, disp)
+  rqr           <- compute_rqr(fit, "zeroinfl_negbin")
+  pearson_resid <- residuals(fit, type = "pearson")
+  disp          <- check_dispersion(fit)
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
 
   structure(
     list(
@@ -94,7 +95,8 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, ...) {
       diagnostics  = list(
         rqr              = rqr,
         dispersion_ratio = disp,
-        plot             = diag_plot
+        plot             = diag_plots$rqr_plot,
+        r2_plot          = diag_plots$r2_plot
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)
