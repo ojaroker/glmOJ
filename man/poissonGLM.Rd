@@ -31,6 +31,9 @@ overdispersion; consider \code{\link[=negbinGLM]{negbinGLM()}}.}
 \item{\code{plot}}{A patchwork ggplot: fitted values vs RQR (left) and
 histo-QQ of RQR (right). The dispersion ratio is shown in red with
 an overdispersion warning if it exceeds 1.2.}
+\item{\code{r2_plot}}{Squared Pearson residuals vs fitted values, with a
+red dotted reference line at 1 and a smooth. Useful for diagnosing
+mean-variance misspecification.}
 }
 }
 \item{\code{aic}}{AIC of the fitted model.}
