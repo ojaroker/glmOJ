@@ -19,6 +19,7 @@ An object of class \code{c("negbinGLM", "countGLMfit")}, a list with:
 \describe{
 \item{\code{call}}{The matched call.}
 \item{\code{model}}{The underlying \link[MASS:glm.nb]{MASS::glm.nb} fit object.}
+\item{\code{summary}}{The result of \code{summary()} on the fitted model.}
 \item{\code{theta}}{The estimated negative binomial dispersion parameter
 (smaller values indicate more overdispersion).}
 \item{\code{coefficients}}{A data frame with columns \code{term}, \code{exp.coef},
@@ -29,10 +30,12 @@ An object of class \code{c("negbinGLM", "countGLMfit")}, a list with:
 \item{\code{dispersion_ratio}}{Pearson chi-squared / df.residual.
 For a well-fitted negative binomial model this should be near 1.}
 \item{\code{plot}}{A patchwork ggplot: fitted values vs RQR (left) and
-normal Q-Q of RQR (right).}
+histo-QQ of RQR (right). The dispersion ratio is shown in red with
+an overdispersion warning if it exceeds 1.2.}
 }
 }
 \item{\code{aic}}{AIC of the fitted model.}
+\item{\code{bic}}{BIC of the fitted model.}
 }
 }
 \description{

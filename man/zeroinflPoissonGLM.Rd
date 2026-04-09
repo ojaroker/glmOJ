@@ -33,9 +33,11 @@ An object of class \code{c("zeroinflPoissonGLM", "zeroinflGLMfit", "countGLMfit"
 component.}
 }
 }
+\item{\code{summary}}{The result of \code{summary()} on the fitted model.}
 \item{\code{diagnostics}}{A list with \code{rqr}, \code{dispersion_ratio}, and
 \code{plot} (see \code{\link[=poissonGLM]{poissonGLM()}} for details).}
 \item{\code{aic}}{AIC of the fitted model.}
+\item{\code{bic}}{BIC of the fitted model.}
 }
 }
 \description{
