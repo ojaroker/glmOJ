@@ -110,7 +110,7 @@ mod.pois$diagnostics$r2_plot
 The wedge shape confirms the mean-variance relationship is not well captured
 by the Poisson assumption.
 
-### 3. Negative Binomial Regression (Model 1b)
+### 3. Negative Binomial Regression
 
 The negative binomial adds a free dispersion parameter $\theta$ to handle
 overdispersion.
@@ -162,55 +162,86 @@ lmtest::lrtest(mod.pois$model, mod.nb$model)
 The negative binomial model is significantly better ($p < 0.0001$), confirming
 that overdispersion is a genuine problem for the Poisson fit.
 
-### 5. Poisson Regression with Specific Quality Indices 
+### 5. Using the `countGLM` Wrapper
+
+Rather than fitting each model manually, `countGLM()` fits all four families
+at once and selects the best by AIC — arriving at the same conclusion
+automatically.
+
+#### Overall EQI formula
+
+```{r countglm1, cache = TRUE}
+result1 <- countGLM(
+  FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro +
+            gdp2017b + fac_penalty_count + CIDDist + EPAregion,
+  data = Greenberg26.dat
+)
+print(result1)
+```
+
+The wrapper selects the same winner as the manual LRT. Individual fits remain
+accessible: `result1$fits$negbin`, `result1$fits$poisson`, etc.
+
+#### Sub-index formula
 
 The researchers also evaluated whether separate Water, Air, Land, and
 Socioeconomic indices were more informative than the composite Overall EQI.
+`countGLM` handles this in one call:
 
-```{r pois2, cache = TRUE}
-mod.pois2 <- poissonGLM(
-  FinalEC ~ water_eqi_2jan2018_vc +
-    land_eqi_2jan2018_vc +
-    air_eqi_2jan2018_vc +
-    sociod_eqi_2jan2018_vc +
-    pctnonwhite10 +
-    metro +
-    gdp2017b +
-    fac_penalty_count +
-    CIDDist +
-    EPAregion,
+```{r countglm2, cache = TRUE}
+result2 <- countGLM(
+  FinalEC ~ water_eqi_2jan2018_vc + land_eqi_2jan2018_vc +
+            air_eqi_2jan2018_vc  + sociod_eqi_2jan2018_vc +
+            pctnonwhite10 + metro + gdp2017b +
+            fac_penalty_count + CIDDist + EPAregion,
   data = Greenberg26.dat
 )
-
-mod.pois2$diagnostics$plot
+print(result2)
 ```
 
-Dispersion ratio: `r round(mod.pois2$diagnostics$dispersion_ratio, 3)` —
-again flagging overdispersion.
+Again the negative binomial is selected. The non-nested comparison between
+these two winning models (overall EQI vs sub-indices) can be done with a Vuong
+test via `nonnest2::vuongtest(result1$fits$negbin$model, result2$fits$negbin$model)`.
 
-### 6. Negative Binomial with Specific Quality Indices
+---
 
-```{r nb2, cache = TRUE}
-mod.nb2 <- negbinGLM(
-  FinalEC ~ water_eqi_2jan2018_vc +
-    land_eqi_2jan2018_vc +
-    air_eqi_2jan2018_vc +
-    sociod_eqi_2jan2018_vc +
-    pctnonwhite10 +
-    metro +
-    gdp2017b +
-    fac_penalty_count +
-    CIDDist +
-    EPAregion,
-  data = Greenberg26.dat,
-  control = stats::glm.control(maxit = 100)
-)
+## 6. Coefficient Interpretation
 
-mod.nb2$diagnostics$plot
+`interpret_coef()` translates any exponentiated coefficient into a
+plain-language statement, with a 95% CI and an automatic note when the
+predictor is not discernible from zero (p > 0.05).
+
+#### Significant predictor
+
+```{r interp-pct}
+interpret_coef(mod.nb, "pctnonwhite10")
 ```
 
-Dispersion ratio: `r round(mod.nb2$diagnostics$dispersion_ratio, 3)`.
+#### Non-significant predictor
 
+```{r interp-eqi}
+interpret_coef(mod.nb, "eqi_2jan2018_vc")
+```
+
+The note about discernibility is added automatically.
+
+#### Using with `countGLM`
+
+Pass the `countGLM` result directly — it delegates to the best-fitting model:
+
+```{r interp-countglm}
+interpret_coef(result2, "pctnonwhite10")
+```
+
+#### Zero-inflated models: specifying the component
+
+For zero-inflated models, use `component = "count"` (default) or
+`component = "zero"`:
+
+```{r interp-zi, eval = FALSE}
+interpret_coef(zi_fit, "pctnonwhite10", component = "count")
+interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
+```
 
 ---
 
