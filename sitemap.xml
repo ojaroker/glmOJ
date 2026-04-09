@@ -1,8 +1,11 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>http://oscar.jaroker.com/glmOJ/404.html</loc></url>
+<url><loc>http://oscar.jaroker.com/glmOJ/articles/glmOJ.html</loc></url>
+<url><loc>http://oscar.jaroker.com/glmOJ/articles/index.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/authors.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/index.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/reference/countGLM.html</loc></url>
+<url><loc>http://oscar.jaroker.com/glmOJ/reference/glmOJ.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/reference/index.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/reference/negbinGLM.html</loc></url>
 <url><loc>http://oscar.jaroker.com/glmOJ/reference/plot_count_data.html</loc></url>

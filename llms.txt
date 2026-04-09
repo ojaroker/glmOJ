@@ -109,6 +109,12 @@ pak::pak("ojaroker/glmOJ")
 
 # Package index
 
+## Package
+
+- [`glmOJ-package`](http://oscar.jaroker.com/glmOJ/reference/glmOJ.md)
+  [`glmOJ`](http://oscar.jaroker.com/glmOJ/reference/glmOJ.md) : glmOJ:
+  Toolkit for Count Regression Modeling
+
 ## Data Summarization
 
 Explore count response variables numerically and graphically before
@@ -151,3 +157,9 @@ plain-language diagnostics to guide interpretation.
 - [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md) :
   Fit and compare count regression models
 
+# Articles
+
+### All vignettes
+
+- [glmOJ: Count Regression
+  Modeling](http://oscar.jaroker.com/glmOJ/articles/glmOJ.md):

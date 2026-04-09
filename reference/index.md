@@ -1,5 +1,11 @@
 # Package index
 
+## Package
+
+- [`glmOJ-package`](http://oscar.jaroker.com/glmOJ/reference/glmOJ.md)
+  [`glmOJ`](http://oscar.jaroker.com/glmOJ/reference/glmOJ.md) : glmOJ:
+  Toolkit for Count Regression Modeling
+
 ## Data Summarization
 
 Explore count response variables numerically and graphically before

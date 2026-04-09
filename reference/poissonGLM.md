@@ -39,6 +39,11 @@ An object of class `c("poissonGLM", "countGLMfit")`, a list with:
   The underlying [stats::glm](https://rdrr.io/r/stats/glm.html) fit
   object.
 
+- `summary`:
+
+  The result of [`summary()`](https://rdrr.io/r/base/summary.html) on
+  the fitted model.
+
 - `coefficients`:
 
   A data frame with columns `term`, `exp.coef`, `lower.95`, `upper.95`
@@ -60,12 +65,23 @@ An object of class `c("poissonGLM", "countGLMfit")`, a list with:
 
   `plot`
 
-  :   A patchwork ggplot: fitted values vs RQR (left) and normal Q-Q of
-      RQR (right).
+  :   A patchwork ggplot: fitted values vs RQR (left) and histo-QQ of
+      RQR (right). The dispersion ratio is shown in red with an
+      overdispersion warning if it exceeds 1.2.
+
+  `r2_plot`
+
+  :   Squared Pearson residuals vs fitted values, with a red dotted
+      reference line at 1 and a smooth. Useful for diagnosing
+      mean-variance misspecification.
 
 - `aic`:
 
   AIC of the fitted model.
+
+- `bic`:
+
+  BIC of the fitted model.
 
 ## Details
 

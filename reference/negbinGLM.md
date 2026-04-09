@@ -41,6 +41,11 @@ An object of class `c("negbinGLM", "countGLMfit")`, a list with:
   The underlying
   [MASS::glm.nb](https://rdrr.io/pkg/MASS/man/glm.nb.html) fit object.
 
+- `summary`:
+
+  The result of [`summary()`](https://rdrr.io/r/base/summary.html) on
+  the fitted model.
+
 - `theta`:
 
   The estimated negative binomial dispersion parameter (smaller values
@@ -66,12 +71,17 @@ An object of class `c("negbinGLM", "countGLMfit")`, a list with:
 
   `plot`
 
-  :   A patchwork ggplot: fitted values vs RQR (left) and normal Q-Q of
-      RQR (right).
+  :   A patchwork ggplot: fitted values vs RQR (left) and histo-QQ of
+      RQR (right). The dispersion ratio is shown in red with an
+      overdispersion warning if it exceeds 1.2.
 
 - `aic`:
 
   AIC of the fitted model.
+
+- `bic`:
+
+  BIC of the fitted model.
 
 ## Details
 

@@ -21,7 +21,8 @@ plot."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/glmOJ.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/ojaroker/glmOJ" aria-label="GitHub"><span class="fa fab fa-github"></span></a></li>
       </ul></div>
 
@@ -73,6 +74,9 @@ a non-negative integer count variable.</p></dd>
 <dt><code>model</code></dt>
 <dd><p>The underlying <a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link">MASS::glm.nb</a> fit object.</p></dd>
 
+<dt><code>summary</code></dt>
+<dd><p>The result of <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> on the fitted model.</p></dd>
+
 <dt><code>theta</code></dt>
 <dd><p>The estimated negative binomial dispersion parameter
 (smaller values indicate more overdispersion).</p></dd>
@@ -91,13 +95,17 @@ For a well-fitted negative binomial model this should be near 1.</p></dd>
 
 <dt><code>plot</code></dt>
 <dd><p>A patchwork ggplot: fitted values vs RQR (left) and
-normal Q-Q of RQR (right).</p></dd>
+histo-QQ of RQR (right). The dispersion ratio is shown in red with
+an overdispersion warning if it exceeds 1.2.</p></dd>
 
 
 </dl></dd>
 
 <dt><code>aic</code></dt>
 <dd><p>AIC of the fitted model.</p></dd>
+
+<dt><code>bic</code></dt>
+<dd><p>BIC of the fitted model.</p></dd>
 
 
 </dl></div>

@@ -64,6 +64,11 @@ An object of class
 
   :   Exponentiated coefficients for the zero-inflation component.
 
+- `summary`:
+
+  The result of [`summary()`](https://rdrr.io/r/base/summary.html) on
+  the fitted model.
+
 - `diagnostics`:
 
   A list with `rqr`, `dispersion_ratio`, and `plot` (see
@@ -73,6 +78,10 @@ An object of class
 - `aic`:
 
   AIC of the fitted model.
+
+- `bic`:
+
+  BIC of the fitted model.
 
 ## Details
 
