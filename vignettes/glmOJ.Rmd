@@ -1,0 +1,47 @@
+---
+title: "glmOJ"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{glmOJ}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(glmOJ)
+```
+
+
+```{r}
+data("Greenberg26.dat")
+
+
+
+summarizeCountData(FinalEC ~ eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+    data = Greenberg26.dat)
+
+
+mod.pois = poissonGLM(FinalEC ~ eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+  data = Greenberg26.dat)
+
+mod.pois$diagnostics$plot
+```

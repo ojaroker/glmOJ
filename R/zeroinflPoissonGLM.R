@@ -28,9 +28,11 @@
 #'           component.}
 #'       }
 #'     }
+#'     \item{`summary`}{The result of `summary()` on the fitted model.}
 #'     \item{`diagnostics`}{A list with `rqr`, `dispersion_ratio`, and
 #'       `plot` (see [poissonGLM()] for details).}
 #'     \item{`aic`}{AIC of the fitted model.}
+#'     \item{`bic`}{BIC of the fitted model.}
 #'   }
 #'
 #' @details
@@ -86,13 +88,15 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, ...) {
     list(
       call         = match.call(),
       model        = fit,
+      summary      = summary(fit),
       coefficients = coef_tables,
       diagnostics  = list(
         rqr              = rqr,
         dispersion_ratio = disp,
         plot             = diag_plot
       ),
-      aic = stats::AIC(fit)
+      aic = stats::AIC(fit),
+      bic = stats::BIC(fit)
     ),
     class = c("zeroinflPoissonGLM", "zeroinflGLMfit", "countGLMfit")
   )

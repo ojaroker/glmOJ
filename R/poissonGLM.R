@@ -13,6 +13,7 @@
 #'   \describe{
 #'     \item{`call`}{The matched call.}
 #'     \item{`model`}{The underlying [stats::glm] fit object.}
+#'     \item{`summary`}{The result of `summary()` on the fitted model.}
 #'     \item{`coefficients`}{A data frame with columns `term`, `exp.coef`,
 #'       `lower.95`, `upper.95` (all on the response/exponentiated scale).}
 #'     \item{`diagnostics`}{A list with:
@@ -22,10 +23,12 @@
 #'           Values substantially above 1 (rule of thumb: > 1.5) suggest
 #'           overdispersion; consider [negbinGLM()].}
 #'         \item{`plot`}{A patchwork ggplot: fitted values vs RQR (left) and
-#'           normal Q-Q of RQR (right).}
+#'           histo-QQ of RQR (right). The dispersion ratio is shown in red with
+#'           an overdispersion warning if it exceeds 1.2.}
 #'       }
 #'     }
 #'     \item{`aic`}{AIC of the fitted model.}
+#'     \item{`bic`}{BIC of the fitted model.}
 #'   }
 #'
 #' @details
@@ -76,15 +79,17 @@ poissonGLM <- function(formula, data, ...) {
 
   structure(
     list(
-      call        = match.call(),
-      model       = fit,
+      call         = match.call(),
+      model        = fit,
+      summary      = summary(fit),
       coefficients = coef_table,
-      diagnostics = list(
+      diagnostics  = list(
         rqr              = rqr,
         dispersion_ratio = disp,
         plot             = diag_plot
       ),
-      aic = stats::AIC(fit)
+      aic = stats::AIC(fit),
+      bic = stats::BIC(fit)
     ),
     class = c("poissonGLM", "countGLMfit")
   )

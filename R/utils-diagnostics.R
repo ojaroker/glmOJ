@@ -61,7 +61,7 @@ compute_rqr <- function(model,
 
 #' Build the two-panel RQR diagnostic plot
 #'
-#' Returns a patchwork of (1) fitted values vs RQR scatter and (2) normal QQ
+#' Returns a patchwork of (1) fitted values vs RQR scatter and (2) normal histo-QQ
 #' plot of the RQR, with the dispersion ratio annotated in the scatter title.
 #'
 #' @param rqr Numeric vector of randomized quantile residuals.
@@ -72,32 +72,36 @@ compute_rqr <- function(model,
 plot_diagnostics <- function(rqr, fitted_vals, dispersion_ratio) {
   df_diag <- data.frame(fitted = fitted_vals, rqr = rqr)
 
-  disp_label <- if (is.na(dispersion_ratio)) {
+  overdispersed <- !is.na(dispersion_ratio) && dispersion_ratio > 1.2
+
+  disp_label  <- if (is.na(dispersion_ratio)) {
     "Dispersion ratio: NA"
   } else {
     sprintf("Dispersion ratio: %.3f", dispersion_ratio)
   }
+
+  disp_subtitle <- if (overdispersed) "Possible overdispersion (ratio > 1.2)" else NULL
+
+  title_color <- if (overdispersed) "firebrick" else "black"
 
   p_scatter <- ggplot2::ggplot(df_diag, ggplot2::aes(x = .data$fitted,
                                                        y = .data$rqr)) +
     ggplot2::geom_point(alpha = 0.5) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
     ggplot2::labs(
-      x      = "Fitted values",
-      y      = "Randomized quantile residuals",
-      title  = disp_label
+      x        = "Fitted values",
+      y        = "Randomized quantile residuals",
+      title    = disp_label,
+      subtitle = disp_subtitle
     ) +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      plot.title    = ggplot2::element_text(color = title_color),
+      plot.subtitle = ggplot2::element_text(color = title_color)
+    )
 
-  p_qq <- ggplot2::ggplot(df_diag, ggplot2::aes(sample = .data$rqr)) +
-    ggplot2::stat_qq(alpha = 0.5) +
-    ggplot2::stat_qq_line(color = "firebrick") +
-    ggplot2::labs(
-      x     = "Theoretical quantiles",
-      y     = "Sample quantiles",
-      title = "Normal Q-Q of RQR"
-    ) +
-    ggplot2::theme_bw()
+  p_qq <- histoqq(rqr) +
+    ggplot2::labs(title = "Histo-QQ of RQR")
 
   patchwork::wrap_plots(p_scatter, p_qq, ncol = 2)
 }

@@ -14,6 +14,7 @@
 #'   \describe{
 #'     \item{`call`}{The matched call.}
 #'     \item{`model`}{The underlying [MASS::glm.nb] fit object.}
+#'     \item{`summary`}{The result of `summary()` on the fitted model.}
 #'     \item{`theta`}{The estimated negative binomial dispersion parameter
 #'       (smaller values indicate more overdispersion).}
 #'     \item{`coefficients`}{A data frame with columns `term`, `exp.coef`,
@@ -24,10 +25,12 @@
 #'         \item{`dispersion_ratio`}{Pearson chi-squared / df.residual.
 #'           For a well-fitted negative binomial model this should be near 1.}
 #'         \item{`plot`}{A patchwork ggplot: fitted values vs RQR (left) and
-#'           normal Q-Q of RQR (right).}
+#'           histo-QQ of RQR (right). The dispersion ratio is shown in red with
+#'           an overdispersion warning if it exceeds 1.2.}
 #'       }
 #'     }
 #'     \item{`aic`}{AIC of the fitted model.}
+#'     \item{`bic`}{BIC of the fitted model.}
 #'   }
 #'
 #' @details
@@ -83,6 +86,7 @@ negbinGLM <- function(formula, data, ...) {
     list(
       call         = match.call(),
       model        = fit,
+      summary      = summary(fit),
       theta        = fit$theta,
       coefficients = coef_table,
       diagnostics  = list(
@@ -90,7 +94,8 @@ negbinGLM <- function(formula, data, ...) {
         dispersion_ratio = disp,
         plot             = diag_plot
       ),
-      aic = stats::AIC(fit)
+      aic = stats::AIC(fit),
+      bic = stats::BIC(fit)
     ),
     class = c("negbinGLM", "countGLMfit")
   )
