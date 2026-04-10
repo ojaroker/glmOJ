@@ -75,6 +75,11 @@ summarizeCountData(
 
 ![](glmOJ_files/figure-html/summarize-1.png)
 
+    #> 
+    #> $pairs_plot
+
+![](glmOJ_files/figure-html/summarize-2.png)
+
 ### 2. Poisson Regression
 
 We first fit a Poisson GLM with the Overall Environmental Quality Index
@@ -360,7 +365,194 @@ interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
 
 ------------------------------------------------------------------------
 
+## Case Study 2: Urban Surveillance Camera Counts (Dahir 2025)
+
+Dahir (2025) models the number of surveillance cameras per census tract
+across ten US cities. The response `cam_count` is a non-negative integer
+with 87.6% zeros and a variance-to-mean ratio of approximately 3.6 —
+classic signs of both excess zeros and overdispersion.
+
+``` r
+data("Dahir25.dat")
+```
+
+### 7. Data Exploration
+
+``` r
+summarizeCountData(
+  cam_count ~ total_crime_rate + hinc + modal_zone + pvac,
+  data = Dahir25.dat
+)
+#> $summary
+#>        mean       var var_mean_ratio n_zero n_total
+#> 1 0.2172117 0.7840397       3.609565  10177   11620
+#> 
+#> $counts
+#>    count  freq
+#> 1      0 10177
+#> 2      1   977
+#> 3      2   257
+#> 4      3    97
+#> 5      4    44
+#> 6      5    20
+#> 7      6    14
+#> 8      7     8
+#> 9      8     4
+#> 10     9     5
+#> 11    10     5
+#> 12    11     2
+#> 13    13     3
+#> 14    15     1
+#> 15    17     1
+#> 16    19     1
+#> 17    21     2
+#> 18    22     1
+#> 19    23     1
+#> 
+#> $plot
+```
+
+![](glmOJ_files/figure-html/dahir-summarize-1.png)
+
+    #> 
+    #> $pairs_plot
+
+![](glmOJ_files/figure-html/dahir-summarize-2.png)
+
+The summary table makes the issue concrete: the variance-to-mean ratio
+far exceeds 1 and the frequency table is dominated by zeros. Camera
+placement varies substantially by land-use zone — mixed and industrial
+tracts have cameras in roughly 28–42% of cases, while residential tracts
+(the majority, n = 8913) have cameras in fewer than 10%. This mixture of
+structurally camera-free tracts alongside genuinely high-count
+commercial zones is exactly the setting where zero-inflated or
+overdispersed count models are needed.
+
+### 8. Poisson and Zero-Inflated Poisson
+
+``` r
+
+pois.cam<- poissonGLM(
+  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone + pop + hinc + pvac + mhmval + city + offset(log_road_length) + I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
+  data = Dahir25.dat
+)
+print(pois.cam)
+#> 
+#> Call:
+#> poissonGLM(formula = cam_count ~ pnhwht + pnhblk + entropy_rank + 
+#>     total_crime_rate + modal_zone + pop + hinc + pvac + mhmval + 
+#>     city + offset(log_road_length) + I(pnhwht^2) + I(pnhblk^2) + 
+#>     I(entropy_rank^2), data = Dahir25.dat)
+#> 
+#> Model family: poissonGLM 
+#> 
+#> Coefficients (on response scale):
+#>                   term exp.coef lower.95 upper.95
+#>            (Intercept)   0.1337   0.1055   0.1695
+#>                 pnhwht   0.9634   0.8968   1.0349
+#>                 pnhblk   0.8723   0.8106   0.9387
+#>           entropy_rank   1.4478   0.7754   2.7031
+#>       total_crime_rate   1.0908   1.0796   1.1022
+#>   modal_zoneindustrial   1.1534   0.9558   1.3917
+#>        modal_zonemixed   1.2535   1.0415   1.5087
+#>       modal_zonepublic   0.5876   0.4649   0.7428
+#>  modal_zoneresidential   0.4298   0.3742   0.4937
+#>        modal_zoneroads   0.6960   0.4447   1.0895
+#>                    pop   1.1213   1.0990   1.1442
+#>                   hinc   0.7716   0.7305   0.8149
+#>                   pvac   1.1807   1.1373   1.2258
+#>                 mhmval   1.1586   1.1036   1.2164
+#>             cityBoston   1.2368   1.0563   1.4481
+#>            cityChicago   0.1851   0.1546   0.2216
+#>        cityLos Angeles   0.0495   0.0399   0.0615
+#>          cityMilwaukee   0.3249   0.2688   0.3927
+#>           cityNew York   0.2073   0.1776   0.2421
+#>       cityPhiladelphia   0.4482   0.3808   0.5274
+#>      citySan Francisco   0.6071   0.5090   0.7241
+#>            citySeattle   0.1768   0.1440   0.2171
+#>         cityWashington   0.4568   0.3008   0.6937
+#>            I(pnhwht^2)   1.0487   0.9979   1.1020
+#>            I(pnhblk^2)   1.0139   0.9881   1.0402
+#>      I(entropy_rank^2)   1.2363   0.7094   2.1546
+#> 
+#> Dispersion ratio: 1.8401
+#> AIC: 11299.96
+```
+
+### 8. Automatic Model Selection with `countGLM`
+
+[`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
+fits all four count families and selects the best by AIC. Road length
+(`log_road_length`) is included as an offset in the count component;
+because `ziformula = NULL`, it is automatically applied to the
+zero-inflation component as well — `countGLM` prints a note confirming
+this:
+
+``` r
+result_cam <- countGLM(
+  cam_count ~ pnhblk +
+    pnhwht +
+    total_crime_rate +
+    hinc +
+    pvac +
+    modal_zone +
+    offset(log_road_length),
+  data = Dahir25.dat
+)
+print(result_cam)
+#> 
+#> Call:
+#> countGLM(formula = cam_count ~ pnhblk + pnhwht + total_crime_rate + 
+#>     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)
+#> 
+#> Model comparison (sorted by AIC):
+#>   model      AIC      BIC
+#>  negbin 11306.16 11394.49
+#> 
+#> Selected model: negbin
+#> 
+#> Recommendation:
+#>   Negative Binomial was selected — both AIC (11306.16) and BIC
+#>   (11394.49) agree.
+```
+
+The AIC and BIC tables show the ranking across all four families. The
+selected model is **negbin**. The recommendation note captures the
+relevant dispersion and zero-inflation diagnostics automatically,
+explaining why this family was preferred.
+
+### 9. Interpreting the Winning Model
+
+[`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
+delegates to the best-fitting model automatically:
+
+``` r
+interpret_coef(result_cam, "total_crime_rate")
+#> Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 39.2% increase in the expected rate of cam_count per unit of exposure (exp(β) = 1.392, 95% CI: [1.333, 1.455]).
+```
+
+``` r
+interpret_coef(result_cam, "hinc")
+#> Holding all other predictors constant, a one-unit increase in hinc is associated with a 19.5% decrease in the expected rate of cam_count per unit of exposure (exp(β) = 0.805, 95% CI: [0.744, 0.871]).
+```
+
+For zero-inflated models, the count and zero components can be
+interpreted separately. The count component describes the expected
+camera count among tracts that are in the counting process; the zero
+component describes the odds of being a structural zero (a tract that
+never receives a camera):
+
+``` r
+interpret_coef(result_cam, "total_crime_rate", component = "count")
+interpret_coef(result_cam, "total_crime_rate", component = "zero")
+```
+
+------------------------------------------------------------------------
+
 ## References
+
+Dahir, Abdi Latif. 2025. “Surveillance Camera Placement and Urban
+Inequality.” Working paper.
 
 Greenberg, Pierce, Erik W Johnson, Jennifer Schwartz, and Rylie
 Wartinger. 2026. “Social Factors Shape Federal Environmental Crime

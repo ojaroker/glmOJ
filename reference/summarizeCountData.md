@@ -2,7 +2,8 @@
 
 Produces a numerical and graphical summary of a count response variable,
 with the plot automatically adapting to the number and type of
-predictors in the formula.
+predictors in the formula. A pairs plot is always returned alongside the
+main plot.
 
 ## Usage
 
@@ -24,7 +25,7 @@ summarizeCountData(formula, data)
 
 ## Value
 
-A named list with three elements:
+A named list with four elements:
 
 - summary:
 
@@ -40,6 +41,13 @@ A named list with three elements:
 
   A `ggplot` object. The plot type depends on the number and type of
   predictors — see Details.
+
+- pairs_plot:
+
+  A `ggpairs` object showing all pairwise relationships among the
+  response and all predictors. The response is treated as continuous
+  when it has more than 10 unique values, and as categorical (factor)
+  otherwise.
 
 ## Details
 
@@ -71,7 +79,8 @@ The graphical summary is chosen based on the predictors in `formula`:
 
 - Three or more predictors:
 
-  A warning is issued and only the first two predictors are used.
+  A warning is issued and only the first two predictors are used for the
+  main plot. The pairs plot includes all predictors.
 
 The `var_mean_ratio` in the summary table is the variance-to-mean ratio.
 A value close to 1 is consistent with a Poisson distribution; values
@@ -111,6 +120,9 @@ summarizeCountData(y ~ 1, data = df)
 #> $plot
 
 #> 
+#> $pairs_plot
+
+#> 
 
 # One continuous predictor
 summarizeCountData(y ~ x1, data = df)
@@ -131,6 +143,10 @@ summarizeCountData(y ~ x1, data = df)
 #> 
 #> $plot
 #> `geom_smooth()` using formula = 'y ~ x'
+
+#> 
+#> $pairs_plot
+#> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 
 #> 
 
@@ -154,6 +170,9 @@ summarizeCountData(y ~ x2, data = df)
 #> $plot
 
 #> 
+#> $pairs_plot
+
+#> 
 
 # Mixed predictors
 summarizeCountData(y ~ x1 + x2, data = df)
@@ -174,6 +193,11 @@ summarizeCountData(y ~ x1 + x2, data = df)
 #> 
 #> $plot
 #> `geom_smooth()` using formula = 'y ~ x'
+
+#> 
+#> $pairs_plot
+#> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
+#> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 
 #> 
 ```

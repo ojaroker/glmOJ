@@ -104,8 +104,15 @@ df <- data.frame(
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 result <- countGLM(y ~ x1, data = df)
+#> Note: zero-inflation component uses the same predictors as the count component (ziformula = NULL). Use `ziformula` to specify a different formula.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
 #> Warning: iteration limit reached
 #> Warning: iteration limit reached
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
 print(result)
 #> 
 #> Call:

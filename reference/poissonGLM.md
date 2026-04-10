@@ -111,6 +111,7 @@ df <- data.frame(
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 fit <- poissonGLM(y ~ x1, data = df)
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
 print(fit)
 #> 
 #> Call:

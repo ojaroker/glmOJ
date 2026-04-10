@@ -123,6 +123,8 @@ df <- data.frame(
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 fit <- zeroinflNegbinGLM(y ~ x1, data = df)
+#> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 6 zeros for 1 predictor(s) (6.0 per predictor). At least 10 zeros per ZI predictor is recommended.
 print(fit)
 #> 
 #> Call:
@@ -147,4 +149,5 @@ plot(fit)
 
 # Intercept-only zero component:
 fit2 <- zeroinflNegbinGLM(y ~ x1, data = df, ziformula = ~ 1)
+#> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
 ```
