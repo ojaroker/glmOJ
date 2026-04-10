@@ -198,7 +198,7 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     )
   } else {
     ic_msg <- sprintf(
-      "Note: AIC favours %s (AIC = %.2f) while BIC favours %s (BIC = %.2f). The simpler model (%s) was selected, but results should be interpreted with caution.",
+      "Note: AIC favors %s (AIC = %.2f) while BIC favors %s (BIC = %.2f). The simpler model (%s) was selected, but results should be interpreted with caution.",
       .model_label(best_aic_name), aic_table[best_aic_name],
       .model_label(best_bic_name), bic_table[best_bic_name],
       .model_label(best_name)

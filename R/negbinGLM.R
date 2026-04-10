@@ -67,6 +67,15 @@ negbinGLM <- function(formula, data, ...) {
   check_sample_size(formula, data)
   fit <- MASS::glm.nb(formula, data = data, ...)
 
+  # check zero inflation
+  zi_check <- check_zero_inflation(fit, "negbin")
+  if (isTRUE(zi_check$zero_inflation)) {
+    warning(sprintf(
+      "Observed zeros (%d) exceed expected zeros (%.1f); possible zero inflation (ratio = %.2f). Consider a zero-inflated model.",
+      zi_check$observed_zeros, zi_check$expected_zeros, zi_check$ratio
+    ), call. = FALSE)
+  }
+
   # Exponentiated coefficients with Wald 95% CIs
   est <- stats::coef(fit)
   ci  <- stats::confint.default(fit)

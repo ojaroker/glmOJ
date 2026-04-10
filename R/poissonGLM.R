@@ -59,40 +59,54 @@
 poissonGLM <- function(formula, data, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
-    "data must be a data frame"        = is.data.frame(data)
+    "data must be a data frame" = is.data.frame(data)
   )
 
   check_sample_size(formula, data)
   fit <- stats::glm(formula, data = data, family = stats::poisson(), ...)
 
+  # check zero inflation
+  zi_check <- check_zero_inflation(fit, "poisson")
+  if (isTRUE(zi_check$zero_inflation)) {
+    warning(
+      sprintf(
+        "Observed zeros (%d) exceed expected zeros (%.1f); possible zero inflation (ratio = %.2f). Consider a zero-inflated model.",
+        zi_check$observed_zeros,
+        zi_check$expected_zeros,
+        zi_check$ratio
+      ),
+      call. = FALSE
+    )
+  }
+
   # Exponentiated coefficients with Wald 95% CIs
   est <- stats::coef(fit)
-  ci  <- stats::confint.default(fit)
+  ci <- stats::confint.default(fit)
   coef_table <- data.frame(
-    term      = names(est),
-    exp.coef  = exp(est),
-    lower.95  = exp(ci[, 1L]),
-    upper.95  = exp(ci[, 2L]),
+    term = names(est),
+    exp.coef = exp(est),
+    lower.95 = exp(ci[, 1L]),
+    upper.95 = exp(ci[, 2L]),
     row.names = NULL,
     stringsAsFactors = FALSE
   )
 
-  rqr           <- compute_rqr(fit, "poisson")
+  rqr <- compute_rqr(fit, "poisson")
   pearson_resid <- residuals(fit, type = "pearson")
-  disp          <- check_dispersion(fit)
-  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
+  disp <- check_dispersion(fit)
+  diag_plots <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
 
   structure(
     list(
-      call         = match.call(),
-      model        = fit,
-      summary      = summary(fit),
+      call = match.call(),
+      model = fit,
+      summary = summary(fit),
       coefficients = coef_table,
-      diagnostics  = list(
-        rqr              = rqr,
+      diagnostics = list(
+        rqr = rqr,
         dispersion_ratio = disp,
-        plot             = diag_plots$rqr_plot,
-        r2_plot          = diag_plots$r2_plot
+        plot = diag_plots$rqr_plot,
+        r2_plot = diag_plots$r2_plot
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)

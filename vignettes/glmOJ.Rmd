@@ -285,6 +285,17 @@ structurally camera-free tracts alongside genuinely high-count commercial
 zones is exactly the setting where zero-inflated or overdispersed count
 models are needed.
 
+### 8. Poisson and Zero-Inflated Poisson
+
+```{r dahir-poisson}
+
+pois.cam<- poissonGLM(
+  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone + pop + hinc + pvac + mhmval + city + offset(log_road_length) + I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
+  data = Dahir25.dat
+)
+print(pois.cam)
+
+```
 ### 8. Automatic Model Selection with `countGLM`
 
 `countGLM()` fits all four count families and selects the best by AIC. Road
@@ -294,7 +305,12 @@ component as well — `countGLM` prints a note confirming this:
 
 ```{r dahir-countglm}
 result_cam <- countGLM(
-  cam_count ~ pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +
+  cam_count ~ pnhblk +
+    pnhwht +
+    total_crime_rate +
+    hinc +
+    pvac +
+    modal_zone +
     offset(log_road_length),
   data = Dahir25.dat
 )
