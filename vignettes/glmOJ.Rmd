@@ -73,7 +73,7 @@ summarizeCountData(
 We first fit a Poisson GLM with the Overall Environmental Quality Index and
 demographic/geographic controls.
 
-```{r poisson, cache = TRUE}
+```{r poisson}
 mod.pois <- poissonGLM(
   FinalEC ~ eqi_2jan2018_vc +
     pctnonwhite10 +
@@ -115,7 +115,7 @@ by the Poisson assumption.
 The negative binomial adds a free dispersion parameter $\theta$ to handle
 overdispersion.
 
-```{r negbin, cache = TRUE}
+```{r negbin}
 mod.nb <- negbinGLM(
   FinalEC ~ eqi_2jan2018_vc +
     pctnonwhite10 +
@@ -170,10 +170,15 @@ automatically.
 
 #### Overall EQI formula
 
-```{r countglm1, cache = TRUE}
+```{r countglm1}
 result1 <- countGLM(
-  FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro +
-            gdp2017b + fac_penalty_count + CIDDist + EPAregion,
+  FinalEC ~ eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
   data = Greenberg26.dat
 )
 print(result1)
@@ -188,12 +193,18 @@ The researchers also evaluated whether separate Water, Air, Land, and
 Socioeconomic indices were more informative than the composite Overall EQI.
 `countGLM` handles this in one call:
 
-```{r countglm2, cache = TRUE}
+```{r countglm2}
 result2 <- countGLM(
-  FinalEC ~ water_eqi_2jan2018_vc + land_eqi_2jan2018_vc +
-            air_eqi_2jan2018_vc  + sociod_eqi_2jan2018_vc +
-            pctnonwhite10 + metro + gdp2017b +
-            fac_penalty_count + CIDDist + EPAregion,
+  FinalEC ~ water_eqi_2jan2018_vc +
+    land_eqi_2jan2018_vc +
+    air_eqi_2jan2018_vc +
+    sociod_eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
   data = Greenberg26.dat
 )
 print(result2)

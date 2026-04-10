@@ -21,9 +21,13 @@
 #'       (`poisson`, `negbin`, `zeroinfl_poisson`, `zeroinfl_negbin`). Any
 #'       model that failed to converge is omitted.}
 #'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
-#'     \item{`best_model`}{Character name of the model with the lowest AIC.}
+#'     \item{`bic_table`}{A named numeric vector of BICs, sorted ascending.}
+#'     \item{`best_model`}{Character name of the selected model. When AIC and
+#'       BIC agree this is the jointly best model; when they disagree the
+#'       simpler of the two candidates is chosen.}
 #'     \item{`recommendation`}{A plain-language character string explaining
-#'       the selection, including dispersion and zero-inflation context.}
+#'       the selection, including dispersion, zero-inflation context, and a
+#'       note when AIC and BIC point to different models.}
 #'   }
 #'
 #' @details
@@ -83,16 +87,37 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
   }
 
   aics      <- vapply(fits, `[[`, numeric(1), "aic")
+  bics      <- vapply(fits, `[[`, numeric(1), "bic")
   aic_table <- sort(aics)
-  best_name <- names(which.min(aics))
+  bic_table <- sort(bics)
 
-  recommendation <- build_recommendation(fits, best_name, aic_table)
+  best_aic  <- names(which.min(aics))
+  best_bic  <- names(which.min(bics))
+
+  # Complexity order: simpler models have lower rank
+  complexity <- c(poisson = 1L, negbin = 2L,
+                  zeroinfl_poisson = 3L, zeroinfl_negbin = 4L)
+
+  if (best_aic == best_bic) {
+    best_name    <- best_aic
+    ic_agreement <- TRUE
+  } else {
+    # Disagreement — pick the simpler candidate
+    aic_rank  <- complexity[best_aic]
+    bic_rank  <- complexity[best_bic]
+    best_name <- if (aic_rank <= bic_rank) best_aic else best_bic
+    ic_agreement <- FALSE
+  }
+
+  recommendation <- build_recommendation(fits, best_name, aic_table, bic_table,
+                                         best_aic, best_bic, ic_agreement)
 
   structure(
     list(
       call           = match.call(),
       fits           = fits,
       aic_table      = aic_table,
+      bic_table      = bic_table,
       best_model     = best_name,
       recommendation = recommendation
     ),
@@ -104,8 +129,19 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
 # Internal: build plain-language recommendation string
 # ---------------------------------------------------------------------------
 
-build_recommendation <- function(fits, best_name, aic_table) {
-  disp_msg <- zi_msg <- ""
+.model_label <- function(name) {
+  switch(name,
+    poisson          = "Poisson",
+    negbin           = "Negative Binomial",
+    zeroinfl_poisson = "Zero-Inflated Poisson",
+    zeroinfl_negbin  = "Zero-Inflated Negative Binomial",
+    name
+  )
+}
+
+build_recommendation <- function(fits, best_name, aic_table, bic_table,
+                                  best_aic_name, best_bic_name, ic_agreement) {
+  disp_msg <- zi_msg <- ic_msg <- ""
 
   pois_fit <- fits[["poisson"]]
   if (!is.null(pois_fit)) {
@@ -146,21 +182,27 @@ build_recommendation <- function(fits, best_name, aic_table) {
     }
   }
 
-  best_aic <- aic_table[best_name]
-  model_label <- switch(best_name,
-    poisson          = "Poisson",
-    negbin           = "Negative Binomial",
-    zeroinfl_poisson = "Zero-Inflated Poisson",
-    zeroinfl_negbin  = "Zero-Inflated Negative Binomial",
-    best_name
-  )
+  if (ic_agreement) {
+    selection_msg <- sprintf(
+      "%s was selected — both AIC (%.2f) and BIC (%.2f) agree.",
+      .model_label(best_name),
+      aic_table[best_name],
+      bic_table[best_name]
+    )
+  } else {
+    ic_msg <- sprintf(
+      "Note: AIC favours %s (AIC = %.2f) while BIC favours %s (BIC = %.2f). The simpler model (%s) was selected, but results should be interpreted with caution.",
+      .model_label(best_aic_name), aic_table[best_aic_name],
+      .model_label(best_bic_name), bic_table[best_bic_name],
+      .model_label(best_name)
+    )
+    selection_msg <- sprintf(
+      "%s was selected as the simpler of the two candidates.",
+      .model_label(best_name)
+    )
+  }
 
-  selection_msg <- sprintf(
-    "%s was selected by AIC (AIC = %.2f).",
-    model_label, best_aic
-  )
-
-  parts <- c(selection_msg, disp_msg, zi_msg)
+  parts <- c(selection_msg, ic_msg, disp_msg, zi_msg)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }

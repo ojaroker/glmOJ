@@ -132,13 +132,20 @@ coef.zeroinflGLMfit <- function(object, component = c("count", "zero"), ...) {
 print.countGLM <- function(x, digits = 4, ...) {
   cat("\nCall:\n")
   print(x$call)
-  cat("\nAIC comparison:\n")
-  aic_df <- data.frame(
-    model = names(x$aic_table),
-    AIC   = round(x$aic_table, 2),
+
+  # Merge AIC and BIC into one table, sorted by AIC
+  all_models <- union(names(x$aic_table), names(x$bic_table))
+  ic_df <- data.frame(
+    model = all_models,
+    AIC   = round(x$aic_table[all_models], 2),
+    BIC   = round(x$bic_table[all_models], 2),
     row.names = NULL
   )
-  print(aic_df, row.names = FALSE)
+  ic_df <- ic_df[order(ic_df$AIC), ]
+
+  cat("\nModel comparison (sorted by AIC):\n")
+  print(ic_df, row.names = FALSE)
+
   cat(sprintf("\nSelected model: %s\n", x$best_model))
   cat("\nRecommendation:\n")
   cat(strwrap(x$recommendation, width = 72, prefix = "  "), sep = "\n")

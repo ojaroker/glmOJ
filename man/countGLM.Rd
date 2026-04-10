@@ -27,9 +27,13 @@ An object of class \code{"countGLM"}, a list with:
 (\code{poisson}, \code{negbin}, \code{zeroinfl_poisson}, \code{zeroinfl_negbin}). Any
 model that failed to converge is omitted.}
 \item{\code{aic_table}}{A named numeric vector of AICs, sorted ascending.}
-\item{\code{best_model}}{Character name of the model with the lowest AIC.}
+\item{\code{bic_table}}{A named numeric vector of BICs, sorted ascending.}
+\item{\code{best_model}}{Character name of the selected model. When AIC and
+BIC agree this is the jointly best model; when they disagree the
+simpler of the two candidates is chosen.}
 \item{\code{recommendation}}{A plain-language character string explaining
-the selection, including dispersion and zero-inflation context.}
+the selection, including dispersion, zero-inflation context, and a
+note when AIC and BIC point to different models.}
 }
 }
 \description{
