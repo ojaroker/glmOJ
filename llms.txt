@@ -151,11 +151,18 @@ dispersion ratio, and a two-panel diagnostic plot.
 
 ## Model Selection
 
-Fit all four model families and select the best by AIC, with
+Fit all four model families and select the best by AIC and BIC, with
 plain-language diagnostics to guide interpretation.
 
 - [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md) :
   Fit and compare count regression models
+
+## Interpretation
+
+Natural-language interpretation of model coefficients.
+
+- [`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
+  : Interpret a model coefficient in natural language
 
 # Articles
 

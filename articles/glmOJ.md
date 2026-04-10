@@ -137,7 +137,7 @@ mod.pois$diagnostics$r2_plot
 The wedge shape confirms the mean-variance relationship is not well
 captured by the Poisson assumption.
 
-### 3. Negative Binomial Regression (Model 1b)
+### 3. Negative Binomial Regression
 
 The negative binomial adds a free dispersion parameter $\theta$ to
 handle overdispersion.
@@ -221,14 +221,58 @@ lmtest::lrtest(mod.pois$model, mod.nb$model)
 The negative binomial model is significantly better ($p < 0.0001$),
 confirming that overdispersion is a genuine problem for the Poisson fit.
 
-### 5. Poisson Regression with Specific Quality Indices
+### 5. Using the `countGLM` Wrapper
+
+Rather than fitting each model manually,
+[`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
+fits all four families at once and selects the best by AIC — arriving at
+the same conclusion automatically.
+
+#### Overall EQI formula
+
+``` r
+result1 <- countGLM(
+  FinalEC ~ eqi_2jan2018_vc +
+    pctnonwhite10 +
+    metro +
+    gdp2017b +
+    fac_penalty_count +
+    CIDDist +
+    EPAregion,
+  data = Greenberg26.dat
+)
+print(result1)
+#> 
+#> Call:
+#> countGLM(formula = FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + 
+#>     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, 
+#>     data = Greenberg26.dat)
+#> 
+#> Model comparison (sorted by AIC):
+#>    model     AIC    BIC
+#>   negbin 2964.32 3066.9
+#>  poisson 3179.45 3276.0
+#> 
+#> Selected model: negbin
+#> 
+#> Recommendation:
+#>   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)
+#>   agree. The Poisson dispersion ratio is 1.62 (> 1.5), indicating
+#>   overdispersion. The zero count (observed: 2654, expected: 2558.7) is
+#>   consistent with a standard count model.
+```
+
+The wrapper selects the same winner as the manual LRT. Individual fits
+remain accessible: `result1$fits$negbin`, `result1$fits$poisson`, etc.
+
+#### Sub-index formula
 
 The researchers also evaluated whether separate Water, Air, Land, and
 Socioeconomic indices were more informative than the composite Overall
-EQI.
+EQI. `countGLM` handles this in one call:
 
 ``` r
-mod.pois2 <- poissonGLM(
+result2 <- countGLM(
   FinalEC ~ water_eqi_2jan2018_vc +
     land_eqi_2jan2018_vc +
     air_eqi_2jan2018_vc +
@@ -241,38 +285,78 @@ mod.pois2 <- poissonGLM(
     EPAregion,
   data = Greenberg26.dat
 )
-
-mod.pois2$diagnostics$plot
+print(result2)
+#> 
+#> Call:
+#> countGLM(formula = FinalEC ~ water_eqi_2jan2018_vc + land_eqi_2jan2018_vc + 
+#>     air_eqi_2jan2018_vc + sociod_eqi_2jan2018_vc + pctnonwhite10 + 
+#>     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, 
+#>     data = Greenberg26.dat)
+#> 
+#> Model comparison (sorted by AIC):
+#>    model     AIC     BIC
+#>   negbin 2953.72 3074.41
+#>  poisson 3144.98 3259.64
+#> 
+#> Selected model: negbin
+#> 
+#> Recommendation:
+#>   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)
+#>   agree. The Poisson dispersion ratio is 1.49, consistent with
+#>   equidispersion. The zero count (observed: 2654, expected: 2565.5) is
+#>   consistent with a standard count model.
 ```
 
-![](glmOJ_files/figure-html/pois2-1.png)
+Again the negative binomial is selected. The non-nested comparison
+between these two winning models (overall EQI vs sub-indices) can be
+done with a Vuong test via
+`nonnest2::vuongtest(result1$fits$negbin$model, result2$fits$negbin$model)`.
 
-Dispersion ratio: 1.495 — again flagging overdispersion.
+------------------------------------------------------------------------
 
-### 6. Negative Binomial with Specific Quality Indices
+## 6. Coefficient Interpretation
+
+[`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
+translates any exponentiated coefficient into a plain-language
+statement, with a 95% CI and an automatic note when the predictor is not
+discernible from zero (p \> 0.05).
+
+#### Significant predictor
 
 ``` r
-mod.nb2 <- negbinGLM(
-  FinalEC ~ water_eqi_2jan2018_vc +
-    land_eqi_2jan2018_vc +
-    air_eqi_2jan2018_vc +
-    sociod_eqi_2jan2018_vc +
-    pctnonwhite10 +
-    metro +
-    gdp2017b +
-    fac_penalty_count +
-    CIDDist +
-    EPAregion,
-  data = Greenberg26.dat,
-  control = stats::glm.control(maxit = 100)
-)
-
-mod.nb2$diagnostics$plot
+interpret_coef(mod.nb, "pctnonwhite10")
+#> Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).
 ```
 
-![](glmOJ_files/figure-html/nb2-1.png)
+#### Non-significant predictor
 
-Dispersion ratio: 1.029.
+``` r
+interpret_coef(mod.nb, "eqi_2jan2018_vc")
+#> Holding all other predictors constant, a one-unit increase in eqi_2jan2018_vc is associated with a 1.2% decrease in the expected count of FinalEC (exp(β) = 0.988, 95% CI: [0.859, 1.135]).
+#> Note: this coefficient is not discernibly different from zero (p = 0.861).
+```
+
+The note about discernibility is added automatically.
+
+#### Using with `countGLM`
+
+Pass the `countGLM` result directly — it delegates to the best-fitting
+model:
+
+``` r
+interpret_coef(result2, "pctnonwhite10")
+#> Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).
+```
+
+#### Zero-inflated models: specifying the component
+
+For zero-inflated models, use `component = "count"` (default) or
+`component = "zero"`:
+
+``` r
+interpret_coef(zi_fit, "pctnonwhite10", component = "count")
+interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
+```
 
 ------------------------------------------------------------------------
 

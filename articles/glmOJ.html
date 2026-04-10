@@ -196,7 +196,7 @@ captured by the Poisson assumption.</p>
 </div>
 </div>
 <div class="section level3">
-<h3 id="negative-binomial-regression-model-1b">3. Negative Binomial Regression (Model 1b)<a class="anchor" aria-label="anchor" href="#negative-binomial-regression-model-1b"></a>
+<h3 id="negative-binomial-regression">3. Negative Binomial Regression<a class="anchor" aria-label="anchor" href="#negative-binomial-regression"></a>
 </h3>
 <p>The negative binomial adds a free dispersion parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
@@ -278,13 +278,56 @@ confirming that overdispersion is a genuine problem for the Poisson
 fit.</p>
 </div>
 <div class="section level3">
-<h3 id="poisson-regression-with-specific-quality-indices">5. Poisson Regression with Specific Quality Indices<a class="anchor" aria-label="anchor" href="#poisson-regression-with-specific-quality-indices"></a>
+<h3 id="using-the-countglm-wrapper">5. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
 </h3>
+<p>Rather than fitting each model manually, <code><a href="../reference/countGLM.html">countGLM()</a></code> fits
+all four families at once and selects the best by AIC — arriving at the
+same conclusion automatically.</p>
+<div class="section level4">
+<h4 id="overall-eqi-formula">Overall EQI formula<a class="anchor" aria-label="anchor" href="#overall-eqi-formula"></a>
+</h4>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
+<span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span></span>
+<span>    <span class="va">pctnonwhite10</span> <span class="op">+</span></span>
+<span>    <span class="va">metro</span> <span class="op">+</span></span>
+<span>    <span class="va">gdp2017b</span> <span class="op">+</span></span>
+<span>    <span class="va">fac_penalty_count</span> <span class="op">+</span></span>
+<span>    <span class="va">CIDDist</span> <span class="op">+</span></span>
+<span>    <span class="va">EPAregion</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; countGLM(formula = FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + </span></span>
+<span><span class="co">#&gt;     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, </span></span>
+<span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model comparison (sorted by AIC):</span></span>
+<span><span class="co">#&gt;    model     AIC    BIC</span></span>
+<span><span class="co">#&gt;   negbin 2964.32 3066.9</span></span>
+<span><span class="co">#&gt;  poisson 3179.45 3276.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Selected model: negbin</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Recommendation:</span></span>
+<span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)</span></span>
+<span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.62 (&gt; 1.5), indicating</span></span>
+<span><span class="co">#&gt;   overdispersion. The zero count (observed: 2654, expected: 2558.7) is</span></span>
+<span><span class="co">#&gt;   consistent with a standard count model.</span></span></code></pre></div>
+<p>The wrapper selects the same winner as the manual LRT. Individual
+fits remain accessible: <code>result1$fits$negbin</code>,
+<code>result1$fits$poisson</code>, etc.</p>
+</div>
+<div class="section level4">
+<h4 id="sub-index-formula">Sub-index formula<a class="anchor" aria-label="anchor" href="#sub-index-formula"></a>
+</h4>
 <p>The researchers also evaluated whether separate Water, Air, Land, and
 Socioeconomic indices were more informative than the composite Overall
-EQI.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mod.pois2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
+EQI. <code>countGLM</code> handles this in one call:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">water_eqi_2jan2018_vc</span> <span class="op">+</span></span>
 <span>    <span class="va">land_eqi_2jan2018_vc</span> <span class="op">+</span></span>
 <span>    <span class="va">air_eqi_2jan2018_vc</span> <span class="op">+</span></span>
@@ -297,33 +340,74 @@ EQI.</p>
 <span>    <span class="va">EPAregion</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">mod.pois2</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="glmOJ_files/figure-html/pois2-1.png" class="r-plt" alt="" width="768"></p>
-<p>Dispersion ratio: 1.495 — again flagging overdispersion.</p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; countGLM(formula = FinalEC ~ water_eqi_2jan2018_vc + land_eqi_2jan2018_vc + </span></span>
+<span><span class="co">#&gt;     air_eqi_2jan2018_vc + sociod_eqi_2jan2018_vc + pctnonwhite10 + </span></span>
+<span><span class="co">#&gt;     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, </span></span>
+<span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model comparison (sorted by AIC):</span></span>
+<span><span class="co">#&gt;    model     AIC     BIC</span></span>
+<span><span class="co">#&gt;   negbin 2953.72 3074.41</span></span>
+<span><span class="co">#&gt;  poisson 3144.98 3259.64</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Selected model: negbin</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Recommendation:</span></span>
+<span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)</span></span>
+<span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.49, consistent with</span></span>
+<span><span class="co">#&gt;   equidispersion. The zero count (observed: 2654, expected: 2565.5) is</span></span>
+<span><span class="co">#&gt;   consistent with a standard count model.</span></span></code></pre></div>
+<p>Again the negative binomial is selected. The non-nested comparison
+between these two winning models (overall EQI vs sub-indices) can be
+done with a Vuong test via
+<code>nonnest2::vuongtest(result1$fits$negbin$model, result2$fits$negbin$model)</code>.</p>
+<hr>
 </div>
-<div class="section level3">
-<h3 id="negative-binomial-with-specific-quality-indices">6. Negative Binomial with Specific Quality Indices<a class="anchor" aria-label="anchor" href="#negative-binomial-with-specific-quality-indices"></a>
-</h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mod.nb2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/negbinGLM.html">negbinGLM</a></span><span class="op">(</span></span>
-<span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">water_eqi_2jan2018_vc</span> <span class="op">+</span></span>
-<span>    <span class="va">land_eqi_2jan2018_vc</span> <span class="op">+</span></span>
-<span>    <span class="va">air_eqi_2jan2018_vc</span> <span class="op">+</span></span>
-<span>    <span class="va">sociod_eqi_2jan2018_vc</span> <span class="op">+</span></span>
-<span>    <span class="va">pctnonwhite10</span> <span class="op">+</span></span>
-<span>    <span class="va">metro</span> <span class="op">+</span></span>
-<span>    <span class="va">gdp2017b</span> <span class="op">+</span></span>
-<span>    <span class="va">fac_penalty_count</span> <span class="op">+</span></span>
-<span>    <span class="va">CIDDist</span> <span class="op">+</span></span>
-<span>    <span class="va">EPAregion</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span>,</span>
-<span>  control <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/glm.control.html" class="external-link">glm.control</a></span><span class="op">(</span>maxit <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">mod.nb2</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="glmOJ_files/figure-html/nb2-1.png" class="r-plt" alt="" width="768"></p>
-<p>Dispersion ratio: 1.029.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="coefficient-interpretation">6. Coefficient Interpretation<a class="anchor" aria-label="anchor" href="#coefficient-interpretation"></a>
+</h2>
+<p><code><a href="../reference/interpret_coef.html">interpret_coef()</a></code> translates any exponentiated
+coefficient into a plain-language statement, with a 95% CI and an
+automatic note when the predictor is not discernible from zero (p &gt;
+0.05).</p>
+<div class="section level4">
+<h4 id="significant-predictor">Significant predictor<a class="anchor" aria-label="anchor" href="#significant-predictor"></a>
+</h4>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">mod.nb</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="non-significant-predictor">Non-significant predictor<a class="anchor" aria-label="anchor" href="#non-significant-predictor"></a>
+</h4>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">mod.nb</span>, <span class="st">"eqi_2jan2018_vc"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in eqi_2jan2018_vc is associated with a 1.2% decrease in the expected count of FinalEC (exp(β) = 0.988, 95% CI: [0.859, 1.135]).</span></span>
+<span><span class="co">#&gt; Note: this coefficient is not discernibly different from zero (p = 0.861).</span></span></code></pre></div>
+<p>The note about discernibility is added automatically.</p>
+</div>
+<div class="section level4">
+<h4 id="using-with-countglm">Using with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#using-with-countglm"></a>
+</h4>
+<p>Pass the <code>countGLM</code> result directly — it delegates to the
+best-fitting model:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result2</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="zero-inflated-models-specifying-the-component">Zero-inflated models: specifying the component<a class="anchor" aria-label="anchor" href="#zero-inflated-models-specifying-the-component"></a>
+</h4>
+<p>For zero-inflated models, use <code>component = "count"</code>
+(default) or <code>component = "zero"</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">zi_fit</span>, <span class="st">"pctnonwhite10"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">zi_fit</span>, <span class="st">"pctnonwhite10"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>

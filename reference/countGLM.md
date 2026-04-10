@@ -53,14 +53,21 @@ An object of class `"countGLM"`, a list with:
 
   A named numeric vector of AICs, sorted ascending.
 
+- `bic_table`:
+
+  A named numeric vector of BICs, sorted ascending.
+
 - `best_model`:
 
-  Character name of the model with the lowest AIC.
+  Character name of the selected model. When AIC and BIC agree this is
+  the jointly best model; when they disagree the simpler of the two
+  candidates is chosen.
 
 - `recommendation`:
 
   A plain-language character string explaining the selection, including
-  dispersion and zero-inflation context.
+  dispersion, zero-inflation context, and a note when AIC and BIC point
+  to different models.
 
 ## Details
 
@@ -104,20 +111,20 @@ print(result)
 #> Call:
 #> countGLM(formula = y ~ x1, data = df)
 #> 
-#> AIC comparison:
-#>             model   AIC
-#>           poisson 39.02
-#>            negbin 41.02
-#>  zeroinfl_poisson 41.43
-#>   zeroinfl_negbin 43.43
+#> Model comparison (sorted by AIC):
+#>             model   AIC   BIC
+#>           poisson 39.02 39.63
+#>            negbin 41.02 41.93
+#>  zeroinfl_poisson 41.43 42.64
+#>   zeroinfl_negbin 43.43 44.94
 #> 
 #> Selected model: poisson
 #> 
 #> Recommendation:
-#>   Poisson was selected by AIC (AIC = 39.02). The Poisson dispersion
-#>   ratio is 1.17, consistent with equidispersion. There are 1.4x more
-#>   zeros than expected under Poisson (observed: 2, expected: 1.4),
-#>   suggesting zero-inflation.
+#>   Poisson was selected — both AIC (39.02) and BIC (39.63) agree. The
+#>   Poisson dispersion ratio is 1.17, consistent with equidispersion.
+#>   There are 1.4x more zeros than expected under Poisson (observed: 2,
+#>   expected: 1.4), suggesting zero-inflation.
 #> 
 summary(result)
 #> Summary of selected model (poisson):

@@ -86,12 +86,18 @@ model that failed to converge is omitted.</p></dd>
 <dt><code>aic_table</code></dt>
 <dd><p>A named numeric vector of AICs, sorted ascending.</p></dd>
 
+<dt><code>bic_table</code></dt>
+<dd><p>A named numeric vector of BICs, sorted ascending.</p></dd>
+
 <dt><code>best_model</code></dt>
-<dd><p>Character name of the model with the lowest AIC.</p></dd>
+<dd><p>Character name of the selected model. When AIC and
+BIC agree this is the jointly best model; when they disagree the
+simpler of the two candidates is chosen.</p></dd>
 
 <dt><code>recommendation</code></dt>
 <dd><p>A plain-language character string explaining
-the selection, including dispersion and zero-inflation context.</p></dd>
+the selection, including dispersion, zero-inflation context, and a
+note when AIC and BIC point to different models.</p></dd>
 
 
 </dl></div>
@@ -127,20 +133,20 @@ support <code><a href="https://rdrr.io/r/base/print.html" class="external-link">
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> countGLM(formula = y ~ x1, data = df)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AIC comparison:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             model   AIC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           poisson 39.02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            negbin 41.02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  zeroinfl_poisson 41.43</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   zeroinfl_negbin 43.43</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Model comparison (sorted by AIC):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             model   AIC   BIC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           poisson 39.02 39.63</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            negbin 41.02 41.93</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  zeroinfl_poisson 41.43 42.64</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zeroinfl_negbin 43.43 44.94</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Selected model: poisson</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Recommendation:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Poisson was selected by AIC (AIC = 39.02). The Poisson dispersion</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ratio is 1.17, consistent with equidispersion. There are 1.4x more</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   zeros than expected under Poisson (observed: 2, expected: 1.4),</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   suggesting zero-inflation.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Poisson was selected — both AIC (39.02) and BIC (39.63) agree. The</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Poisson dispersion ratio is 1.17, consistent with equidispersion.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   There are 1.4x more zeros than expected under Poisson (observed: 2,</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   expected: 1.4), suggesting zero-inflation.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary of selected model (poisson):</span>
