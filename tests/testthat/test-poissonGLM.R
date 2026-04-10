@@ -25,20 +25,21 @@ test_that("poissonGLM returns correct classes", {
   expect_s3_class(fit, "countGLMfit")
 })
 
-test_that("poissonGLM returns correct slot names", {
+test_that("poissonGLM returns correct slot names in correct order", {
   fit <- poissonGLM(y ~ x1, data = df_pois)
-  expect_named(fit, c("call", "model", "coefficients", "diagnostics", "aic"))
+  expect_named(fit, c("call", "model", "summary", "coefficients",
+                       "diagnostics", "aic", "bic"))
 })
 
 test_that("poissonGLM diagnostics has correct names", {
   fit <- poissonGLM(y ~ x1, data = df_pois)
-  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot"))
+  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
 })
 
 test_that("poissonGLM exp.coef matches manual glm exponentiated coefficients", {
-  fit     <- poissonGLM(y ~ x1, data = df_pois)
-  manual  <- exp(stats::coef(stats::glm(y ~ x1, data = df_pois,
-                                         family = stats::poisson())))
+  fit    <- poissonGLM(y ~ x1, data = df_pois)
+  manual <- exp(stats::coef(stats::glm(y ~ x1, data = df_pois,
+                                        family = stats::poisson())))
   expect_equal(fit$coefficients$exp.coef, unname(manual), tolerance = 1e-6)
 })
 
@@ -63,10 +64,31 @@ test_that("poissonGLM diagnostic plot inherits gg", {
   expect_s3_class(fit$diagnostics$plot, "gg")
 })
 
+test_that("poissonGLM r2_plot is a ggplot object", {
+  fit <- poissonGLM(y ~ x1, data = df_pois)
+  expect_s3_class(fit$diagnostics$r2_plot, "ggplot")
+})
+
+test_that("poissonGLM summary is a list (glm summary object)", {
+  fit <- poissonGLM(y ~ x1, data = df_pois)
+  expect_type(fit$summary, "list")
+})
+
 test_that("poissonGLM aic is numeric scalar", {
   fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(fit$aic, "double")
   expect_length(fit$aic, 1L)
+})
+
+test_that("poissonGLM bic is numeric scalar", {
+  fit <- poissonGLM(y ~ x1, data = df_pois)
+  expect_type(fit$bic, "double")
+  expect_length(fit$bic, 1L)
+})
+
+test_that("poissonGLM bic >= aic (BIC penalises more heavily)", {
+  fit <- poissonGLM(y ~ x1, data = df_pois)
+  expect_gte(fit$bic, fit$aic)
 })
 
 test_that("print.poissonGLM does not error", {

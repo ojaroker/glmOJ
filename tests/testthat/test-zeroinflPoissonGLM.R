@@ -37,9 +37,9 @@ test_that("zeroinflPoissonGLM returns correct classes", {
   expect_s3_class(fit, "countGLMfit")
 })
 
-test_that("zeroinflPoissonGLM returns correct slot names", {
+test_that("zeroinflPoissonGLM returns correct slot names in correct order", {
   fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
-  expect_named(fit, c("call", "model", "coefficients", "diagnostics", "aic"))
+  expect_named(fit, c("call", "model", "summary", "coefficients", "diagnostics", "aic", "bic"))
 })
 
 test_that("zeroinflPoissonGLM coefficients is a list with count and zero", {
@@ -65,7 +65,7 @@ test_that("zeroinflPoissonGLM with ziformula = ~ 1 gives 1-row zero table", {
 
 test_that("zeroinflPoissonGLM diagnostics has correct names", {
   fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
-  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot"))
+  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
 })
 
 test_that("zeroinflPoissonGLM dispersion_ratio is numeric scalar", {
@@ -82,6 +82,33 @@ test_that("zeroinflPoissonGLM rqr has length equal to nrow(data)", {
 test_that("zeroinflPoissonGLM diagnostic plot inherits gg", {
   fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
   expect_s3_class(fit$diagnostics$plot, "gg")
+})
+
+test_that("zeroinflPoissonGLM r2_plot is a ggplot object", {
+  fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
+  expect_s3_class(fit$diagnostics$r2_plot, "ggplot")
+})
+
+test_that("zeroinflPoissonGLM summary is a list", {
+  fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
+  expect_type(fit$summary, "list")
+})
+
+test_that("zeroinflPoissonGLM aic is numeric scalar", {
+  fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
+  expect_type(fit$aic, "double")
+  expect_length(fit$aic, 1L)
+})
+
+test_that("zeroinflPoissonGLM bic is numeric scalar", {
+  fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
+  expect_type(fit$bic, "double")
+  expect_length(fit$bic, 1L)
+})
+
+test_that("zeroinflPoissonGLM bic >= aic (BIC penalises more heavily)", {
+  fit <- zeroinflPoissonGLM(y ~ x1, data = df_zip)
+  expect_gte(fit$bic, fit$aic)
 })
 
 test_that("print.zeroinflPoissonGLM does not error", {

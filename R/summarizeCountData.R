@@ -2,14 +2,14 @@
 #'
 #' Produces a numerical and graphical summary of a count response variable,
 #' with the plot automatically adapting to the number and type of predictors
-#' in the formula.
+#' in the formula. A pairs plot is always returned alongside the main plot.
 #'
 #' @param formula A formula of the form \code{y ~ x1 + x2 + ...} where \code{y}
 #'   is a non-negative integer count response. Offsets via \code{offset()} are
 #'   supported.
 #' @param data A data frame containing the variables in \code{formula}.
 #'
-#' @return A named list with three elements:
+#' @return A named list with four elements:
 #' \describe{
 #'   \item{summary}{A one-row \code{data.frame} containing:
 #'     \code{mean}, \code{var}, \code{var_mean_ratio}, \code{n_zero},
@@ -18,6 +18,10 @@
 #'     giving the frequency of each observed count value.}
 #'   \item{plot}{A \code{ggplot} object. The plot type depends on the number
 #'     and type of predictors — see Details.}
+#'   \item{pairs_plot}{A \code{ggpairs} object showing all pairwise
+#'     relationships among the response and all predictors. The response is
+#'     treated as continuous when it has more than 10 unique values, and as
+#'     categorical (factor) otherwise.}
 #' }
 #'
 #' @details
@@ -32,7 +36,8 @@
 #'   \item{One continuous, one categorical predictor}{Scatter plot with loess
 #'     smooths coloured by the categorical variable.}
 #'   \item{Three or more predictors}{A warning is issued and only the first
-#'     two predictors are used.}
+#'     two predictors are used for the main plot. The pairs plot includes all
+#'     predictors.}
 #' }
 #'
 #' The \code{var_mean_ratio} in the summary table is the variance-to-mean
@@ -108,10 +113,18 @@ summarizeCountData = function(formula, data) {
 
   p = plot_count_data(y, mf, pred_vars, pred_types)
 
+  # Pairs plot: treat response as continuous if >10 unique values, else factor
+  n_unique_y <- length(unique(y))
+  y_pairs    <- if (n_unique_y > 10) y else factor(y)
+  df_pairs   <- data.frame(y = y_pairs, mf[pred_vars])
+  names(df_pairs)[1] <- resp_name
+  pairs_p <- GGally::ggpairs(df_pairs)
+
   list(
-    summary = summary_table,
-    counts = count_table,
-    plot = p
+    summary    = summary_table,
+    counts     = count_table,
+    plot       = p,
+    pairs_plot = pairs_p
   )
 }
 
@@ -200,7 +213,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
     }
   } else {
     # 3+ predictors — use first two and warn
-    warning("More than 2 predictors — plotting first two only")
+    warning("More than 2 predictors — plotting first two only (see pairs_plot for all)")
     return(plot_count_data(y, mf, pred_vars[1:2], pred_types[1:2]))
   }
 

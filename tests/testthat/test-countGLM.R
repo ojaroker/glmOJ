@@ -34,7 +34,7 @@ test_that("countGLM returns class 'countGLM'", {
 
 test_that("countGLM returns correct slot names", {
   result <- countGLM(y ~ x1, data = df_cglm)
-  expect_named(result, c("call", "fits", "aic_table", "best_model", "recommendation"))
+  expect_named(result, c("call", "fits", "aic_table", "bic_table", "best_model", "recommendation"))
 })
 
 test_that("countGLM best_model is one of the four valid names", {
@@ -48,6 +48,13 @@ test_that("countGLM aic_table is a named numeric vector of length <= 4", {
   expect_type(result$aic_table, "double")
   expect_lte(length(result$aic_table), 4L)
   expect_false(is.null(names(result$aic_table)))
+})
+
+test_that("countGLM bic_table is a named numeric vector of length <= 4", {
+  result <- countGLM(y ~ x1, data = df_cglm)
+  expect_type(result$bic_table, "double")
+  expect_lte(length(result$bic_table), 4L)
+  expect_false(is.null(names(result$bic_table)))
 })
 
 test_that("countGLM recommendation is a non-empty character string", {

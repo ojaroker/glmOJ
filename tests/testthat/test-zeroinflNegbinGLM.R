@@ -37,9 +37,10 @@ test_that("zeroinflNegbinGLM returns correct classes", {
   expect_s3_class(fit, "countGLMfit")
 })
 
-test_that("zeroinflNegbinGLM returns correct slot names", {
+test_that("zeroinflNegbinGLM returns correct slot names in correct order", {
   fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
-  expect_named(fit, c("call", "model", "theta", "coefficients", "diagnostics", "aic"))
+  expect_named(fit, c("call", "model", "summary", "theta", "coefficients",
+                       "diagnostics", "aic", "bic"))
 })
 
 test_that("zeroinflNegbinGLM coefficients is a list with count and zero", {
@@ -71,7 +72,7 @@ test_that("zeroinflNegbinGLM with ziformula = ~ 1 gives 1-row zero table", {
 
 test_that("zeroinflNegbinGLM diagnostics has correct names", {
   fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
-  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot"))
+  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
 })
 
 test_that("zeroinflNegbinGLM dispersion_ratio is numeric scalar", {
@@ -88,6 +89,33 @@ test_that("zeroinflNegbinGLM rqr has length equal to nrow(data)", {
 test_that("zeroinflNegbinGLM diagnostic plot inherits gg", {
   fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
   expect_s3_class(fit$diagnostics$plot, "gg")
+})
+
+test_that("zeroinflNegbinGLM r2_plot is a ggplot object", {
+  fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
+  expect_s3_class(fit$diagnostics$r2_plot, "ggplot")
+})
+
+test_that("zeroinflNegbinGLM summary is a list", {
+  fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
+  expect_type(fit$summary, "list")
+})
+
+test_that("zeroinflNegbinGLM aic is numeric scalar", {
+  fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
+  expect_type(fit$aic, "double")
+  expect_length(fit$aic, 1L)
+})
+
+test_that("zeroinflNegbinGLM bic is numeric scalar", {
+  fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
+  expect_type(fit$bic, "double")
+  expect_length(fit$bic, 1L)
+})
+
+test_that("zeroinflNegbinGLM bic >= aic (BIC penalises more heavily)", {
+  fit <- zeroinflNegbinGLM(y ~ x1, data = df_zinb)
+  expect_gte(fit$bic, fit$aic)
 })
 
 test_that("print.zeroinflNegbinGLM does not error", {
