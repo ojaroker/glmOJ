@@ -19,89 +19,76 @@ df_nb <- data.frame(
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 
+# Fit once; small dataset may hit glm.nb iteration cap — suppress expected warnings
+fit <- suppressWarnings(negbinGLM(y ~ x1, data = df_nb))
+
 test_that("negbinGLM returns correct classes", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_s3_class(fit, "negbinGLM")
   expect_s3_class(fit, "countGLMfit")
 })
 
 test_that("negbinGLM returns correct slot names in correct order", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_named(fit, c("call", "model", "summary", "theta", "coefficients",
                        "diagnostics", "aic", "bic"))
 })
 
 test_that("negbinGLM diagnostics has correct names", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
 })
 
 test_that("negbinGLM exp.coef matches manual MASS::glm.nb exponentiated coefficients", {
-  fit    <- negbinGLM(y ~ x1, data = df_nb)
-  manual <- exp(stats::coef(MASS::glm.nb(y ~ x1, data = df_nb)))
+  manual <- exp(stats::coef(suppressWarnings(MASS::glm.nb(y ~ x1, data = df_nb))))
   expect_equal(fit$coefficients$exp.coef, unname(manual), tolerance = 1e-6)
 })
 
 test_that("negbinGLM coefficients has correct columns", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95"))
 })
 
 test_that("negbinGLM theta is positive numeric", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(fit$theta, "double")
   expect_gt(fit$theta, 0)
 })
 
 test_that("negbinGLM dispersion_ratio is numeric scalar", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(fit$diagnostics$dispersion_ratio, "double")
   expect_length(fit$diagnostics$dispersion_ratio, 1L)
 })
 
 test_that("negbinGLM rqr has length equal to nrow(data)", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_length(fit$diagnostics$rqr, nrow(df_nb))
 })
 
 test_that("negbinGLM diagnostic plot inherits gg", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_s3_class(fit$diagnostics$plot, "gg")
 })
 
 test_that("negbinGLM r2_plot is a ggplot object", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_s3_class(fit$diagnostics$r2_plot, "ggplot")
 })
 
 test_that("negbinGLM summary is a list (glm.nb summary object)", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(fit$summary, "list")
 })
 
 test_that("negbinGLM aic is numeric scalar", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(fit$aic, "double")
   expect_length(fit$aic, 1L)
 })
 
 test_that("negbinGLM bic is numeric scalar", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(fit$bic, "double")
   expect_length(fit$bic, 1L)
 })
 
 test_that("negbinGLM bic >= aic (BIC penalises more heavily)", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_gte(fit$bic, fit$aic)
 })
 
 test_that("print.negbinGLM does not error", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_no_error(print(fit))
 })
 
 test_that("summary.negbinGLM returns a list", {
-  fit <- negbinGLM(y ~ x1, data = df_nb)
   expect_type(summary(fit), "list")
 })

@@ -64,7 +64,14 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
       is.null(ziformula) || inherits(ziformula, "formula")
   )
 
-  # Fit all four models, capturing any failures 
+  if (is.null(ziformula)) {
+    message(
+      "Note: zero-inflation component uses the same predictors as the count ",
+      "component (ziformula = NULL). Use `ziformula` to specify a different formula."
+    )
+  }
+
+  # Fit all four models, capturing any failures
   fits <- list(
     poisson          = tryCatch(poissonGLM(formula, data, ...),
                                 error = function(e) e),

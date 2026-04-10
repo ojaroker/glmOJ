@@ -1,6 +1,50 @@
 # Internal diagnostic helpers for count regression models
 # Not exported — used by poissonGLM, negbinGLM, zeroinflPoissonGLM, zeroinflNegbinGLM
 
+#' Check minimum events-per-predictor for count (and ZI) components
+#'
+#' Issues a warning when the number of non-zero observations falls below
+#' 10 per predictor in the count component, or the number of zeros falls below
+#' 10 per predictor in the zero-inflation component.
+#'
+#' @param formula The count model formula (response on the left).
+#' @param data The data frame.
+#' @param ziformula One-sided formula (`~ x1 + x2`) for the ZI component, or
+#'   `NULL` to skip the ZI check.
+#' @return `NULL` invisibly; called for its side-effects (warnings).
+#' @noRd
+check_sample_size <- function(formula, data, ziformula = NULL) {
+  mf <- model.frame(formula, data)
+  y  <- model.response(mf)
+  X  <- model.matrix(terms(mf), mf)
+
+  n_pred   <- max(ncol(X) - 1L, 0L)
+  n_events <- sum(y > 0)
+
+  if (n_pred > 0L && n_events < 10L * n_pred) {
+    warning(sprintf(
+      "Count component: %d events (y > 0) for %d predictor(s) (%.1f per predictor). At least 10 events per predictor is recommended.",
+      n_events, n_pred, n_events / n_pred
+    ), call. = FALSE)
+  }
+
+  if (!is.null(ziformula)) {
+    zi_mf     <- model.frame(ziformula, data)
+    zi_X      <- model.matrix(terms(zi_mf), zi_mf)
+    n_zi_pred <- max(ncol(zi_X) - 1L, 0L)
+    n_zeros   <- sum(y == 0)
+
+    if (n_zi_pred > 0L && n_zeros < 10L * n_zi_pred) {
+      warning(sprintf(
+        "Zero-inflation component: %d zeros for %d predictor(s) (%.1f per predictor). At least 10 zeros per ZI predictor is recommended.",
+        n_zeros, n_zi_pred, n_zeros / n_zi_pred
+      ), call. = FALSE)
+    }
+  }
+
+  invisible(NULL)
+}
+
 #' Compute the Pearson dispersion ratio
 #'
 #' @param model A fitted model object with `residuals(..., type = "pearson")`

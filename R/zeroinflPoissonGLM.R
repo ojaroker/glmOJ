@@ -75,6 +75,13 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, ...) {
       is.null(ziformula) || inherits(ziformula, "formula")
   )
 
+  effective_zi <- if (is.null(ziformula)) {
+    stats::as.formula(paste("~", deparse(formula[[3L]])))
+  } else {
+    ziformula
+  }
+  check_sample_size(formula, data, effective_zi)
+
   full_formula <- build_zi_formula(formula, ziformula)
   fit <- pscl::zeroinfl(full_formula, data = data, dist = "poisson", ...)
 

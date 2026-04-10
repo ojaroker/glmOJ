@@ -19,84 +19,72 @@ df_pois <- data.frame(
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 
+# Fit once; suppress any incidental convergence warnings from small dataset
+fit <- suppressWarnings(poissonGLM(y ~ x1, data = df_pois))
+
 test_that("poissonGLM returns correct classes", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_s3_class(fit, "poissonGLM")
   expect_s3_class(fit, "countGLMfit")
 })
 
 test_that("poissonGLM returns correct slot names in correct order", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_named(fit, c("call", "model", "summary", "coefficients",
                        "diagnostics", "aic", "bic"))
 })
 
 test_that("poissonGLM diagnostics has correct names", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
 })
 
 test_that("poissonGLM exp.coef matches manual glm exponentiated coefficients", {
-  fit    <- poissonGLM(y ~ x1, data = df_pois)
   manual <- exp(stats::coef(stats::glm(y ~ x1, data = df_pois,
                                         family = stats::poisson())))
   expect_equal(fit$coefficients$exp.coef, unname(manual), tolerance = 1e-6)
 })
 
 test_that("poissonGLM coefficients has correct columns", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95"))
 })
 
 test_that("poissonGLM dispersion_ratio is numeric scalar", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(fit$diagnostics$dispersion_ratio, "double")
   expect_length(fit$diagnostics$dispersion_ratio, 1L)
 })
 
 test_that("poissonGLM rqr has length equal to nrow(data)", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_length(fit$diagnostics$rqr, nrow(df_pois))
 })
 
 test_that("poissonGLM diagnostic plot inherits gg", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_s3_class(fit$diagnostics$plot, "gg")
 })
 
 test_that("poissonGLM r2_plot is a ggplot object", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_s3_class(fit$diagnostics$r2_plot, "ggplot")
 })
 
 test_that("poissonGLM summary is a list (glm summary object)", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(fit$summary, "list")
 })
 
 test_that("poissonGLM aic is numeric scalar", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(fit$aic, "double")
   expect_length(fit$aic, 1L)
 })
 
 test_that("poissonGLM bic is numeric scalar", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(fit$bic, "double")
   expect_length(fit$bic, 1L)
 })
 
 test_that("poissonGLM bic >= aic (BIC penalises more heavily)", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_gte(fit$bic, fit$aic)
 })
 
 test_that("print.poissonGLM does not error", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_no_error(print(fit))
 })
 
 test_that("summary.poissonGLM returns a list", {
-  fit <- poissonGLM(y ~ x1, data = df_pois)
   expect_type(summary(fit), "list")
 })

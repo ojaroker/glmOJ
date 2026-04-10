@@ -64,6 +64,7 @@ negbinGLM <- function(formula, data, ...) {
     "data must be a data frame"        = is.data.frame(data)
   )
 
+  check_sample_size(formula, data)
   fit <- MASS::glm.nb(formula, data = data, ...)
 
   # Exponentiated coefficients with Wald 95% CIs

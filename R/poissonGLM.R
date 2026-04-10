@@ -62,6 +62,7 @@ poissonGLM <- function(formula, data, ...) {
     "data must be a data frame"        = is.data.frame(data)
   )
 
+  check_sample_size(formula, data)
   fit <- stats::glm(formula, data = data, family = stats::poisson(), ...)
 
   # Exponentiated coefficients with Wald 95% CIs

@@ -256,7 +256,84 @@ interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
 
 ---
 
+## Case Study 2: Urban Surveillance Camera Counts (Dahir 2025)
+
+Dahir (2025) models the number of surveillance cameras per census tract
+across ten US cities. The response `cam_count` is a non-negative integer
+with 87.6% zeros and a variance-to-mean ratio of approximately 3.6 —
+classic signs of both excess zeros and overdispersion.
+
+```{r load-dahir}
+data("Dahir25.dat")
+```
+
+### 7. Data Exploration
+
+```{r dahir-summarize, fig.height = 5}
+summarizeCountData(
+  cam_count ~ total_crime_rate + hinc + modal_zone + pvac,
+  data = Dahir25.dat
+)
+```
+
+The summary table makes the issue concrete: the variance-to-mean ratio far
+exceeds 1 and the frequency table is dominated by zeros. Camera placement
+varies substantially by land-use zone — mixed and industrial tracts have
+cameras in roughly 28–42% of cases, while residential tracts (the
+majority, n = 8913) have cameras in fewer than 10%. This mixture of
+structurally camera-free tracts alongside genuinely high-count commercial
+zones is exactly the setting where zero-inflated or overdispersed count
+models are needed.
+
+### 8. Automatic Model Selection with `countGLM`
+
+`countGLM()` fits all four count families and selects the best by AIC. Road
+length (`log_road_length`) is included as an offset in the count component;
+because `ziformula = NULL`, it is automatically applied to the zero-inflation
+component as well — `countGLM` prints a note confirming this:
+
+```{r dahir-countglm}
+result_cam <- countGLM(
+  cam_count ~ pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +
+    offset(log_road_length),
+  data = Dahir25.dat
+)
+print(result_cam)
+```
+
+The AIC and BIC tables show the ranking across all four families. The
+selected model is **`r result_cam$best_model`**. The recommendation note
+captures the relevant dispersion and zero-inflation diagnostics
+automatically, explaining why this family was preferred.
+
+### 9. Interpreting the Winning Model
+
+`interpret_coef()` delegates to the best-fitting model automatically:
+
+```{r dahir-interp-crime}
+interpret_coef(result_cam, "total_crime_rate")
+```
+
+```{r dahir-interp-income}
+interpret_coef(result_cam, "hinc")
+```
+
+For zero-inflated models, the count and zero components can be interpreted
+separately. The count component describes the expected camera count among
+tracts that are in the counting process; the zero component describes the
+odds of being a structural zero (a tract that never receives a camera):
+
+```{r dahir-interp-zi, eval = inherits(result_cam$fits[[result_cam$best_model]], "zeroinflGLMfit")}
+interpret_coef(result_cam, "total_crime_rate", component = "count")
+interpret_coef(result_cam, "total_crime_rate", component = "zero")
+```
+
+---
+
 ## References
+
+Dahir, Abdi Latif. 2025. "Surveillance Camera Placement and Urban
+Inequality." Working paper.
 
 Greenberg, Pierce, Erik W Johnson, Jennifer Schwartz, and Rylie Wartinger.
 2026. "Social Factors Shape Federal Environmental Crime Prosecution Patterns
