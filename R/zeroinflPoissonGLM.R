@@ -140,9 +140,15 @@ zi_coef_tables <- function(fit, count_label = "exp.coef", zero_label = "exp.coef
   zero_coefs  <- stats::coef(fit, model = "zero")
   p_count     <- length(count_coefs)
 
-  ci_all <- stats::confint.default(fit)
+  ci_all   <- stats::confint.default(fit)
   ci_count <- ci_all[seq_len(p_count), , drop = FALSE]
   ci_zero  <- ci_all[seq_len(nrow(ci_all)) > p_count, , drop = FALSE]
+
+  # p-values from the summary coefficient matrix.
+  # For ZINB, sm$count includes a "Log(theta)" row not in coef() — match by name.
+  sm          <- summary(fit)$coefficients
+  pvals_count <- sm$count[names(count_coefs), "Pr(>|z|)"]
+  pvals_zero  <- sm$zero[names(zero_coefs),  "Pr(>|z|)"]
 
   count_df <- data.frame(
     term             = names(count_coefs),
@@ -150,6 +156,8 @@ zi_coef_tables <- function(fit, count_label = "exp.coef", zero_label = "exp.coef
                         exp(ci_count[, 1L]),
                         exp(ci_count[, 2L])),
              c(count_label, "lower.95", "upper.95")),
+    p.value          = pvals_count,
+    stars            = as.character(sig_stars(pvals_count)),
     row.names        = NULL,
     stringsAsFactors = FALSE
   )
@@ -160,6 +168,8 @@ zi_coef_tables <- function(fit, count_label = "exp.coef", zero_label = "exp.coef
                         exp(ci_zero[, 1L]),
                         exp(ci_zero[, 2L])),
              c(zero_label, "lower.95", "upper.95")),
+    p.value          = pvals_zero,
+    stars            = as.character(sig_stars(pvals_zero)),
     row.names        = NULL,
     stringsAsFactors = FALSE
   )

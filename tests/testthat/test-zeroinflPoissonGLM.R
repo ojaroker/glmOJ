@@ -50,11 +50,11 @@ test_that("zeroinflPoissonGLM coefficients is a list with count and zero", {
 })
 
 test_that("zeroinflPoissonGLM count coefficients has correct columns", {
-  expect_named(fit$coefficients$count, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients$count, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("zeroinflPoissonGLM zero coefficients has correct columns", {
-  expect_named(fit$coefficients$zero, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients$zero, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("zeroinflPoissonGLM with ziformula = ~ 1 gives 1-row zero table", {
@@ -110,10 +110,10 @@ test_that("summary.zeroinflPoissonGLM returns a list", {
 
 test_that("coef.zeroinflGLMfit returns count table by default", {
   cc <- coef(fit)
-  expect_named(cc, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(cc, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("coef.zeroinflGLMfit returns zero table when component = 'zero'", {
   cz <- coef(fit, component = "zero")
-  expect_named(cz, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(cz, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })

@@ -244,3 +244,12 @@ plot_diagnostics <- function(
     r2_plot = p_r2
   )
 }
+
+#' Convert p-values to significance stars
+#' @noRd
+sig_stars <- function(p) {
+  cut(p,
+      breaks = c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+      labels = c("***", "**", "*", ".", ""),
+      right  = TRUE)
+}

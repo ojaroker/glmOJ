@@ -43,7 +43,7 @@ test_that("poissonGLM exp.coef matches manual glm exponentiated coefficients", {
 })
 
 test_that("poissonGLM coefficients has correct columns", {
-  expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("poissonGLM dispersion_ratio is numeric scalar", {

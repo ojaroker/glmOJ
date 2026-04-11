@@ -83,14 +83,17 @@ negbinGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
     }
   }
 
-  # Exponentiated coefficients with Wald 95% CIs
-  est <- stats::coef(fit)
-  ci  <- stats::confint.default(fit)
+  # Exponentiated coefficients with Wald 95% CIs and p-values
+  est   <- stats::coef(fit)
+  ci    <- stats::confint.default(fit)
+  pvals <- summary(fit)$coefficients[, "Pr(>|z|)"]
   coef_table <- data.frame(
     term      = names(est),
     exp.coef  = exp(est),
     lower.95  = exp(ci[, 1L]),
     upper.95  = exp(ci[, 2L]),
+    p.value   = pvals,
+    stars     = as.character(sig_stars(pvals)),
     row.names = NULL,
     stringsAsFactors = FALSE
   )

@@ -51,11 +51,11 @@ test_that("zeroinflNegbinGLM coefficients is a list with count and zero", {
 })
 
 test_that("zeroinflNegbinGLM count coefficients has correct columns", {
-  expect_named(fit$coefficients$count, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients$count, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("zeroinflNegbinGLM zero coefficients has correct columns", {
-  expect_named(fit$coefficients$zero, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients$zero, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("zeroinflNegbinGLM theta is positive numeric", {

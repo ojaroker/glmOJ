@@ -42,7 +42,7 @@ test_that("negbinGLM exp.coef matches manual MASS::glm.nb exponentiated coeffici
 })
 
 test_that("negbinGLM coefficients has correct columns", {
-  expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95"))
+  expect_named(fit$coefficients, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })
 
 test_that("negbinGLM theta is positive numeric", {
