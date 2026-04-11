@@ -2,8 +2,8 @@
 #'
 #' Fits all four count regression models supported by glmOJ (Poisson, negative
 #' binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-#' the best by AIC, and provides a plain-language recommendation informed by
-#' dispersion and zero-inflation diagnostics.
+#' the best by AIC and BIC, and provides a plain-language recommendation
+#' informed by dispersion and zero-inflation diagnostics.
 #'
 #' @param formula A model formula for the count component (e.g. `y ~ x1 + x2`).
 #'   The response must be a non-negative integer count variable.
@@ -19,7 +19,9 @@
 #'     \item{`call`}{The matched call.}
 #'     \item{`fits`}{A named list of successfully fitted model objects
 #'       (`poisson`, `negbin`, `zeroinfl_poisson`, `zeroinfl_negbin`). Any
-#'       model that failed to converge is omitted.}
+#'       model that failed to converge is omitted. Poisson and negative
+#'       binomial fits include `diagnostics$zi_test` populated from a DHARMa
+#'       zero-inflation test run internally.}
 #'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
 #'     \item{`bic_table`}{A named numeric vector of BICs, sorted ascending.}
 #'     \item{`best_model`}{Character name of the selected model. When AIC and
@@ -31,18 +33,18 @@
 #'   }
 #'
 #' @details
-#' **Model selection:** AIC is the primary criterion. Lower AIC indicates a
-#' better balance of fit and parsimony.
+#' **Model selection:** Both AIC and BIC are computed. When they agree, the
+#' jointly best model is chosen. When they disagree, the simpler model
+#' (Poisson < NB < ZIP < ZINB) is selected with a note.
 #'
-#' **Heuristic diagnostics** (computed from the Poisson fit and used to
-#' annotate the recommendation, not to override AIC):
-#' - *Overdispersion*: Pearson dispersion ratio > 1.5 from the Poisson fit
-#'   suggests the negative binomial family may be more appropriate.
-#' - *Zero-inflation*: If the observed number of zeros exceeds 1.3x the
-#'   number of zeros expected under a Poisson model, excess zeros are flagged.
+#' **Zero-inflation diagnostics:** DHARMa simulation tests are run on both
+#' the Poisson and negative binomial fits. Results appear in
+#' `result$fits$poisson$diagnostics$zi_test` and
+#' `result$fits$negbin$diagnostics$zi_test`, and inform the recommendation
+#' text. Individual model warnings are suppressed; the recommendation
+#' summarises the findings instead.
 #'
-#' Individual models can be accessed via `result$fits$negbin`, etc., and
-#' support `print()`, `summary()`, and `plot()`.
+#' Individual models support `print()`, `summary()`, and `plot()`.
 #'
 #' @examples
 #' df <- data.frame(
@@ -71,18 +73,24 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
     )
   }
 
-  # Fit all four models, capturing any failures
+  # Fit all four models; suppress individual ZI warnings — countGLM handles them
   fits <- list(
-    poisson          = tryCatch(poissonGLM(formula, data, ...),
-                                error = function(e) e),
-    negbin           = tryCatch(negbinGLM(formula, data, ...),
-                                error = function(e) e),
-    zeroinfl_poisson = tryCatch(zeroinflPoissonGLM(formula, data,
-                                                    ziformula = ziformula, ...),
-                                error = function(e) e),
-    zeroinfl_negbin  = tryCatch(zeroinflNegbinGLM(formula, data,
-                                                   ziformula = ziformula, ...),
-                                error = function(e) e)
+    poisson = tryCatch(
+      poissonGLM(formula, data, assessZeroInflation = FALSE, ...),
+      error = function(e) e
+    ),
+    negbin = tryCatch(
+      negbinGLM(formula, data, assessZeroInflation = FALSE, ...),
+      error = function(e) e
+    ),
+    zeroinfl_poisson = tryCatch(
+      zeroinflPoissonGLM(formula, data, ziformula = ziformula, ...),
+      error = function(e) e
+    ),
+    zeroinfl_negbin = tryCatch(
+      zeroinflNegbinGLM(formula, data, ziformula = ziformula, ...),
+      error = function(e) e
+    )
   )
 
   # Keep only successful fits
@@ -93,15 +101,25 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
     stop("All four model fits failed. Check your formula and data.")
   }
 
+  # Run DHARMa ZI test on Poisson and NB fits and inject into diagnostics
+  for (nm in c("poisson", "negbin")) {
+    if (!is.null(fits[[nm]])) {
+      zi <- tryCatch(
+        run_dharma_zi_test(fits[[nm]]$model, model_type = if (nm == "poisson") "Poisson" else "Negative Binomial"),
+        error = function(e) NULL
+      )
+      fits[[nm]]$diagnostics$zi_test <- zi
+    }
+  }
+
   aics      <- vapply(fits, `[[`, numeric(1), "aic")
   bics      <- vapply(fits, `[[`, numeric(1), "bic")
   aic_table <- sort(aics)
   bic_table <- sort(bics)
 
-  best_aic  <- names(which.min(aics))
-  best_bic  <- names(which.min(bics))
+  best_aic <- names(which.min(aics))
+  best_bic <- names(which.min(bics))
 
-  # Complexity order: simpler models have lower rank
   complexity <- c(poisson = 1L, negbin = 2L,
                   zeroinfl_poisson = 3L, zeroinfl_negbin = 4L)
 
@@ -109,7 +127,6 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
     best_name    <- best_aic
     ic_agreement <- TRUE
   } else {
-    # Disagreement — pick the simpler candidate
     aic_rank  <- complexity[best_aic]
     bic_rank  <- complexity[best_bic]
     best_name <- if (aic_rank <= bic_rank) best_aic else best_bic
@@ -150,48 +167,55 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
                                   best_aic_name, best_bic_name, ic_agreement) {
   disp_msg <- zi_msg <- ic_msg <- ""
 
+  # --- Overdispersion: use Poisson dispersion ratio ---
   pois_fit <- fits[["poisson"]]
   if (!is.null(pois_fit)) {
     disp_ratio <- pois_fit$diagnostics$dispersion_ratio
-
     if (!is.na(disp_ratio)) {
-      if (disp_ratio > 1.5) {
-        disp_msg <- sprintf(
+      disp_msg <- if (disp_ratio > 1.5) {
+        sprintf(
           "The Poisson dispersion ratio is %.2f (> 1.5), indicating overdispersion.",
           disp_ratio
         )
       } else {
-        disp_msg <- sprintf(
+        sprintf(
           "The Poisson dispersion ratio is %.2f, consistent with equidispersion.",
           disp_ratio
         )
       }
     }
-
-    pois_model <- pois_fit$model
-    y          <- pois_model$y
-    obs_zeros  <- sum(y == 0L)
-    exp_zeros  <- sum(stats::dpois(0, stats::fitted(pois_model)))
-    zi_ratio   <- if (exp_zeros > 0) obs_zeros / exp_zeros else NA_real_
-
-    if (!is.na(zi_ratio)) {
-      if (zi_ratio > 1.3) {
-        zi_msg <- sprintf(
-          "There are %.1fx more zeros than expected under Poisson (observed: %d, expected: %.1f), suggesting zero-inflation.",
-          zi_ratio, obs_zeros, exp_zeros
-        )
-      } else {
-        zi_msg <- sprintf(
-          "The zero count (observed: %d, expected: %.1f) is consistent with a standard count model.",
-          obs_zeros, exp_zeros
-        )
-      }
-    }
   }
 
+  # --- Zero-inflation: use DHARMa results from both Poisson and NB ---
+  pois_zi <- pois_fit$diagnostics$zi_test
+  nb_fit   <- fits[["negbin"]]
+  nb_zi    <- nb_fit$diagnostics$zi_test
+
+  pois_detected <- isTRUE(pois_zi$detected)
+  nb_detected   <- isTRUE(nb_zi$detected)
+
+  if (pois_detected && nb_detected) {
+    zi_msg <- sprintf(
+      "DHARMa zero-inflation test is significant for both Poisson (p = %.3f) and Negative Binomial (p = %.3f) fits, suggesting structural excess zeros.",
+      pois_zi$p_value, nb_zi$p_value
+    )
+  } else if (pois_detected && !nb_detected) {
+    zi_msg <- sprintf(
+      "DHARMa zero-inflation test is significant for the Poisson fit (p = %.3f) but not for the Negative Binomial fit (p = %.3f); excess zeros may be explained by overdispersion alone.",
+      pois_zi$p_value, nb_zi$p_value
+    )
+  } else if (!pois_detected && !is.null(pois_zi)) {
+    zi_msg <- sprintf(
+      "No significant zero-inflation detected (Poisson p = %.3f%s).",
+      pois_zi$p_value,
+      if (!is.null(nb_zi)) sprintf(", Negative Binomial p = %.3f", nb_zi$p_value) else ""
+    )
+  }
+
+  # --- IC agreement / disagreement ---
   if (ic_agreement) {
     selection_msg <- sprintf(
-      "%s was selected — both AIC (%.2f) and BIC (%.2f) agree.",
+      "%s was selected \u2014 both AIC (%.2f) and BIC (%.2f) agree.",
       .model_label(best_name),
       aic_table[best_name],
       bic_table[best_name]

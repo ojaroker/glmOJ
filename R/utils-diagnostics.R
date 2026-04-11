@@ -2,16 +2,6 @@
 # Not exported — used by poissonGLM, negbinGLM, zeroinflPoissonGLM, zeroinflNegbinGLM
 
 #' Check minimum events-per-predictor for count (and ZI) components
-#'
-#' Issues a warning when the number of non-zero observations falls below
-#' 10 per predictor in the count component, or the number of zeros falls below
-#' 10 per predictor in the zero-inflation component.
-#'
-#' @param formula The count model formula (response on the left).
-#' @param data The data frame.
-#' @param ziformula One-sided formula (`~ x1 + x2`) for the ZI component, or
-#'   `NULL` to skip the ZI check.
-#' @return `NULL` invisibly; called for its side-effects (warnings).
 #' @noRd
 check_sample_size <- function(formula, data, ziformula = NULL) {
   mf <- model.frame(formula, data)
@@ -55,12 +45,82 @@ check_sample_size <- function(formula, data, ziformula = NULL) {
   invisible(NULL)
 }
 
-#' Compute the Pearson dispersion ratio
+#' Run DHARMa zero-inflation test and return result with a ggplot
 #'
-#' @param model A fitted model object with `residuals(..., type = "pearson")`
-#'   and a `df.residual` slot (e.g., `glm`, `negbin`, `zeroinfl`).
-#' @return A single numeric scalar (Pearson chi-squared / df.residual), or
-#'   `NA_real_` if df.residual is 0.
+#' Simulates residuals via DHARMa::simulateResiduals(), applies
+#' DHARMa::testZeroInflation(), and returns the p-value, a detection flag,
+#' and a frequency histogram of simulated zero counts vs the observed count.
+#'
+#' @param fit A fitted model (Poisson or negative-binomial GLM).
+#' @param model_type Character label shown in the plot title, e.g. "Poisson".
+#' @param n_sim Integer; number of simulations. Default 1000.
+#' @return Named list: detected (logical), p_value (numeric), plot (ggplot).
+#' @noRd
+run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
+  simres <- suppressMessages(
+    DHARMa::simulateResiduals(fit, n = n_sim, plot = FALSE, refit = FALSE)
+  )
+  zi_result <- DHARMa::testZeroInflation(simres, plot = FALSE)
+
+  p_val <- zi_result$p.value
+  detected <- !is.na(p_val) && p_val < 0.05
+
+  # Simulated zero counts (one per replicate); observed zero count
+  sim_counts <- colSums(simres$simulatedResponse == 0)
+  obs_count <- sum(fit$y == 0)
+
+  # Place label left of line when observed is in the upper half of the range
+  # to avoid clipping at the right plot edge
+  label_hjust <- if (obs_count > stats::median(sim_counts)) 1.15 else -0.15
+
+  subtitle_text <- if (detected) {
+    "Significant zero-inflation detected (p < 0.05) \u2014 consider a ZI model"
+  } else {
+    "No significant zero-inflation (p \u2265 0.05)"
+  }
+
+  p <- ggplot2::ggplot(
+    data.frame(sim_counts = sim_counts),
+    ggplot2::aes(x = .data$sim_counts)
+  ) +
+    ggplot2::geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+    ggplot2::geom_vline(
+      xintercept = obs_count,
+      color = "firebrick",
+      linetype = "dashed",
+      linewidth = 1
+    ) +
+    ggplot2::annotate(
+      "text",
+      x = obs_count,
+      y = Inf,
+      label = sprintf("observed\n%d", obs_count),
+      hjust = label_hjust,
+      vjust = 1.4,
+      color = "firebrick",
+      size = 3
+    ) +
+    ggplot2::labs(
+      title = sprintf(
+        "%s \u2014 DHARMa zero-inflation test (p = %.3f)",
+        model_type,
+        p_val
+      ),
+      subtitle = subtitle_text,
+      x = "Simulated zero count",
+      y = "Frequency"
+    ) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      plot.subtitle = ggplot2::element_text(
+        color = if (detected) "firebrick" else "black"
+      )
+    )
+
+  list(detected = detected, p_value = p_val, plot = p)
+}
+
+#' Compute the Pearson dispersion ratio
 #' @noRd
 check_dispersion <- function(model) {
   df_resid <- model$df.residual
@@ -72,14 +132,6 @@ check_dispersion <- function(model) {
 }
 
 #' Compute randomized quantile residuals
-#'
-#' For Poisson and negative binomial GLMs, delegates to `statmod`. For
-#' zero-inflated models, uses the manual CDF approach via `pscl::predprob`.
-#'
-#' @param model A fitted model object.
-#' @param family One of `"poisson"`, `"negbin"`, `"zeroinfl_poisson"`, or
-#'   `"zeroinfl_negbin"`.
-#' @return A numeric vector of randomized quantile residuals, length `n`.
 #' @noRd
 compute_rqr <- function(
   model,
@@ -90,13 +142,11 @@ compute_rqr <- function(
   if (family == "poisson") {
     return(statmod::qres.pois(model))
   }
-
   if (family == "negbin") {
     return(statmod::qres.nbinom(model))
   }
 
-  # Zero-inflated models: manual CDF-based RQR via pscl::predprob
-  # predprob returns an n x K matrix of P(Y = k) for k = 0, 1, ..., max(y)
+  # Zero-inflated: manual CDF-based RQR via pscl::predprob
   pp <- pscl::predprob(model)
   y <- model$y
   cts <- as.integer(colnames(pp))
@@ -119,29 +169,11 @@ compute_rqr <- function(
   )
 
   u <- stats::runif(n, min = cdf_ym1, max = cdf_y)
-  # Clamp away from exact 0/1 to avoid Inf from qnorm
   u <- pmin(pmax(u, 1e-10), 1 - 1e-10)
   stats::qnorm(u)
 }
 
 #' Build the two-panel RQR diagnostic plot and the squared Pearson residual plot
-#'
-#' Returns a named list of two plots:
-#' * `rqr_plot`: a patchwork of (1) fitted values vs RQR scatter and (2) a
-#'   histo-QQ of the RQR, with the dispersion ratio annotated in the title.
-#'   The title turns red and a subtitle warns of overdispersion when the ratio
-#'   exceeds 1.2.
-#' * `r2_plot`: squared Pearson residuals vs fitted values, with a horizontal
-#'   reference line at 1 and a loess/GAM smooth. Useful for diagnosing
-#'   mean-variance misspecification.
-#'
-#' @param rqr Numeric vector of randomized quantile residuals.
-#' @param pearson_resid Numeric vector of Pearson residuals (same length as
-#'   `rqr`).
-#' @param fitted_vals Numeric vector of fitted (predicted) values.
-#' @param dispersion_ratio Scalar; the Pearson dispersion ratio.
-#' @return A named list with elements `rqr_plot` and `r2_plot` (both `gg`
-#'   objects).
 #' @noRd
 plot_diagnostics <- function(
   rqr,
@@ -164,7 +196,6 @@ plot_diagnostics <- function(
   } else {
     NULL
   }
-
   title_color <- if (overdispersed) "firebrick" else "black"
 
   p_scatter <- ggplot2::ggplot(
@@ -211,117 +242,5 @@ plot_diagnostics <- function(
   list(
     rqr_plot = patchwork::wrap_plots(p_scatter, p_qq, ncol = 2),
     r2_plot = p_r2
-  )
-}
-
-
-#' Check for excess zeros against Poisson or negative-binomial expectation
-#'
-#' Compare the observed number of zeros in the response to the expected number
-#' under a Poisson or negative-binomial model. The function extracts the
-#' response and fitted values from `model`, computes per-observation zero
-#' probabilities, sums them to get the expected zeros, and returns a small
-#' diagnostic list including a logical flag for potential zero inflation.
-#'
-#' @param model A fitted model object (e.g. a `glm` with `family = poisson()` or
-#'   a `MASS::glm.nb` object). The function attempts to use `model$y` and
-#'   `model$fitted.values`, falling back to `model.frame()` / `predict(..., type = "response")`.
-#' @param family Character; one of `"poisson"` or `"negbin"`. Controls the
-#'   distribution used to compute the expected probability of zero for each
-#'   observation.
-#'
-#' @return A named list with elements:
-#'   \describe{
-#'     \item{n}{Integer; number of observations.}
-#'     \item{observed_zeros}{Integer; count of y == 0.}
-#'     \item{expected_zeros}{Numeric; sum of per-observation P(Y = 0) under the chosen family.}
-#'     \item{ratio}{Numeric; observed_zeros / expected_zeros (NA if expected_zeros is NA or 0).}
-#'     \item{zero_inflation}{Logical (or NA); `TRUE` when observed zeros substantially exceed
-#'       expected zeros (default rule: ratio > 1.2 and absolute gap > 5).}
-#'   }
-#'
-#' @details For the negative-binomial case the function requires an estimated
-#'   dispersion parameter available as `model$theta`; when `theta` is missing
-#'   the expected zeros are returned as `NA`. The check is heuristic and meant
-#'   to flag possible zero-inflation for further investigation (e.g. a
-#'   zero-inflated model).
-#'
-#' @examples
-#' df <- data.frame(y = c(0L,1L,2L,0L,0L), x = rnorm(5))
-#' fit_pois <- glm(y ~ x, data = df, family = poisson())
-#' check_zero_inflation(fit_pois, "poisson")
-#'
-#' \dontrun{
-#' fit_nb <- MASS::glm.nb(y ~ x, data = df)
-#' check_zero_inflation(fit_nb, "negbin")
-#' }
-#'
-#' @noRd
-check_zero_inflation <- function(model, family = c("poisson", "negbin")) {
-  family <- match.arg(family)
-
-  # extract response y
-  if (!is.null(model$y)) {
-    y <- model$y
-  } else {
-    mf <- tryCatch(stats::model.frame(model), error = function(e) NULL)
-    if (!is.null(mf)) {
-      y <- stats::model.response(mf)
-    } else {
-      stop("Unable to extract response from model")
-    }
-  }
-
-  # extract fitted values (fallback to predict(type = "response"))
-  fitted_vals <- if (!is.null(model$fitted.values)) {
-    model$fitted.values
-  } else {
-    as.numeric(stats::predict(model, type = "response"))
-  }
-
-  if (length(y) != length(fitted_vals)) {
-    stop("Response and fitted values have different lengths")
-  }
-
-  obs_zeros <- sum(y == 0, na.rm = TRUE)
-  n <- length(y)
-
-  # compute expected probability of zero for each observation
-  p0 <- switch(
-    family,
-    poisson = stats::dpois(0, lambda = fitted_vals),
-    negbin = {
-      theta <- model$theta
-      if (is.null(theta) || !is.finite(theta)) {
-        # cannot compute NB zero-prob without theta
-        rep(NA_real_, length(fitted_vals))
-      } else {
-        stats::dnbinom(0, size = theta, mu = fitted_vals)
-      }
-    }
-  )
-
-  exp_zeros <- sum(p0, na.rm = TRUE)
-
-  ratio <- if (is.na(exp_zeros) || exp_zeros == 0) {
-    NA_real_
-  } else {
-    obs_zeros / exp_zeros
-  }
-
-  # flag zero-inflation when observed substantially exceeds expected:
-  # require both a relative increase (ratio > 1.2) and a modest absolute gap (> 5)
-  zero_inflation <- if (is.na(ratio)) {
-    NA
-  } else {
-    (ratio > 1.2) && (obs_zeros - exp_zeros > 5)
-  }
-
-  list(
-    n = n,
-    observed_zeros = obs_zeros,
-    expected_zeros = exp_zeros,
-    ratio = ratio,
-    zero_inflation = zero_inflation
   )
 }

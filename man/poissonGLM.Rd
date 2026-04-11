@@ -4,13 +4,19 @@
 \alias{poissonGLM}
 \title{Fit a Poisson regression model}
 \usage{
-poissonGLM(formula, data, ...)
+poissonGLM(formula, data, assessZeroInflation = TRUE, ...)
 }
 \arguments{
 \item{formula}{A model formula (e.g. \code{y ~ x1 + x2}). The response must be
 a non-negative integer count variable.}
 
 \item{data}{A data frame containing the variables in \code{formula}.}
+
+\item{assessZeroInflation}{Logical; when \code{TRUE} (default), runs a DHARMa
+simulation-based zero-inflation test after fitting. Issues a warning if
+significant zero-inflation is detected and adds \code{zi_test} to the returned
+diagnostics. Set to \code{FALSE} when calling from \code{\link[=countGLM]{countGLM()}}, which performs
+its own zero-inflation assessment.}
 
 \item{...}{Additional arguments passed to \code{\link[stats:glm]{stats::glm()}}.}
 }
@@ -25,15 +31,13 @@ An object of class \code{c("poissonGLM", "countGLMfit")}, a list with:
 \item{\code{diagnostics}}{A list with:
 \describe{
 \item{\code{rqr}}{Numeric vector of randomized quantile residuals.}
-\item{\code{dispersion_ratio}}{Pearson chi-squared / df.residual.
-Values substantially above 1 (rule of thumb: > 1.5) suggest
-overdispersion; consider \code{\link[=negbinGLM]{negbinGLM()}}.}
-\item{\code{plot}}{A patchwork ggplot: fitted values vs RQR (left) and
-histo-QQ of RQR (right). The dispersion ratio is shown in red with
-an overdispersion warning if it exceeds 1.2.}
-\item{\code{r2_plot}}{Squared Pearson residuals vs fitted values, with a
-red dotted reference line at 1 and a smooth. Useful for diagnosing
-mean-variance misspecification.}
+\item{\code{dispersion_ratio}}{Pearson chi-squared / df.residual.}
+\item{\code{plot}}{Patchwork ggplot: fitted vs RQR and histo-QQ.}
+\item{\code{r2_plot}}{Squared Pearson residuals vs fitted values.}
+\item{\code{zi_test}}{When \code{assessZeroInflation = TRUE}, a list with
+\code{detected} (logical), \code{p_value} (numeric), and \code{plot} (ggplot
+histogram of DHARMa simulated zero proportions vs observed).
+\code{NULL} when \code{assessZeroInflation = FALSE}.}
 }
 }
 \item{\code{aic}}{AIC of the fitted model.}
@@ -43,18 +47,15 @@ mean-variance misspecification.}
 \description{
 Fits a Poisson GLM and returns model coefficients on the response scale
 (exponentiated), randomized quantile residuals (RQR), a Pearson
-dispersion ratio, and a two-panel diagnostic plot.
+dispersion ratio, and diagnostic plots.
 }
 \details{
 \strong{Coefficient interpretation:} Poisson regression models the log of the
-expected count. Exponentiating a coefficient gives the multiplicative change in the expected count for a
-one-unit increase in the predictor, adjusting for simultaneous linear changes in other predictors.
-For example, 1.5 means a 50\% higher expected count.
+expected count. Exponentiating a coefficient gives the multiplicative change
+in the expected count for a one-unit increase in the predictor.
 
-\strong{Condition checking:} Inspect \code{diagnostics$dispersion_ratio}. A value
-near 1 is consistent with the Poisson assumption (mean = variance). The
-RQR diagnostic plot should show points scattered randomly around zero with
-approximately normal QQ behaviour.
+\strong{Condition checking:} Inspect \code{diagnostics$dispersion_ratio} (near 1 is
+good) and \code{diagnostics$zi_test$p_value} for zero-inflation.
 }
 \examples{
 df <- data.frame(

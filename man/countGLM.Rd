@@ -25,7 +25,9 @@ An object of class \code{"countGLM"}, a list with:
 \item{\code{call}}{The matched call.}
 \item{\code{fits}}{A named list of successfully fitted model objects
 (\code{poisson}, \code{negbin}, \code{zeroinfl_poisson}, \code{zeroinfl_negbin}). Any
-model that failed to converge is omitted.}
+model that failed to converge is omitted. Poisson and negative
+binomial fits include \code{diagnostics$zi_test} populated from a DHARMa
+zero-inflation test run internally.}
 \item{\code{aic_table}}{A named numeric vector of AICs, sorted ascending.}
 \item{\code{bic_table}}{A named numeric vector of BICs, sorted ascending.}
 \item{\code{best_model}}{Character name of the selected model. When AIC and
@@ -39,24 +41,22 @@ note when AIC and BIC point to different models.}
 \description{
 Fits all four count regression models supported by glmOJ (Poisson, negative
 binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-the best by AIC, and provides a plain-language recommendation informed by
-dispersion and zero-inflation diagnostics.
+the best by AIC and BIC, and provides a plain-language recommendation
+informed by dispersion and zero-inflation diagnostics.
 }
 \details{
-\strong{Model selection:} AIC is the primary criterion. Lower AIC indicates a
-better balance of fit and parsimony.
+\strong{Model selection:} Both AIC and BIC are computed. When they agree, the
+jointly best model is chosen. When they disagree, the simpler model
+(Poisson < NB < ZIP < ZINB) is selected with a note.
 
-\strong{Heuristic diagnostics} (computed from the Poisson fit and used to
-annotate the recommendation, not to override AIC):
-\itemize{
-\item \emph{Overdispersion}: Pearson dispersion ratio > 1.5 from the Poisson fit
-suggests the negative binomial family may be more appropriate.
-\item \emph{Zero-inflation}: If the observed number of zeros exceeds 1.3x the
-number of zeros expected under a Poisson model, excess zeros are flagged.
-}
+\strong{Zero-inflation diagnostics:} DHARMa simulation tests are run on both
+the Poisson and negative binomial fits. Results appear in
+\code{result$fits$poisson$diagnostics$zi_test} and
+\code{result$fits$negbin$diagnostics$zi_test}, and inform the recommendation
+text. Individual model warnings are suppressed; the recommendation
+summarises the findings instead.
 
-Individual models can be accessed via \code{result$fits$negbin}, etc., and
-support \code{print()}, \code{summary()}, and \code{plot()}.
+Individual models support \code{print()}, \code{summary()}, and \code{plot()}.
 }
 \examples{
 df <- data.frame(

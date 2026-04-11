@@ -2,12 +2,16 @@
 #'
 #' Fits a negative binomial GLM (via [MASS::glm.nb()]) and returns model
 #' coefficients on the response scale (exponentiated), randomized quantile
-#' residuals (RQR), a Pearson dispersion ratio, and a two-panel diagnostic
-#' plot.
+#' residuals (RQR), a Pearson dispersion ratio, and diagnostic plots.
 #'
 #' @param formula A model formula (e.g. `y ~ x1 + x2`). The response must be
 #'   a non-negative integer count variable.
 #' @param data A data frame containing the variables in `formula`.
+#' @param assessZeroInflation Logical; when `TRUE` (default), runs a DHARMa
+#'   simulation-based zero-inflation test after fitting. Issues a warning if
+#'   significant zero-inflation is detected and adds `zi_test` to the returned
+#'   diagnostics. Set to `FALSE` when calling from [countGLM()], which performs
+#'   its own zero-inflation assessment.
 #' @param ... Additional arguments passed to [MASS::glm.nb()].
 #'
 #' @return An object of class `c("negbinGLM", "countGLMfit")`, a list with:
@@ -22,11 +26,13 @@
 #'     \item{`diagnostics`}{A list with:
 #'       \describe{
 #'         \item{`rqr`}{Numeric vector of randomized quantile residuals.}
-#'         \item{`dispersion_ratio`}{Pearson chi-squared / df.residual.
-#'           For a well-fitted negative binomial model this should be near 1.}
-#'         \item{`plot`}{A patchwork ggplot: fitted values vs RQR (left) and
-#'           histo-QQ of RQR (right). The dispersion ratio is shown in red with
-#'           an overdispersion warning if it exceeds 1.2.}
+#'         \item{`dispersion_ratio`}{Pearson chi-squared / df.residual.}
+#'         \item{`plot`}{Patchwork ggplot: fitted vs RQR and histo-QQ.}
+#'         \item{`r2_plot`}{Squared Pearson residuals vs fitted values.}
+#'         \item{`zi_test`}{When `assessZeroInflation = TRUE`, a list with
+#'           `detected` (logical), `p_value` (numeric), and `plot` (ggplot
+#'           histogram of DHARMa simulated zero proportions vs observed).
+#'           `NULL` when `assessZeroInflation = FALSE`.}
 #'       }
 #'     }
 #'     \item{`aic`}{AIC of the fitted model.}
@@ -34,18 +40,16 @@
 #'   }
 #'
 #' @details
-#' **Coefficient interpretation:** Like Poisson regression, negative binomial
-#' regression models the log of the expected count. Exponentiating a
-#' coefficient gives the multiplicative change in the expected count for a
-#' one-unit increase in the predictor, adjusting for simultaneous linear
-#' changes in other predictors. For example, 1.5 means a 50% higher expected
-#' count.
+#' **Coefficient interpretation:** Negative binomial regression models the log
+#' of the expected count. Exponentiating a coefficient gives the multiplicative
+#' change in the expected count for a one-unit increase in the predictor.
 #'
 #' **When to use:** Negative binomial is appropriate when count data show
 #' overdispersion (variance > mean). A Pearson dispersion ratio from
 #' [poissonGLM()] substantially above 1 (rule of thumb: > 1.5) is a common
 #' signal. The negative binomial adds a free parameter `theta` to model this
-#' extra variance.
+#' extra variance. If zero-inflation is also detected, consider
+#' [zeroinflNegbinGLM()].
 #'
 #' @examples
 #' df <- data.frame(
@@ -58,7 +62,7 @@
 #'
 #' @seealso [poissonGLM()], [zeroinflNegbinGLM()], [countGLM()], [MASS::glm.nb()]
 #' @export
-negbinGLM <- function(formula, data, ...) {
+negbinGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
     "data must be a data frame"        = is.data.frame(data)
@@ -67,13 +71,16 @@ negbinGLM <- function(formula, data, ...) {
   check_sample_size(formula, data)
   fit <- MASS::glm.nb(formula, data = data, ...)
 
-  # check zero inflation
-  zi_check <- check_zero_inflation(fit, "negbin")
-  if (isTRUE(zi_check$zero_inflation)) {
-    warning(sprintf(
-      "Observed zeros (%d) exceed expected zeros (%.1f); possible zero inflation (ratio = %.2f). Consider a zero-inflated model.",
-      zi_check$observed_zeros, zi_check$expected_zeros, zi_check$ratio
-    ), call. = FALSE)
+  # DHARMa zero-inflation test
+  zi_test <- NULL
+  if (isTRUE(assessZeroInflation)) {
+    zi_test <- run_dharma_zi_test(fit, model_type = "Negative Binomial")
+    if (isTRUE(zi_test$detected)) {
+      warning(sprintf(
+        "Possible zero-inflation detected by DHARMa test (p = %.3f). Consider zeroinflNegbinGLM().",
+        zi_test$p_value
+      ), call. = FALSE)
+    }
   }
 
   # Exponentiated coefficients with Wald 95% CIs
@@ -104,7 +111,8 @@ negbinGLM <- function(formula, data, ...) {
         rqr              = rqr,
         dispersion_ratio = disp,
         plot             = diag_plots$rqr_plot,
-        r2_plot          = diag_plots$r2_plot
+        r2_plot          = diag_plots$r2_plot,
+        zi_test          = zi_test
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)

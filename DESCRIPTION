@@ -17,6 +17,7 @@ RoxygenNote: 7.3.3
 URL: https://github.com/ojaroker/glmOJ, http://oscar.jaroker.com/glmOJ/
 BugReports: https://github.com/ojaroker/glmOJ/issues
 Imports:
+    DHARMa,
     dplyr,
     GGally,
     ggplot2,

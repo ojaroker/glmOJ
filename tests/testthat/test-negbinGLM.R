@@ -33,7 +33,7 @@ test_that("negbinGLM returns correct slot names in correct order", {
 })
 
 test_that("negbinGLM diagnostics has correct names", {
-  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot"))
+  expect_named(fit$diagnostics, c("rqr", "dispersion_ratio", "plot", "r2_plot", "zi_test"))
 })
 
 test_that("negbinGLM exp.coef matches manual MASS::glm.nb exponentiated coefficients", {
@@ -91,4 +91,24 @@ test_that("print.negbinGLM does not error", {
 
 test_that("summary.negbinGLM returns a list", {
   expect_type(summary(fit), "list")
+})
+
+test_that("negbinGLM zi_test is a list with correct names", {
+  expect_type(fit$diagnostics$zi_test, "list")
+  expect_named(fit$diagnostics$zi_test, c("detected", "p_value", "plot"))
+})
+
+test_that("negbinGLM zi_test$detected is logical", {
+  expect_type(fit$diagnostics$zi_test$detected, "logical")
+})
+
+test_that("negbinGLM zi_test$p_value is numeric in [0,1]", {
+  p <- fit$diagnostics$zi_test$p_value
+  expect_type(p, "double")
+  expect_gte(p, 0)
+  expect_lte(p, 1)
+})
+
+test_that("negbinGLM zi_test$plot is a ggplot", {
+  expect_s3_class(fit$diagnostics$zi_test$plot, "ggplot")
 })

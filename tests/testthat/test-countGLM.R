@@ -82,3 +82,19 @@ test_that("countGLM aic_table is sorted ascending", {
   aics <- result$aic_table
   expect_equal(aics, sort(aics))
 })
+
+test_that("countGLM poisson fit has zi_test populated", {
+  pois <- result$fits[["poisson"]]
+  if (!is.null(pois)) {
+    expect_type(pois$diagnostics$zi_test, "list")
+    expect_named(pois$diagnostics$zi_test, c("detected", "p_value", "plot"))
+  }
+})
+
+test_that("countGLM negbin fit has zi_test populated", {
+  nb <- result$fits[["negbin"]]
+  if (!is.null(nb)) {
+    expect_type(nb$diagnostics$zi_test, "list")
+    expect_named(nb$diagnostics$zi_test, c("detected", "p_value", "plot"))
+  }
+})

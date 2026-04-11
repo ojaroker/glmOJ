@@ -2,11 +2,16 @@
 #'
 #' Fits a Poisson GLM and returns model coefficients on the response scale
 #' (exponentiated), randomized quantile residuals (RQR), a Pearson
-#' dispersion ratio, and a two-panel diagnostic plot.
+#' dispersion ratio, and diagnostic plots.
 #'
 #' @param formula A model formula (e.g. `y ~ x1 + x2`). The response must be
 #'   a non-negative integer count variable.
 #' @param data A data frame containing the variables in `formula`.
+#' @param assessZeroInflation Logical; when `TRUE` (default), runs a DHARMa
+#'   simulation-based zero-inflation test after fitting. Issues a warning if
+#'   significant zero-inflation is detected and adds `zi_test` to the returned
+#'   diagnostics. Set to `FALSE` when calling from [countGLM()], which performs
+#'   its own zero-inflation assessment.
 #' @param ... Additional arguments passed to [stats::glm()].
 #'
 #' @return An object of class `c("poissonGLM", "countGLMfit")`, a list with:
@@ -19,15 +24,13 @@
 #'     \item{`diagnostics`}{A list with:
 #'       \describe{
 #'         \item{`rqr`}{Numeric vector of randomized quantile residuals.}
-#'         \item{`dispersion_ratio`}{Pearson chi-squared / df.residual.
-#'           Values substantially above 1 (rule of thumb: > 1.5) suggest
-#'           overdispersion; consider [negbinGLM()].}
-#'         \item{`plot`}{A patchwork ggplot: fitted values vs RQR (left) and
-#'           histo-QQ of RQR (right). The dispersion ratio is shown in red with
-#'           an overdispersion warning if it exceeds 1.2.}
-#'         \item{`r2_plot`}{Squared Pearson residuals vs fitted values, with a
-#'           red dotted reference line at 1 and a smooth. Useful for diagnosing
-#'           mean-variance misspecification.}
+#'         \item{`dispersion_ratio`}{Pearson chi-squared / df.residual.}
+#'         \item{`plot`}{Patchwork ggplot: fitted vs RQR and histo-QQ.}
+#'         \item{`r2_plot`}{Squared Pearson residuals vs fitted values.}
+#'         \item{`zi_test`}{When `assessZeroInflation = TRUE`, a list with
+#'           `detected` (logical), `p_value` (numeric), and `plot` (ggplot
+#'           histogram of DHARMa simulated zero proportions vs observed).
+#'           `NULL` when `assessZeroInflation = FALSE`.}
 #'       }
 #'     }
 #'     \item{`aic`}{AIC of the fitted model.}
@@ -36,14 +39,11 @@
 #'
 #' @details
 #' **Coefficient interpretation:** Poisson regression models the log of the
-#' expected count. Exponentiating a coefficient gives the multiplicative change in the expected count for a
-#' one-unit increase in the predictor, adjusting for simultaneous linear changes in other predictors.
-#' For example, 1.5 means a 50% higher expected count.
+#' expected count. Exponentiating a coefficient gives the multiplicative change
+#' in the expected count for a one-unit increase in the predictor.
 #'
-#' **Condition checking:** Inspect `diagnostics$dispersion_ratio`. A value
-#' near 1 is consistent with the Poisson assumption (mean = variance). The
-#' RQR diagnostic plot should show points scattered randomly around zero with
-#' approximately normal QQ behaviour.
+#' **Condition checking:** Inspect `diagnostics$dispersion_ratio` (near 1 is
+#' good) and `diagnostics$zi_test$p_value` for zero-inflation.
 #'
 #' @examples
 #' df <- data.frame(
@@ -56,57 +56,56 @@
 #'
 #' @seealso [negbinGLM()], [zeroinflPoissonGLM()], [countGLM()], [stats::glm()]
 #' @export
-poissonGLM <- function(formula, data, ...) {
+poissonGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
-    "data must be a data frame" = is.data.frame(data)
+    "data must be a data frame"        = is.data.frame(data)
   )
 
   check_sample_size(formula, data)
   fit <- stats::glm(formula, data = data, family = stats::poisson(), ...)
 
-  # check zero inflation
-  zi_check <- check_zero_inflation(fit, "poisson")
-  if (isTRUE(zi_check$zero_inflation)) {
-    warning(
-      sprintf(
-        "Observed zeros (%d) exceed expected zeros (%.1f); possible zero inflation (ratio = %.2f). Consider a zero-inflated model.",
-        zi_check$observed_zeros,
-        zi_check$expected_zeros,
-        zi_check$ratio
-      ),
-      call. = FALSE
-    )
+  # DHARMa zero-inflation test
+  zi_test <- NULL
+  if (isTRUE(assessZeroInflation)) {
+    zi_test <- run_dharma_zi_test(fit, model_type = "Poisson")
+    if (isTRUE(zi_test$detected)) {
+      warning(sprintf(
+        "Possible zero-inflation detected by DHARMa test (p = %.3f). Consider zeroinflPoissonGLM() or zeroinflNegbinGLM().",
+        zi_test$p_value
+      ), call. = FALSE)
+    }
   }
 
   # Exponentiated coefficients with Wald 95% CIs
   est <- stats::coef(fit)
-  ci <- stats::confint.default(fit)
+  ci  <- stats::confint.default(fit)
   coef_table <- data.frame(
-    term = names(est),
-    exp.coef = exp(est),
-    lower.95 = exp(ci[, 1L]),
-    upper.95 = exp(ci[, 2L]),
+    term      = names(est),
+    exp.coef  = exp(est),
+    lower.95  = exp(ci[, 1L]),
+    upper.95  = exp(ci[, 2L]),
     row.names = NULL,
     stringsAsFactors = FALSE
   )
 
-  rqr <- compute_rqr(fit, "poisson")
+  rqr           <- compute_rqr(fit, "poisson")
   pearson_resid <- residuals(fit, type = "pearson")
-  disp <- check_dispersion(fit)
-  diag_plots <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
+  disp          <- check_dispersion(fit)
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
 
   structure(
     list(
-      call = match.call(),
-      model = fit,
-      summary = summary(fit),
+      call         = match.call(),
+      model        = fit,
+      summary      = summary(fit),
       coefficients = coef_table,
-      diagnostics = list(
-        rqr = rqr,
+      diagnostics  = list(
+        rqr              = rqr,
         dispersion_ratio = disp,
-        plot = diag_plots$rqr_plot,
-        r2_plot = diag_plots$r2_plot
+        plot             = diag_plots$rqr_plot,
+        r2_plot          = diag_plots$r2_plot,
+        zi_test          = zi_test
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)

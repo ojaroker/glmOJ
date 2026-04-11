@@ -287,14 +287,25 @@ models are needed.
 
 ### 8. Poisson and Zero-Inflated Poisson
 
-```{r dahir-poisson}
+We may want to start by manually fitting a Poisson model to confirm the overdispersion and zero-inflation diagnostics. The formula includes a quadratic term for each predictor to allow for non-linear effects, and road length is included as an offset:
 
-pois.cam<- poissonGLM(
-  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone + pop + hinc + pvac + mhmval + city + offset(log_road_length) + I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
+```{r dahir-poisson}
+pois.cam <- poissonGLM(
+  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone +
+    pop + hinc + pvac + mhmval + city + offset(log_road_length) +
+    I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
   data = Dahir25.dat
 )
 print(pois.cam)
+```
 
+The DHARMa zero-inflation test result:
+
+```{r dahir-poisson-zi}
+zi <- pois.cam$diagnostics$zi_test
+cat(sprintf("DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n",
+            zi$p_value, zi$detected))
+zi$plot
 ```
 ### 8. Automatic Model Selection with `countGLM`
 
