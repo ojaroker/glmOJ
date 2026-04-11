@@ -129,14 +129,14 @@ print(fit)
 #> Model family: zeroinflPoissonGLM 
 #> 
 #> Count component (exponentiated coefficients):
-#>         term exp.coef lower.95 upper.95
-#>  (Intercept)   1.3408   0.4923   3.6521
-#>           x1   0.9433   0.4383   2.0303
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.3408   0.4923   3.6521  0.5662      
+#>           x1   0.9433   0.4383   2.0303  0.8814      
 #> 
 #> Zero-inflation component (exponentiated coefficients):
-#>         term exp.coef lower.95 upper.95
-#>  (Intercept)   0.6737   0.0821   5.5318
-#>           x1   2.1030   0.4077  10.8484
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   0.6737   0.0821   5.5318  0.7132      
+#>           x1   2.1030   0.4077  10.8484  0.3745      
 #> 
 #> Dispersion ratio: 1.6711
 #> AIC: 29.60

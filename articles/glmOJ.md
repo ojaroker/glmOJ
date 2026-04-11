@@ -102,23 +102,23 @@ mod.pois <- poissonGLM(
 
 ``` r
 mod.pois$coefficients
-#>                 term  exp.coef  lower.95  upper.95
-#> 1        (Intercept) 0.1823719 0.1218639 0.2729236
-#> 2    eqi_2jan2018_vc 1.0587100 0.9554459 1.1731349
-#> 3      pctnonwhite10 1.0193442 1.0149745 1.0237327
-#> 4             metro1 3.3042257 2.7087270 4.0306415
-#> 5           gdp2017b 1.0020768 1.0013743 1.0027798
-#> 6  fac_penalty_count 1.0035038 1.0025814 1.0044270
-#> 7            CIDDist 0.9968844 0.9961277 0.9976416
-#> 8         EPAregion2 0.6380126 0.4071818 0.9997010
-#> 9         EPAregion3 0.3930124 0.2500571 0.6176939
-#> 10        EPAregion4 0.3419217 0.2283596 0.5119578
-#> 11        EPAregion5 0.6331705 0.4259880 0.9411178
-#> 12        EPAregion6 0.3535927 0.2288448 0.5463433
-#> 13        EPAregion7 0.9194406 0.6000503 1.4088336
-#> 14        EPAregion8 0.9845458 0.6244062 1.5524036
-#> 15        EPAregion9 0.6802879 0.4344711 1.0651838
-#> 16       EPAregion10 1.6355984 1.0812709 2.4741092
+#>                 term  exp.coef  lower.95  upper.95      p.value stars
+#> 1        (Intercept) 0.1823719 0.1218639 0.2729236 1.304191e-16   ***
+#> 2    eqi_2jan2018_vc 1.0587100 0.9554459 1.1731349 2.759131e-01      
+#> 3      pctnonwhite10 1.0193442 1.0149745 1.0237327 2.308798e-18   ***
+#> 4             metro1 3.3042257 2.7087270 4.0306415 4.500518e-32   ***
+#> 5           gdp2017b 1.0020768 1.0013743 1.0027798 6.708917e-09   ***
+#> 6  fac_penalty_count 1.0035038 1.0025814 1.0044270 9.019065e-14   ***
+#> 7            CIDDist 0.9968844 0.9961277 0.9976416 7.995795e-16   ***
+#> 8         EPAregion2 0.6380126 0.4071818 0.9997010 4.984764e-02     *
+#> 9         EPAregion3 0.3930124 0.2500571 0.6176939 5.159508e-05   ***
+#> 10        EPAregion4 0.3419217 0.2283596 0.5119578 1.880591e-07   ***
+#> 11        EPAregion5 0.6331705 0.4259880 0.9411178 2.381632e-02     *
+#> 12        EPAregion6 0.3535927 0.2288448 0.5463433 2.826577e-06   ***
+#> 13        EPAregion7 0.9194406 0.6000503 1.4088336 6.996862e-01      
+#> 14        EPAregion8 0.9845458 0.6244062 1.5524036 9.465543e-01      
+#> 15        EPAregion9 0.6802879 0.4344711 1.0651838 9.219375e-02     .
+#> 16       EPAregion10 1.6355984 1.0812709 2.4741092 1.980635e-02     *
 ```
 
 #### Model fit
@@ -165,23 +165,23 @@ mod.nb <- negbinGLM(
 
 ``` r
 mod.nb$coefficients
-#>                 term  exp.coef  lower.95  upper.95
-#> 1        (Intercept) 0.1739476 0.1009294 0.2997917
-#> 2    eqi_2jan2018_vc 0.9876521 0.8594207 1.1350166
-#> 3      pctnonwhite10 1.0142370 1.0081961 1.0203142
-#> 4             metro1 2.6619963 2.0970839 3.3790847
-#> 5           gdp2017b 1.0075352 1.0053273 1.0097479
-#> 6  fac_penalty_count 1.0095626 1.0068424 1.0122902
-#> 7            CIDDist 0.9980886 0.9971817 0.9989964
-#> 8         EPAregion2 0.7248601 0.3804835 1.3809327
-#> 9         EPAregion3 0.3342143 0.1793891 0.6226643
-#> 10        EPAregion4 0.3282850 0.1881526 0.5727855
-#> 11        EPAregion5 0.5182600 0.2972138 0.9037044
-#> 12        EPAregion6 0.3174128 0.1737298 0.5799287
-#> 13        EPAregion7 0.7815558 0.4357070 1.4019271
-#> 14        EPAregion8 0.9084431 0.4852015 1.7008789
-#> 15        EPAregion9 0.5513771 0.2775557 1.0953358
-#> 16       EPAregion10 1.6502074 0.8996619 3.0268976
+#>                 term  exp.coef  lower.95  upper.95      p.value stars
+#> 1        (Intercept) 0.1739476 0.1009294 0.2997917 3.023453e-10   ***
+#> 2    eqi_2jan2018_vc 0.9876521 0.8594207 1.1350166 8.609982e-01      
+#> 3      pctnonwhite10 1.0142370 1.0081961 1.0203142 3.518093e-06   ***
+#> 4             metro1 2.6619963 2.0970839 3.3790847 8.626855e-16   ***
+#> 5           gdp2017b 1.0075352 1.0053273 1.0097479 1.988481e-11   ***
+#> 6  fac_penalty_count 1.0095626 1.0068424 1.0122902 4.726959e-12   ***
+#> 7            CIDDist 0.9980886 0.9971817 0.9989964 3.709074e-05   ***
+#> 8         EPAregion2 0.7248601 0.3804835 1.3809327 3.278330e-01      
+#> 9         EPAregion3 0.3342143 0.1793891 0.6226643 5.559635e-04   ***
+#> 10        EPAregion4 0.3282850 0.1881526 0.5727855 8.778317e-05   ***
+#> 11        EPAregion5 0.5182600 0.2972138 0.9037044 2.051048e-02     *
+#> 12        EPAregion6 0.3174128 0.1737298 0.5799287 1.901195e-04   ***
+#> 13        EPAregion7 0.7815558 0.4357070 1.4019271 4.083921e-01      
+#> 14        EPAregion8 0.9084431 0.4852015 1.7008789 7.641150e-01      
+#> 15        EPAregion9 0.5513771 0.2775557 1.0953358 8.914123e-02     .
+#> 16       EPAregion10 1.6502074 0.8996619 3.0268976 1.055884e-01
 ```
 
 #### Model fit
@@ -263,8 +263,9 @@ print(result1)
 #> Recommendation:
 #>   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)
 #>   agree. The Poisson dispersion ratio is 1.62 (> 1.5), indicating
-#>   overdispersion. The zero count (observed: 2654, expected: 2558.7) is
-#>   consistent with a standard count model.
+#>   overdispersion. DHARMa zero-inflation test is significant for the
+#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
+#>   0.654); excess zeros may be explained by overdispersion alone.
 ```
 
 The wrapper selects the same winner as the manual LRT. Individual fits
@@ -308,8 +309,9 @@ print(result2)
 #> Recommendation:
 #>   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)
 #>   agree. The Poisson dispersion ratio is 1.49, consistent with
-#>   equidispersion. The zero count (observed: 2654, expected: 2565.5) is
-#>   consistent with a standard count model.
+#>   equidispersion. DHARMa zero-inflation test is significant for the
+#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
+#>   0.828); excess zeros may be explained by overdispersion alone.
 ```
 
 Again the negative binomial is selected. The non-nested comparison
@@ -430,10 +432,16 @@ overdispersed count models are needed.
 
 ### 8. Poisson and Zero-Inflated Poisson
 
-``` r
+We may want to start by manually fitting a Poisson model to confirm the
+overdispersion and zero-inflation diagnostics. The formula includes a
+quadratic term for each predictor to allow for non-linear effects, and
+road length is included as an offset:
 
-pois.cam<- poissonGLM(
-  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone + pop + hinc + pvac + mhmval + city + offset(log_road_length) + I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
+``` r
+pois.cam <- poissonGLM(
+  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone +
+    pop + hinc + pvac + mhmval + city + offset(log_road_length) +
+    I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
   data = Dahir25.dat
 )
 print(pois.cam)
@@ -447,39 +455,50 @@ print(pois.cam)
 #> Model family: poissonGLM 
 #> 
 #> Coefficients (on response scale):
-#>                   term exp.coef lower.95 upper.95
-#>            (Intercept)   0.1337   0.1055   0.1695
-#>                 pnhwht   0.9634   0.8968   1.0349
-#>                 pnhblk   0.8723   0.8106   0.9387
-#>           entropy_rank   1.4478   0.7754   2.7031
-#>       total_crime_rate   1.0908   1.0796   1.1022
-#>   modal_zoneindustrial   1.1534   0.9558   1.3917
-#>        modal_zonemixed   1.2535   1.0415   1.5087
-#>       modal_zonepublic   0.5876   0.4649   0.7428
-#>  modal_zoneresidential   0.4298   0.3742   0.4937
-#>        modal_zoneroads   0.6960   0.4447   1.0895
-#>                    pop   1.1213   1.0990   1.1442
-#>                   hinc   0.7716   0.7305   0.8149
-#>                   pvac   1.1807   1.1373   1.2258
-#>                 mhmval   1.1586   1.1036   1.2164
-#>             cityBoston   1.2368   1.0563   1.4481
-#>            cityChicago   0.1851   0.1546   0.2216
-#>        cityLos Angeles   0.0495   0.0399   0.0615
-#>          cityMilwaukee   0.3249   0.2688   0.3927
-#>           cityNew York   0.2073   0.1776   0.2421
-#>       cityPhiladelphia   0.4482   0.3808   0.5274
-#>      citySan Francisco   0.6071   0.5090   0.7241
-#>            citySeattle   0.1768   0.1440   0.2171
-#>         cityWashington   0.4568   0.3008   0.6937
-#>            I(pnhwht^2)   1.0487   0.9979   1.1020
-#>            I(pnhblk^2)   1.0139   0.9881   1.0402
-#>      I(entropy_rank^2)   1.2363   0.7094   2.1546
+#>                   term exp.coef lower.95 upper.95 p.value stars
+#>            (Intercept)   0.1337   0.1055   0.1695  0.0000   ***
+#>                 pnhwht   0.9634   0.8968   1.0349  0.3067      
+#>                 pnhblk   0.8723   0.8106   0.9387  0.0003   ***
+#>           entropy_rank   1.4478   0.7754   2.7031  0.2454      
+#>       total_crime_rate   1.0908   1.0796   1.1022  0.0000   ***
+#>   modal_zoneindustrial   1.1534   0.9558   1.3917  0.1366      
+#>        modal_zonemixed   1.2535   1.0415   1.5087  0.0168     *
+#>       modal_zonepublic   0.5876   0.4649   0.7428  0.0000   ***
+#>  modal_zoneresidential   0.4298   0.3742   0.4937  0.0000   ***
+#>        modal_zoneroads   0.6960   0.4447   1.0895  0.1130      
+#>                    pop   1.1213   1.0990   1.1442  0.0000   ***
+#>                   hinc   0.7716   0.7305   0.8149  0.0000   ***
+#>                   pvac   1.1807   1.1373   1.2258  0.0000   ***
+#>                 mhmval   1.1586   1.1036   1.2164  0.0000   ***
+#>             cityBoston   1.2368   1.0563   1.4481  0.0083    **
+#>            cityChicago   0.1851   0.1546   0.2216  0.0000   ***
+#>        cityLos Angeles   0.0495   0.0399   0.0615  0.0000   ***
+#>          cityMilwaukee   0.3249   0.2688   0.3927  0.0000   ***
+#>           cityNew York   0.2073   0.1776   0.2421  0.0000   ***
+#>       cityPhiladelphia   0.4482   0.3808   0.5274  0.0000   ***
+#>      citySan Francisco   0.6071   0.5090   0.7241  0.0000   ***
+#>            citySeattle   0.1768   0.1440   0.2171  0.0000   ***
+#>         cityWashington   0.4568   0.3008   0.6937  0.0002   ***
+#>            I(pnhwht^2)   1.0487   0.9979   1.1020  0.0607     .
+#>            I(pnhblk^2)   1.0139   0.9881   1.0402  0.2939      
+#>      I(entropy_rank^2)   1.2363   0.7094   2.1546  0.4541      
 #> 
 #> Dispersion ratio: 1.8401
 #> AIC: 11299.96
 ```
 
-### 8. Automatic Model Selection with `countGLM`
+The DHARMa zero-inflation test result:
+
+``` r
+zi <- pois.cam$diagnostics$zi_test
+cat(sprintf("DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n",
+            zi$p_value, zi$detected))
+#> DHARMa zero-inflation test: p = 0.0000  |  Detected: TRUE
+zi$plot
+```
+
+![](glmOJ_files/figure-html/dahir-poisson-zi-1.png) \### 8. Automatic
+Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
 fits all four count families and selects the best by AIC. Road length

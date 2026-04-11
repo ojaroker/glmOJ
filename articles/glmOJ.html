@@ -164,23 +164,23 @@ Index and demographic/geographic controls.</p>
 </h4>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod.pois</span><span class="op">$</span><span class="va">coefficients</span></span>
-<span><span class="co">#&gt;                 term  exp.coef  lower.95  upper.95</span></span>
-<span><span class="co">#&gt; 1        (Intercept) 0.1823719 0.1218639 0.2729236</span></span>
-<span><span class="co">#&gt; 2    eqi_2jan2018_vc 1.0587100 0.9554459 1.1731349</span></span>
-<span><span class="co">#&gt; 3      pctnonwhite10 1.0193442 1.0149745 1.0237327</span></span>
-<span><span class="co">#&gt; 4             metro1 3.3042257 2.7087270 4.0306415</span></span>
-<span><span class="co">#&gt; 5           gdp2017b 1.0020768 1.0013743 1.0027798</span></span>
-<span><span class="co">#&gt; 6  fac_penalty_count 1.0035038 1.0025814 1.0044270</span></span>
-<span><span class="co">#&gt; 7            CIDDist 0.9968844 0.9961277 0.9976416</span></span>
-<span><span class="co">#&gt; 8         EPAregion2 0.6380126 0.4071818 0.9997010</span></span>
-<span><span class="co">#&gt; 9         EPAregion3 0.3930124 0.2500571 0.6176939</span></span>
-<span><span class="co">#&gt; 10        EPAregion4 0.3419217 0.2283596 0.5119578</span></span>
-<span><span class="co">#&gt; 11        EPAregion5 0.6331705 0.4259880 0.9411178</span></span>
-<span><span class="co">#&gt; 12        EPAregion6 0.3535927 0.2288448 0.5463433</span></span>
-<span><span class="co">#&gt; 13        EPAregion7 0.9194406 0.6000503 1.4088336</span></span>
-<span><span class="co">#&gt; 14        EPAregion8 0.9845458 0.6244062 1.5524036</span></span>
-<span><span class="co">#&gt; 15        EPAregion9 0.6802879 0.4344711 1.0651838</span></span>
-<span><span class="co">#&gt; 16       EPAregion10 1.6355984 1.0812709 2.4741092</span></span></code></pre></div>
+<span><span class="co">#&gt;                 term  exp.coef  lower.95  upper.95      p.value stars</span></span>
+<span><span class="co">#&gt; 1        (Intercept) 0.1823719 0.1218639 0.2729236 1.304191e-16   ***</span></span>
+<span><span class="co">#&gt; 2    eqi_2jan2018_vc 1.0587100 0.9554459 1.1731349 2.759131e-01      </span></span>
+<span><span class="co">#&gt; 3      pctnonwhite10 1.0193442 1.0149745 1.0237327 2.308798e-18   ***</span></span>
+<span><span class="co">#&gt; 4             metro1 3.3042257 2.7087270 4.0306415 4.500518e-32   ***</span></span>
+<span><span class="co">#&gt; 5           gdp2017b 1.0020768 1.0013743 1.0027798 6.708917e-09   ***</span></span>
+<span><span class="co">#&gt; 6  fac_penalty_count 1.0035038 1.0025814 1.0044270 9.019065e-14   ***</span></span>
+<span><span class="co">#&gt; 7            CIDDist 0.9968844 0.9961277 0.9976416 7.995795e-16   ***</span></span>
+<span><span class="co">#&gt; 8         EPAregion2 0.6380126 0.4071818 0.9997010 4.984764e-02     *</span></span>
+<span><span class="co">#&gt; 9         EPAregion3 0.3930124 0.2500571 0.6176939 5.159508e-05   ***</span></span>
+<span><span class="co">#&gt; 10        EPAregion4 0.3419217 0.2283596 0.5119578 1.880591e-07   ***</span></span>
+<span><span class="co">#&gt; 11        EPAregion5 0.6331705 0.4259880 0.9411178 2.381632e-02     *</span></span>
+<span><span class="co">#&gt; 12        EPAregion6 0.3535927 0.2288448 0.5463433 2.826577e-06   ***</span></span>
+<span><span class="co">#&gt; 13        EPAregion7 0.9194406 0.6000503 1.4088336 6.996862e-01      </span></span>
+<span><span class="co">#&gt; 14        EPAregion8 0.9845458 0.6244062 1.5524036 9.465543e-01      </span></span>
+<span><span class="co">#&gt; 15        EPAregion9 0.6802879 0.4344711 1.0651838 9.219375e-02     .</span></span>
+<span><span class="co">#&gt; 16       EPAregion10 1.6355984 1.0812709 2.4741092 1.980635e-02     *</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="model-fit">Model fit<a class="anchor" aria-label="anchor" href="#model-fit"></a>
@@ -221,23 +221,23 @@ to handle overdispersion.</p>
 </h4>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod.nb</span><span class="op">$</span><span class="va">coefficients</span></span>
-<span><span class="co">#&gt;                 term  exp.coef  lower.95  upper.95</span></span>
-<span><span class="co">#&gt; 1        (Intercept) 0.1739476 0.1009294 0.2997917</span></span>
-<span><span class="co">#&gt; 2    eqi_2jan2018_vc 0.9876521 0.8594207 1.1350166</span></span>
-<span><span class="co">#&gt; 3      pctnonwhite10 1.0142370 1.0081961 1.0203142</span></span>
-<span><span class="co">#&gt; 4             metro1 2.6619963 2.0970839 3.3790847</span></span>
-<span><span class="co">#&gt; 5           gdp2017b 1.0075352 1.0053273 1.0097479</span></span>
-<span><span class="co">#&gt; 6  fac_penalty_count 1.0095626 1.0068424 1.0122902</span></span>
-<span><span class="co">#&gt; 7            CIDDist 0.9980886 0.9971817 0.9989964</span></span>
-<span><span class="co">#&gt; 8         EPAregion2 0.7248601 0.3804835 1.3809327</span></span>
-<span><span class="co">#&gt; 9         EPAregion3 0.3342143 0.1793891 0.6226643</span></span>
-<span><span class="co">#&gt; 10        EPAregion4 0.3282850 0.1881526 0.5727855</span></span>
-<span><span class="co">#&gt; 11        EPAregion5 0.5182600 0.2972138 0.9037044</span></span>
-<span><span class="co">#&gt; 12        EPAregion6 0.3174128 0.1737298 0.5799287</span></span>
-<span><span class="co">#&gt; 13        EPAregion7 0.7815558 0.4357070 1.4019271</span></span>
-<span><span class="co">#&gt; 14        EPAregion8 0.9084431 0.4852015 1.7008789</span></span>
-<span><span class="co">#&gt; 15        EPAregion9 0.5513771 0.2775557 1.0953358</span></span>
-<span><span class="co">#&gt; 16       EPAregion10 1.6502074 0.8996619 3.0268976</span></span></code></pre></div>
+<span><span class="co">#&gt;                 term  exp.coef  lower.95  upper.95      p.value stars</span></span>
+<span><span class="co">#&gt; 1        (Intercept) 0.1739476 0.1009294 0.2997917 3.023453e-10   ***</span></span>
+<span><span class="co">#&gt; 2    eqi_2jan2018_vc 0.9876521 0.8594207 1.1350166 8.609982e-01      </span></span>
+<span><span class="co">#&gt; 3      pctnonwhite10 1.0142370 1.0081961 1.0203142 3.518093e-06   ***</span></span>
+<span><span class="co">#&gt; 4             metro1 2.6619963 2.0970839 3.3790847 8.626855e-16   ***</span></span>
+<span><span class="co">#&gt; 5           gdp2017b 1.0075352 1.0053273 1.0097479 1.988481e-11   ***</span></span>
+<span><span class="co">#&gt; 6  fac_penalty_count 1.0095626 1.0068424 1.0122902 4.726959e-12   ***</span></span>
+<span><span class="co">#&gt; 7            CIDDist 0.9980886 0.9971817 0.9989964 3.709074e-05   ***</span></span>
+<span><span class="co">#&gt; 8         EPAregion2 0.7248601 0.3804835 1.3809327 3.278330e-01      </span></span>
+<span><span class="co">#&gt; 9         EPAregion3 0.3342143 0.1793891 0.6226643 5.559635e-04   ***</span></span>
+<span><span class="co">#&gt; 10        EPAregion4 0.3282850 0.1881526 0.5727855 8.778317e-05   ***</span></span>
+<span><span class="co">#&gt; 11        EPAregion5 0.5182600 0.2972138 0.9037044 2.051048e-02     *</span></span>
+<span><span class="co">#&gt; 12        EPAregion6 0.3174128 0.1737298 0.5799287 1.901195e-04   ***</span></span>
+<span><span class="co">#&gt; 13        EPAregion7 0.7815558 0.4357070 1.4019271 4.083921e-01      </span></span>
+<span><span class="co">#&gt; 14        EPAregion8 0.9084431 0.4852015 1.7008789 7.641150e-01      </span></span>
+<span><span class="co">#&gt; 15        EPAregion9 0.5513771 0.2775557 1.0953358 8.914123e-02     .</span></span>
+<span><span class="co">#&gt; 16       EPAregion10 1.6502074 0.8996619 3.0268976 1.055884e-01</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="model-fit-1">Model fit<a class="anchor" aria-label="anchor" href="#model-fit-1"></a>
@@ -317,8 +317,9 @@ same conclusion automatically.</p>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)</span></span>
 <span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.62 (&gt; 1.5), indicating</span></span>
-<span><span class="co">#&gt;   overdispersion. The zero count (observed: 2654, expected: 2558.7) is</span></span>
-<span><span class="co">#&gt;   consistent with a standard count model.</span></span></code></pre></div>
+<span><span class="co">#&gt;   overdispersion. DHARMa zero-inflation test is significant for the</span></span>
+<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
+<span><span class="co">#&gt;   0.654); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
 <p>The wrapper selects the same winner as the manual LRT. Individual
 fits remain accessible: <code>result1$fits$negbin</code>,
 <code>result1$fits$poisson</code>, etc.</p>
@@ -361,8 +362,9 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)</span></span>
 <span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.49, consistent with</span></span>
-<span><span class="co">#&gt;   equidispersion. The zero count (observed: 2654, expected: 2565.5) is</span></span>
-<span><span class="co">#&gt;   consistent with a standard count model.</span></span></code></pre></div>
+<span><span class="co">#&gt;   equidispersion. DHARMa zero-inflation test is significant for the</span></span>
+<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
+<span><span class="co">#&gt;   0.828); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
 <p>Again the negative binomial is selected. The non-nested comparison
 between these two winning models (overall EQI vs sub-indices) can be
 done with a Vuong test via
@@ -475,10 +477,15 @@ or overdispersed count models are needed.</p>
 <div class="section level3">
 <h3 id="poisson-and-zero-inflated-poisson">8. Poisson and Zero-Inflated Poisson<a class="anchor" aria-label="anchor" href="#poisson-and-zero-inflated-poisson"></a>
 </h3>
+<p>We may want to start by manually fitting a Poisson model to confirm
+the overdispersion and zero-inflation diagnostics. The formula includes
+a quadratic term for each predictor to allow for non-linear effects, and
+road length is included as an offset:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">pois.cam</span><span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
-<span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhwht</span> <span class="op">+</span> <span class="va">pnhblk</span> <span class="op">+</span> <span class="va">entropy_rank</span> <span class="op">+</span> <span class="va">total_crime_rate</span> <span class="op">+</span> <span class="va">modal_zone</span> <span class="op">+</span> <span class="va">pop</span> <span class="op">+</span> <span class="va">hinc</span> <span class="op">+</span> <span class="va">pvac</span> <span class="op">+</span> <span class="va">mhmval</span> <span class="op">+</span> <span class="va">city</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/offset.html" class="external-link">offset</a></span><span class="op">(</span><span class="va">log_road_length</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhwht</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhblk</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">entropy_rank</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">pois.cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
+<span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhwht</span> <span class="op">+</span> <span class="va">pnhblk</span> <span class="op">+</span> <span class="va">entropy_rank</span> <span class="op">+</span> <span class="va">total_crime_rate</span> <span class="op">+</span> <span class="va">modal_zone</span> <span class="op">+</span></span>
+<span>    <span class="va">pop</span> <span class="op">+</span> <span class="va">hinc</span> <span class="op">+</span> <span class="va">pvac</span> <span class="op">+</span> <span class="va">mhmval</span> <span class="op">+</span> <span class="va">city</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/offset.html" class="external-link">offset</a></span><span class="op">(</span><span class="va">log_road_length</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhwht</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhblk</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">entropy_rank</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">pois.cam</span><span class="op">)</span></span>
@@ -492,46 +499,51 @@ or overdispersed count models are needed.</p>
 <span><span class="co">#&gt; Model family: poissonGLM </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients (on response scale):</span></span>
-<span><span class="co">#&gt;                   term exp.coef lower.95 upper.95</span></span>
-<span><span class="co">#&gt;            (Intercept)   0.1337   0.1055   0.1695</span></span>
-<span><span class="co">#&gt;                 pnhwht   0.9634   0.8968   1.0349</span></span>
-<span><span class="co">#&gt;                 pnhblk   0.8723   0.8106   0.9387</span></span>
-<span><span class="co">#&gt;           entropy_rank   1.4478   0.7754   2.7031</span></span>
-<span><span class="co">#&gt;       total_crime_rate   1.0908   1.0796   1.1022</span></span>
-<span><span class="co">#&gt;   modal_zoneindustrial   1.1534   0.9558   1.3917</span></span>
-<span><span class="co">#&gt;        modal_zonemixed   1.2535   1.0415   1.5087</span></span>
-<span><span class="co">#&gt;       modal_zonepublic   0.5876   0.4649   0.7428</span></span>
-<span><span class="co">#&gt;  modal_zoneresidential   0.4298   0.3742   0.4937</span></span>
-<span><span class="co">#&gt;        modal_zoneroads   0.6960   0.4447   1.0895</span></span>
-<span><span class="co">#&gt;                    pop   1.1213   1.0990   1.1442</span></span>
-<span><span class="co">#&gt;                   hinc   0.7716   0.7305   0.8149</span></span>
-<span><span class="co">#&gt;                   pvac   1.1807   1.1373   1.2258</span></span>
-<span><span class="co">#&gt;                 mhmval   1.1586   1.1036   1.2164</span></span>
-<span><span class="co">#&gt;             cityBoston   1.2368   1.0563   1.4481</span></span>
-<span><span class="co">#&gt;            cityChicago   0.1851   0.1546   0.2216</span></span>
-<span><span class="co">#&gt;        cityLos Angeles   0.0495   0.0399   0.0615</span></span>
-<span><span class="co">#&gt;          cityMilwaukee   0.3249   0.2688   0.3927</span></span>
-<span><span class="co">#&gt;           cityNew York   0.2073   0.1776   0.2421</span></span>
-<span><span class="co">#&gt;       cityPhiladelphia   0.4482   0.3808   0.5274</span></span>
-<span><span class="co">#&gt;      citySan Francisco   0.6071   0.5090   0.7241</span></span>
-<span><span class="co">#&gt;            citySeattle   0.1768   0.1440   0.2171</span></span>
-<span><span class="co">#&gt;         cityWashington   0.4568   0.3008   0.6937</span></span>
-<span><span class="co">#&gt;            I(pnhwht^2)   1.0487   0.9979   1.1020</span></span>
-<span><span class="co">#&gt;            I(pnhblk^2)   1.0139   0.9881   1.0402</span></span>
-<span><span class="co">#&gt;      I(entropy_rank^2)   1.2363   0.7094   2.1546</span></span>
+<span><span class="co">#&gt;                   term exp.coef lower.95 upper.95 p.value stars</span></span>
+<span><span class="co">#&gt;            (Intercept)   0.1337   0.1055   0.1695  0.0000   ***</span></span>
+<span><span class="co">#&gt;                 pnhwht   0.9634   0.8968   1.0349  0.3067      </span></span>
+<span><span class="co">#&gt;                 pnhblk   0.8723   0.8106   0.9387  0.0003   ***</span></span>
+<span><span class="co">#&gt;           entropy_rank   1.4478   0.7754   2.7031  0.2454      </span></span>
+<span><span class="co">#&gt;       total_crime_rate   1.0908   1.0796   1.1022  0.0000   ***</span></span>
+<span><span class="co">#&gt;   modal_zoneindustrial   1.1534   0.9558   1.3917  0.1366      </span></span>
+<span><span class="co">#&gt;        modal_zonemixed   1.2535   1.0415   1.5087  0.0168     *</span></span>
+<span><span class="co">#&gt;       modal_zonepublic   0.5876   0.4649   0.7428  0.0000   ***</span></span>
+<span><span class="co">#&gt;  modal_zoneresidential   0.4298   0.3742   0.4937  0.0000   ***</span></span>
+<span><span class="co">#&gt;        modal_zoneroads   0.6960   0.4447   1.0895  0.1130      </span></span>
+<span><span class="co">#&gt;                    pop   1.1213   1.0990   1.1442  0.0000   ***</span></span>
+<span><span class="co">#&gt;                   hinc   0.7716   0.7305   0.8149  0.0000   ***</span></span>
+<span><span class="co">#&gt;                   pvac   1.1807   1.1373   1.2258  0.0000   ***</span></span>
+<span><span class="co">#&gt;                 mhmval   1.1586   1.1036   1.2164  0.0000   ***</span></span>
+<span><span class="co">#&gt;             cityBoston   1.2368   1.0563   1.4481  0.0083    **</span></span>
+<span><span class="co">#&gt;            cityChicago   0.1851   0.1546   0.2216  0.0000   ***</span></span>
+<span><span class="co">#&gt;        cityLos Angeles   0.0495   0.0399   0.0615  0.0000   ***</span></span>
+<span><span class="co">#&gt;          cityMilwaukee   0.3249   0.2688   0.3927  0.0000   ***</span></span>
+<span><span class="co">#&gt;           cityNew York   0.2073   0.1776   0.2421  0.0000   ***</span></span>
+<span><span class="co">#&gt;       cityPhiladelphia   0.4482   0.3808   0.5274  0.0000   ***</span></span>
+<span><span class="co">#&gt;      citySan Francisco   0.6071   0.5090   0.7241  0.0000   ***</span></span>
+<span><span class="co">#&gt;            citySeattle   0.1768   0.1440   0.2171  0.0000   ***</span></span>
+<span><span class="co">#&gt;         cityWashington   0.4568   0.3008   0.6937  0.0002   ***</span></span>
+<span><span class="co">#&gt;            I(pnhwht^2)   1.0487   0.9979   1.1020  0.0607     .</span></span>
+<span><span class="co">#&gt;            I(pnhblk^2)   1.0139   0.9881   1.0402  0.2939      </span></span>
+<span><span class="co">#&gt;      I(entropy_rank^2)   1.2363   0.7094   2.1546  0.4541      </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Dispersion ratio: 1.8401</span></span>
 <span><span class="co">#&gt; AIC: 11299.96</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="automatic-model-selection-with-countglm">8. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm"></a>
-</h3>
+<p>The DHARMa zero-inflation test result:</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">zi</span> <span class="op">&lt;-</span> <span class="va">pois.cam</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">zi_test</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n"</span>,</span>
+<span>            <span class="va">zi</span><span class="op">$</span><span class="va">p_value</span>, <span class="va">zi</span><span class="op">$</span><span class="va">detected</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; DHARMa zero-inflation test: p = 0.0000  |  Detected: TRUE</span></span>
+<span><span class="va">zi</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="glmOJ_files/figure-html/dahir-poisson-zi-1.png" class="r-plt" alt="" width="768">
+### 8. Automatic Model Selection with <code>countGLM</code></p>
 <p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four count families and selects the
 best by AIC. Road length (<code>log_road_length</code>) is included as
 an offset in the count component; because <code>ziformula = NULL</code>,
 it is automatically applied to the zero-inflation component as well —
 <code>countGLM</code> prints a note confirming this:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhblk</span> <span class="op">+</span></span>
 <span>    <span class="va">pnhwht</span> <span class="op">+</span></span>
@@ -567,10 +579,10 @@ automatically, explaining why this family was preferred.</p>
 </h3>
 <p><code><a href="../reference/interpret_coef.html">interpret_coef()</a></code> delegates to the best-fitting model
 automatically:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 39.2% increase in the expected rate of cam_count per unit of exposure (exp(β) = 1.392, 95% CI: [1.333, 1.455]).</span></span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"hinc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in hinc is associated with a 19.5% decrease in the expected rate of cam_count per unit of exposure (exp(β) = 0.805, 95% CI: [0.744, 0.871]).</span></span></code></pre></div>
 <p>For zero-inflated models, the count and zero components can be
@@ -578,7 +590,7 @@ interpreted separately. The count component describes the expected
 camera count among tracts that are in the counting process; the zero
 component describes the odds of being a structural zero (a tract that
 never receives a camera):</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
 <hr>

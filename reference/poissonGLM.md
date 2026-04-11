@@ -2,12 +2,12 @@
 
 Fits a Poisson GLM and returns model coefficients on the response scale
 (exponentiated), randomized quantile residuals (RQR), a Pearson
-dispersion ratio, and a two-panel diagnostic plot.
+dispersion ratio, and diagnostic plots.
 
 ## Usage
 
 ``` r
-poissonGLM(formula, data, ...)
+poissonGLM(formula, data, assessZeroInflation = TRUE, ...)
 ```
 
 ## Arguments
@@ -20,6 +20,15 @@ poissonGLM(formula, data, ...)
 - data:
 
   A data frame containing the variables in `formula`.
+
+- assessZeroInflation:
+
+  Logical; when `TRUE` (default), runs a DHARMa simulation-based
+  zero-inflation test after fitting. Issues a warning if significant
+  zero-inflation is detected and adds `zi_test` to the returned
+  diagnostics. Set to `FALSE` when calling from
+  [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
+  which performs its own zero-inflation assessment.
 
 - ...:
 
@@ -59,21 +68,22 @@ An object of class `c("poissonGLM", "countGLMfit")`, a list with:
 
   `dispersion_ratio`
 
-  :   Pearson chi-squared / df.residual. Values substantially above 1
-      (rule of thumb: \> 1.5) suggest overdispersion; consider
-      [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md).
+  :   Pearson chi-squared / df.residual.
 
   `plot`
 
-  :   A patchwork ggplot: fitted values vs RQR (left) and histo-QQ of
-      RQR (right). The dispersion ratio is shown in red with an
-      overdispersion warning if it exceeds 1.2.
+  :   Patchwork ggplot: fitted vs RQR and histo-QQ.
 
   `r2_plot`
 
-  :   Squared Pearson residuals vs fitted values, with a red dotted
-      reference line at 1 and a smooth. Useful for diagnosing
-      mean-variance misspecification.
+  :   Squared Pearson residuals vs fitted values.
+
+  `zi_test`
+
+  :   When `assessZeroInflation = TRUE`, a list with `detected`
+      (logical), `p_value` (numeric), and `plot` (ggplot histogram of
+      DHARMa simulated zero proportions vs observed). `NULL` when
+      `assessZeroInflation = FALSE`.
 
 - `aic`:
 
@@ -87,14 +97,10 @@ An object of class `c("poissonGLM", "countGLMfit")`, a list with:
 
 **Coefficient interpretation:** Poisson regression models the log of the
 expected count. Exponentiating a coefficient gives the multiplicative
-change in the expected count for a one-unit increase in the predictor,
-adjusting for simultaneous linear changes in other predictors. For
-example, 1.5 means a 50% higher expected count.
+change in the expected count for a one-unit increase in the predictor.
 
-**Condition checking:** Inspect `diagnostics$dispersion_ratio`. A value
-near 1 is consistent with the Poisson assumption (mean = variance). The
-RQR diagnostic plot should show points scattered randomly around zero
-with approximately normal QQ behaviour.
+**Condition checking:** Inspect `diagnostics$dispersion_ratio` (near 1
+is good) and `diagnostics$zi_test$p_value` for zero-inflation.
 
 ## See also
 
@@ -120,9 +126,9 @@ print(fit)
 #> Model family: poissonGLM 
 #> 
 #> Coefficients (on response scale):
-#>         term exp.coef lower.95 upper.95
-#>  (Intercept)   1.7989   1.0683   3.0290
-#>           x1   1.3396   0.8572   2.0936
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.7989   1.0683   3.0290  0.0272     *
+#>           x1   1.3396   0.8572   2.0936  0.1993      
 #> 
 #> Dispersion ratio: 1.1658
 #> AIC: 39.02

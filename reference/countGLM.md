@@ -2,8 +2,9 @@
 
 Fits all four count regression models supported by glmOJ (Poisson,
 negative binomial, zero-inflated Poisson, zero-inflated negative
-binomial), selects the best by AIC, and provides a plain-language
-recommendation informed by dispersion and zero-inflation diagnostics.
+binomial), selects the best by AIC and BIC, and provides a
+plain-language recommendation informed by dispersion and zero-inflation
+diagnostics.
 
 ## Usage
 
@@ -47,7 +48,9 @@ An object of class `"countGLM"`, a list with:
 
   A named list of successfully fitted model objects (`poisson`,
   `negbin`, `zeroinfl_poisson`, `zeroinfl_negbin`). Any model that
-  failed to converge is omitted.
+  failed to converge is omitted. Poisson and negative binomial fits
+  include `diagnostics$zi_test` populated from a DHARMa zero-inflation
+  test run internally.
 
 - `aic_table`:
 
@@ -71,21 +74,19 @@ An object of class `"countGLM"`, a list with:
 
 ## Details
 
-**Model selection:** AIC is the primary criterion. Lower AIC indicates a
-better balance of fit and parsimony.
+**Model selection:** Both AIC and BIC are computed. When they agree, the
+jointly best model is chosen. When they disagree, the simpler model
+(Poisson \< NB \< ZIP \< ZINB) is selected with a note.
 
-**Heuristic diagnostics** (computed from the Poisson fit and used to
-annotate the recommendation, not to override AIC):
+**Zero-inflation diagnostics:** DHARMa simulation tests are run on both
+the Poisson and negative binomial fits. Results appear in
+`result$fits$poisson$diagnostics$zi_test` and
+`result$fits$negbin$diagnostics$zi_test`, and inform the recommendation
+text. Individual model warnings are suppressed; the recommendation
+summarises the findings instead.
 
-- *Overdispersion*: Pearson dispersion ratio \> 1.5 from the Poisson fit
-  suggests the negative binomial family may be more appropriate.
-
-- *Zero-inflation*: If the observed number of zeros exceeds 1.3x the
-  number of zeros expected under a Poisson model, excess zeros are
-  flagged.
-
-Individual models can be accessed via `result$fits$negbin`, etc., and
-support [`print()`](https://rdrr.io/r/base/print.html),
+Individual models support
+[`print()`](https://rdrr.io/r/base/print.html),
 [`summary()`](https://rdrr.io/r/base/summary.html), and
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html).
 
@@ -129,23 +130,23 @@ print(result)
 #> 
 #> Recommendation:
 #>   Poisson was selected — both AIC (39.02) and BIC (39.63) agree. The
-#>   Poisson dispersion ratio is 1.17, consistent with equidispersion.
-#>   There are 1.4x more zeros than expected under Poisson (observed: 2,
-#>   expected: 1.4), suggesting zero-inflation.
+#>   Poisson dispersion ratio is 1.17, consistent with equidispersion. No
+#>   significant zero-inflation detected (Poisson p = 0.890, Negative
+#>   Binomial p = 0.878).
 #> 
 summary(result)
 #> Summary of selected model (poisson):
 #> 
 #> 
 #> Call:
-#> poissonGLM(formula = formula, data = data)
+#> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE)
 #> 
 #> Model family: poissonGLM 
 #> 
 #> Coefficients (on response scale):
-#>         term exp.coef lower.95 upper.95
-#>  (Intercept)   1.7989   1.0683   3.0290
-#>           x1   1.3396   0.8572   2.0936
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.7989   1.0683   3.0290  0.0272     *
+#>           x1   1.3396   0.8572   2.0936  0.1993      
 #> 
 #> Dispersion ratio: 1.1658
 #> AIC: 39.02
