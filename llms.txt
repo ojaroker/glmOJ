@@ -33,17 +33,18 @@ analyst through four steps:
 
 The general-purpose
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four families and selects the best by AIC, annotated with
-dispersion and zero-inflation diagnostics.
+fits all four families and selects the best by AIC and BIC, annotated
+with dispersion and zero-inflation diagnostics.
 
 ## Package functions
 
 ### Data summarization
 
 - **`summarizeCountData(formula, data)`** — Produces numerical summaries
-  (mean, variance, variance-to-mean ratio, zero count) and a plot of the
-  count response against predictors. The plot type adapts to the number
-  and type of predictors (histogram, scatter, violin, heatmap, etc.).
+  (mean, variance, dispersion ratio, zero count) and a plot of the count
+  response against predictors. The plot type adapts to the number and
+  type of predictors (histogram, scatter, violin, heatmap, etc.). A
+  GGally::ggpairs() plot is also returned.
 
 ### Model fitting
 
@@ -68,9 +69,9 @@ dispersion ratio, and a two-panel diagnostic plot (fitted values vs. RQR
 ### Model selection
 
 - **`countGLM(formula, data, ziformula)`** — Fits all four families,
-  selects the best by AIC, and returns a plain-language recommendation
-  informed by the Pearson dispersion ratio and observed vs. expected
-  zero counts.
+  selects the best by AIC and BIC, and returns a plain-language
+  recommendation informed by the Pearson dispersion ratio and observed
+  vs. expected zero counts.
 
 ## Condition checking
 
@@ -82,9 +83,9 @@ All model fitters compute:
   normal Q-Q plot.
 - **Pearson dispersion ratio** — Pearson chi-squared divided by residual
   degrees of freedom. Values near 1 are consistent with the assumed
-  model; values substantially above 1 (rule of thumb: \> 1.5 from a
+  model; values substantially above 1 (rule of thumb: \> 1.2 from a
   Poisson fit) suggest overdispersion and motivate switching to negative
-  binomial.
+  binomial and/or a zero-inflated model.
 
 ## Coefficient interpretation
 
@@ -98,6 +99,38 @@ count.
 For the zero-inflation component of ZI models, the exponentiated
 coefficient gives the multiplicative change in the odds of being a
 structural zero.
+
+### `interpret_coef()`
+
+**`interpret_coef(model, predictor, component = "count")`** generates a
+plain-language sentence for a single coefficient. It works with all
+model types returned by the package:
+
+``` r
+interpret_coef(fit, "pctnonwhite10")
+#> Holding all other predictors constant, a one-unit increase in pctnonwhite10 is
+#> associated with a 12.4% increase in the expected count of y
+#> (exp(β) = 1.124, 95% CI: [1.047, 1.207]).
+```
+
+Key behaviours:
+
+- **Offset-aware** — if the model includes an offset, the outcome phrase
+  becomes “the expected *rate* of `y` per unit of exposure” rather than
+  the expected count.
+- **Zero-inflated models** — pass `component = "count"` (default) for
+  the count sub-model or `component = "zero"` for the zero-inflation
+  sub-model. The zero component phrase reads “the odds of being a
+  structural zero”.
+- **`countGLM` objects** — automatically delegates to the best-fitting
+  model and prints a message indicating which one is used.
+- **Non-significant note** — if the coefficient’s p-value exceeds 0.05,
+  a note is appended: *“this coefficient is not discernibly different
+  from zero (p = …)”*.
+
+The term name passed to `predictor` must match exactly the string in the
+coefficient table (e.g. `"EPAregion2"`, not `"EPAregion"`). If the term
+is not found, the function stops with a list of available terms.
 
 ## Installation
 

@@ -483,9 +483,20 @@ a quadratic term for each predictor to allow for non-linear effects, and
 road length is included as an offset:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pois.cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
-<span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhwht</span> <span class="op">+</span> <span class="va">pnhblk</span> <span class="op">+</span> <span class="va">entropy_rank</span> <span class="op">+</span> <span class="va">total_crime_rate</span> <span class="op">+</span> <span class="va">modal_zone</span> <span class="op">+</span></span>
-<span>    <span class="va">pop</span> <span class="op">+</span> <span class="va">hinc</span> <span class="op">+</span> <span class="va">pvac</span> <span class="op">+</span> <span class="va">mhmval</span> <span class="op">+</span> <span class="va">city</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/offset.html" class="external-link">offset</a></span><span class="op">(</span><span class="va">log_road_length</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhwht</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhblk</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">entropy_rank</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhwht</span> <span class="op">+</span></span>
+<span>    <span class="va">pnhblk</span> <span class="op">+</span></span>
+<span>    <span class="va">entropy_rank</span> <span class="op">+</span></span>
+<span>    <span class="va">total_crime_rate</span> <span class="op">+</span></span>
+<span>    <span class="va">modal_zone</span> <span class="op">+</span></span>
+<span>    <span class="va">pop</span> <span class="op">+</span></span>
+<span>    <span class="va">hinc</span> <span class="op">+</span></span>
+<span>    <span class="va">pvac</span> <span class="op">+</span></span>
+<span>    <span class="va">mhmval</span> <span class="op">+</span></span>
+<span>    <span class="va">city</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/offset.html" class="external-link">offset</a></span><span class="op">(</span><span class="va">log_road_length</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhwht</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pnhblk</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">entropy_rank</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">pois.cam</span><span class="op">)</span></span>
@@ -532,12 +543,18 @@ road length is included as an offset:</p>
 <p>The DHARMa zero-inflation test result:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zi</span> <span class="op">&lt;-</span> <span class="va">pois.cam</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">zi_test</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n"</span>,</span>
-<span>            <span class="va">zi</span><span class="op">$</span><span class="va">p_value</span>, <span class="va">zi</span><span class="op">$</span><span class="va">detected</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n"</span>,</span>
+<span>  <span class="va">zi</span><span class="op">$</span><span class="va">p_value</span>,</span>
+<span>  <span class="va">zi</span><span class="op">$</span><span class="va">detected</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; DHARMa zero-inflation test: p = 0.0000  |  Detected: TRUE</span></span>
 <span><span class="va">zi</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="glmOJ_files/figure-html/dahir-poisson-zi-1.png" class="r-plt" alt="" width="768">
-### 8. Automatic Model Selection with <code>countGLM</code></p>
+<p><img src="glmOJ_files/figure-html/dahir-poisson-zi-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="automatic-model-selection-with-countglm">8. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm"></a>
+</h3>
 <p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four count families and selects the
 best by AIC. Road length (<code>log_road_length</code>) is included as
 an offset in the count component; because <code>ziformula = NULL</code>,

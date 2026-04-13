@@ -439,9 +439,20 @@ road length is included as an offset:
 
 ``` r
 pois.cam <- poissonGLM(
-  cam_count ~ pnhwht + pnhblk + entropy_rank + total_crime_rate + modal_zone +
-    pop + hinc + pvac + mhmval + city + offset(log_road_length) +
-    I(pnhwht^2) + I(pnhblk^2) + I(entropy_rank^2),
+  cam_count ~ pnhwht +
+    pnhblk +
+    entropy_rank +
+    total_crime_rate +
+    modal_zone +
+    pop +
+    hinc +
+    pvac +
+    mhmval +
+    city +
+    offset(log_road_length) +
+    I(pnhwht^2) +
+    I(pnhblk^2) +
+    I(entropy_rank^2),
   data = Dahir25.dat
 )
 print(pois.cam)
@@ -491,14 +502,18 @@ The DHARMa zero-inflation test result:
 
 ``` r
 zi <- pois.cam$diagnostics$zi_test
-cat(sprintf("DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n",
-            zi$p_value, zi$detected))
+cat(sprintf(
+  "DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n",
+  zi$p_value,
+  zi$detected
+))
 #> DHARMa zero-inflation test: p = 0.0000  |  Detected: TRUE
 zi$plot
 ```
 
-![](glmOJ_files/figure-html/dahir-poisson-zi-1.png) \### 8. Automatic
-Model Selection with `countGLM`
+![](glmOJ_files/figure-html/dahir-poisson-zi-1.png)
+
+### 8. Automatic Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
 fits all four count families and selects the best by AIC. Road length
