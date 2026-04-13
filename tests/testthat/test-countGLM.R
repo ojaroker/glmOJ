@@ -36,7 +36,8 @@ test_that("countGLM returns class 'countGLM'", {
 })
 
 test_that("countGLM returns correct slot names", {
-  expect_named(result, c("call", "fits", "aic_table", "bic_table", "best_model", "recommendation"))
+  expect_named(result, c("call", "fits", "aic_table", "bic_table",
+                         "metric_table", "decide", "best_model", "recommendation"))
 })
 
 test_that("countGLM best_model is one of the four valid names", {
@@ -97,4 +98,47 @@ test_that("countGLM negbin fit has zi_test populated", {
     expect_type(nb$diagnostics$zi_test, "list")
     expect_named(nb$diagnostics$zi_test, c("detected", "p_value", "plot"))
   }
+})
+
+# --- decide parameter tests ---
+
+test_that("countGLM default decide is 'bic'", {
+  expect_equal(result$decide, "bic")
+})
+
+test_that("countGLM metric_table is a named numeric vector", {
+  expect_type(result$metric_table, "double")
+  expect_false(is.null(names(result$metric_table)))
+  expect_lte(length(result$metric_table), 4L)
+})
+
+test_that("countGLM decide = 'AIC' is accepted case-insensitively", {
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "AIC"))
+  expect_equal(r$decide, "aic")
+  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
+  expect_true(r$best_model %in% valid)
+})
+
+test_that("countGLM decide = 'loglik' selects a valid model", {
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "loglik"))
+  expect_equal(r$decide, "loglik")
+  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
+  expect_true(r$best_model %in% valid)
+  # metric_table should be sorted descending (best = highest loglik first)
+  mt <- r$metric_table
+  expect_true(all(diff(mt) <= 0))
+})
+
+test_that("countGLM decide = 'McFadden' selects a valid model", {
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "McFadden"))
+  expect_equal(r$decide, "mcfadden")
+  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
+  expect_true(r$best_model %in% valid)
+})
+
+test_that("countGLM errors on invalid decide value", {
+  expect_error(
+    countGLM(y ~ x1, data = df_cglm, decide = "WAIC"),
+    "`decide` must be one of"
+  )
 })

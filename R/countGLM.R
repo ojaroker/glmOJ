@@ -2,8 +2,8 @@
 #'
 #' Fits all four count regression models supported by glmOJ (Poisson, negative
 #' binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-#' the best by AIC and BIC, and provides a plain-language recommendation
-#' informed by dispersion and zero-inflation diagnostics.
+#' the best by the metric given in `decide`, and provides a plain-language
+#' recommendation informed by dispersion and zero-inflation diagnostics.
 #'
 #' @param formula A model formula for the count component (e.g. `y ~ x1 + x2`).
 #'   The response must be a non-negative integer count variable.
@@ -12,6 +12,10 @@
 #' @param ziformula A one-sided formula for the zero-inflation component passed
 #'   to [zeroinflPoissonGLM()] and [zeroinflNegbinGLM()]. When `NULL`
 #'   (default), the same right-hand side as `formula` is used.
+#' @param decide Character string specifying the model-selection criterion.
+#'   One of `"BIC"` (default), `"AIC"`, `"LogLik"` (log-likelihood, higher
+#'   is better), or `"McFadden"` (McFadden pseudo-R², higher is better).
+#'   Matching is case-insensitive.
 #' @param ... Additional arguments passed to each individual model fitter.
 #'
 #' @return An object of class `"countGLM"`, a list with:
@@ -24,18 +28,23 @@
 #'       zero-inflation test run internally.}
 #'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
 #'     \item{`bic_table`}{A named numeric vector of BICs, sorted ascending.}
-#'     \item{`best_model`}{Character name of the selected model. When AIC and
-#'       BIC agree this is the jointly best model; when they disagree the
-#'       simpler of the two candidates is chosen.}
+#'     \item{`metric_table`}{A named numeric vector of the selection metric
+#'       values (the criterion named by `decide`), sorted best-first.}
+#'     \item{`decide`}{The normalised (lower-case) name of the selection
+#'       criterion actually used.}
+#'     \item{`best_model`}{Character name of the model selected by `decide`.}
 #'     \item{`recommendation`}{A plain-language character string explaining
-#'       the selection, including dispersion, zero-inflation context, and a
-#'       note when AIC and BIC point to different models.}
+#'       the selection, including the criterion value, dispersion context, and
+#'       zero-inflation test results.}
 #'   }
 #'
 #' @details
-#' **Model selection:** Both AIC and BIC are computed. When they agree, the
-#' jointly best model is chosen. When they disagree, the simpler model
-#' (Poisson < NB < ZIP < ZINB) is selected with a note.
+#' **Model selection:** The model with the best value of `decide` is chosen.
+#' For `"AIC"` and `"BIC"` the model with the *lowest* value wins; for
+#' `"LogLik"` and `"McFadden"` the model with the *highest* value wins.
+#' AIC and BIC are always computed and displayed regardless of `decide`.
+#' When `decide = "McFadden"`, intercept-only null models are fitted for each
+#' family to compute the pseudo-R².
 #'
 #' **Zero-inflation diagnostics:** DHARMa simulation tests are run on both
 #' the Poisson and negative binomial fits. Results appear in
@@ -51,20 +60,30 @@
 #'   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
 #'   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 #' )
-#' result <- countGLM(y ~ x1, data = df)
+#' result <- countGLM(y ~ x1, data = df)           # default: BIC
+#' result <- countGLM(y ~ x1, data = df, decide = "AIC")
+#' result <- countGLM(y ~ x1, data = df, decide = "McFadden")
 #' print(result)
 #' summary(result)
 #'
 #' @seealso [poissonGLM()], [negbinGLM()], [zeroinflPoissonGLM()],
 #'   [zeroinflNegbinGLM()]
 #' @export
-countGLM <- function(formula, data, ziformula = NULL, ...) {
+countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
     "ziformula must be a formula or NULL" =
       is.null(ziformula) || inherits(ziformula, "formula")
   )
+
+  decide_norm <- tolower(trimws(decide))
+  if (!decide_norm %in% c("aic", "bic", "loglik", "mcfadden")) {
+    stop(sprintf(
+      '`decide` must be one of "AIC", "BIC", "LogLik", or "McFadden" (got "%s").',
+      decide
+    ))
+  }
 
   if (is.null(ziformula)) {
     message(
@@ -117,24 +136,29 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
   aic_table <- sort(aics)
   bic_table <- sort(bics)
 
-  best_aic <- names(which.min(aics))
-  best_bic <- names(which.min(bics))
-
-  complexity <- c(poisson = 1L, negbin = 2L,
-                  zeroinfl_poisson = 3L, zeroinfl_negbin = 4L)
-
-  if (best_aic == best_bic) {
-    best_name    <- best_aic
-    ic_agreement <- TRUE
+  # Compute selection metric and pick best model
+  if (decide_norm == "aic") {
+    raw_metrics  <- aics
+    best_name    <- names(which.min(raw_metrics))
+    metric_table <- sort(raw_metrics)
+  } else if (decide_norm == "bic") {
+    raw_metrics  <- bics
+    best_name    <- names(which.min(raw_metrics))
+    metric_table <- sort(raw_metrics)
+  } else if (decide_norm == "loglik") {
+    raw_metrics  <- vapply(fits, function(f) as.numeric(stats::logLik(f$model)), numeric(1))
+    best_name    <- names(which.max(raw_metrics))
+    metric_table <- sort(raw_metrics, decreasing = TRUE)
   } else {
-    aic_rank  <- complexity[best_aic]
-    bic_rank  <- complexity[best_bic]
-    best_name <- if (aic_rank <= bic_rank) best_aic else best_bic
-    ic_agreement <- FALSE
+    # McFadden pseudo-R²: 1 - logLik(full) / logLik(null)
+    raw_metrics  <- .compute_mcfadden(fits, data, deparse(formula[[2L]]))
+    valid        <- !is.na(raw_metrics)
+    best_name    <- names(which.max(raw_metrics[valid]))
+    metric_table <- sort(raw_metrics, decreasing = TRUE)
   }
 
   recommendation <- build_recommendation(fits, best_name, aic_table, bic_table,
-                                         best_aic, best_bic, ic_agreement)
+                                         metric_table, decide_norm)
 
   structure(
     list(
@@ -142,11 +166,50 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
       fits           = fits,
       aic_table      = aic_table,
       bic_table      = bic_table,
+      metric_table   = metric_table,
+      decide         = decide_norm,
       best_model     = best_name,
       recommendation = recommendation
     ),
     class = "countGLM"
   )
+}
+
+# ---------------------------------------------------------------------------
+# Internal: compute McFadden pseudo-R² for each surviving fit
+# ---------------------------------------------------------------------------
+
+.compute_mcfadden <- function(fits, data, y_var) {
+  null_str <- paste(y_var, "~ 1")
+  vapply(names(fits), function(nm) {
+    f       <- fits[[nm]]
+    ll_full <- tryCatch(as.numeric(stats::logLik(f$model)), error = function(e) NA_real_)
+    if (is.na(ll_full)) return(NA_real_)
+
+    cls      <- class(f)[1L]
+    null_fit <- tryCatch(
+      switch(cls,
+        poissonGLM = stats::glm(
+          stats::as.formula(null_str), data = data, family = stats::poisson()
+        ),
+        negbinGLM = MASS::glm.nb(
+          stats::as.formula(null_str), data = data
+        ),
+        zeroinflPoissonGLM = pscl::zeroinfl(
+          stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "poisson"
+        ),
+        zeroinflNegbinGLM = pscl::zeroinfl(
+          stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "negbin"
+        )
+      ),
+      error = function(e) NULL
+    )
+    if (is.null(null_fit)) return(NA_real_)
+
+    ll_null <- tryCatch(as.numeric(stats::logLik(null_fit)), error = function(e) NA_real_)
+    if (is.na(ll_null) || ll_null == 0) return(NA_real_)
+    1 - ll_full / ll_null
+  }, numeric(1))
 }
 
 # ---------------------------------------------------------------------------
@@ -164,8 +227,8 @@ countGLM <- function(formula, data, ziformula = NULL, ...) {
 }
 
 build_recommendation <- function(fits, best_name, aic_table, bic_table,
-                                  best_aic_name, best_bic_name, ic_agreement) {
-  disp_msg <- zi_msg <- ic_msg <- ""
+                                  metric_table, decide) {
+  disp_msg <- zi_msg <- ""
 
   # --- Overdispersion: use Poisson dispersion ratio ---
   pois_fit <- fits[["poisson"]]
@@ -212,28 +275,22 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     )
   }
 
-  # --- IC agreement / disagreement ---
-  if (ic_agreement) {
-    selection_msg <- sprintf(
-      "%s was selected \u2014 both AIC (%.2f) and BIC (%.2f) agree.",
-      .model_label(best_name),
-      aic_table[best_name],
-      bic_table[best_name]
-    )
-  } else {
-    ic_msg <- sprintf(
-      "Note: AIC favors %s (AIC = %.2f) while BIC favors %s (BIC = %.2f). The simpler model (%s) was selected, but results should be interpreted with caution.",
-      .model_label(best_aic_name), aic_table[best_aic_name],
-      .model_label(best_bic_name), bic_table[best_bic_name],
-      .model_label(best_name)
-    )
-    selection_msg <- sprintf(
-      "%s was selected as the simpler of the two candidates.",
-      .model_label(best_name)
-    )
-  }
+  # --- Selection message ---
+  metric_label <- switch(decide,
+    aic      = "AIC",
+    bic      = "BIC",
+    loglik   = "log-likelihood",
+    mcfadden = "McFadden R\u00b2"
+  )
+  val     <- metric_table[best_name]
+  fmt     <- if (decide == "mcfadden") "%.4f" else "%.2f"
+  val_str <- if (is.na(val)) "NA" else sprintf(fmt, val)
+  selection_msg <- sprintf(
+    "%s was selected by %s (%s = %s).",
+    .model_label(best_name), metric_label, metric_label, val_str
+  )
 
-  parts <- c(selection_msg, ic_msg, disp_msg, zi_msg)
+  parts <- c(selection_msg, disp_msg, zi_msg)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }

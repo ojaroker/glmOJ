@@ -133,17 +133,34 @@ print.countGLM <- function(x, digits = 4, ...) {
   cat("\nCall:\n")
   print(x$call)
 
-  # Merge AIC and BIC into one table, sorted by AIC
-  all_models <- union(names(x$aic_table), names(x$bic_table))
+  # Rows ordered best-first by the chosen metric (metric_table is pre-sorted)
+  all_models <- names(x$metric_table)
+
+  decide <- x$decide
+  metric_label <- switch(decide,
+    aic      = "AIC",
+    bic      = "BIC",
+    loglik   = "LogLik",
+    mcfadden = "McFadden R2"
+  )
+  sort_dir <- if (decide %in% c("loglik", "mcfadden")) "descending" else "ascending"
+  sort_note <- sprintf("sorted by %s (%s)", metric_label, sort_dir)
+
   ic_df <- data.frame(
     model = all_models,
     AIC   = round(x$aic_table[all_models], 2),
     BIC   = round(x$bic_table[all_models], 2),
     row.names = NULL
   )
-  ic_df <- ic_df[order(ic_df$AIC), ]
 
-  cat("\nModel comparison (sorted by AIC):\n")
+  # Add the selection metric column when it is not already AIC or BIC
+  if (decide == "loglik") {
+    ic_df$LogLik <- round(x$metric_table[all_models], 2)
+  } else if (decide == "mcfadden") {
+    ic_df[["McFadden R2"]] <- round(x$metric_table[all_models], 4)
+  }
+
+  cat(sprintf("\nModel comparison (%s):\n", sort_note))
   print(ic_df, row.names = FALSE)
 
   cat(sprintf("\nSelected model: %s\n", x$best_model))

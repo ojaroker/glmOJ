@@ -33,8 +33,9 @@ analyst through four steps:
 
 The general-purpose
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four families and selects the best by AIC and BIC, annotated with
-dispersion and zero-inflation diagnostics.
+fits all four families and selects the best by a user-chosen criterion
+(`decide = "BIC"` by default; also accepts `"AIC"`, `"LogLik"`, or
+`"McFadden"`), annotated with dispersion and zero-inflation diagnostics.
 
 ## Package functions
 
@@ -67,10 +68,11 @@ dispersion ratio, and a two-panel diagnostic plot (fitted values vs. RQR
 
 ### Model selection
 
-- **`countGLM(formula, data, ziformula)`** — Fits all four families,
-  selects the best by AIC and BIC, and returns a plain-language recommendation
-  informed by the Pearson dispersion ratio and observed vs. expected
-  zero counts.
+- **`countGLM(formula, data, ziformula, decide = "BIC")`** — Fits all four
+  families, selects the best by the criterion in `decide` (`"BIC"`,
+  `"AIC"`, `"LogLik"`, or `"McFadden"`), and returns a plain-language
+  recommendation informed by the Pearson dispersion ratio and observed
+  vs. expected zero counts.
 
 ## Condition checking
 

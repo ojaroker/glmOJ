@@ -4,7 +4,7 @@
 \alias{countGLM}
 \title{Fit and compare count regression models}
 \usage{
-countGLM(formula, data, ziformula = NULL, ...)
+countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
 }
 \arguments{
 \item{formula}{A model formula for the count component (e.g. \code{y ~ x1 + x2}).
@@ -16,6 +16,11 @@ The response must be a non-negative integer count variable.}
 \item{ziformula}{A one-sided formula for the zero-inflation component passed
 to \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}} and \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}. When \code{NULL}
 (default), the same right-hand side as \code{formula} is used.}
+
+\item{decide}{Character string specifying the model-selection criterion.
+One of \code{"BIC"} (default), \code{"AIC"}, \code{"LogLik"} (log-likelihood, higher
+is better), or \code{"McFadden"} (McFadden pseudo-R², higher is better).
+Matching is case-insensitive.}
 
 \item{...}{Additional arguments passed to each individual model fitter.}
 }
@@ -30,24 +35,29 @@ binomial fits include \code{diagnostics$zi_test} populated from a DHARMa
 zero-inflation test run internally.}
 \item{\code{aic_table}}{A named numeric vector of AICs, sorted ascending.}
 \item{\code{bic_table}}{A named numeric vector of BICs, sorted ascending.}
-\item{\code{best_model}}{Character name of the selected model. When AIC and
-BIC agree this is the jointly best model; when they disagree the
-simpler of the two candidates is chosen.}
+\item{\code{metric_table}}{A named numeric vector of the selection metric
+values (the criterion named by \code{decide}), sorted best-first.}
+\item{\code{decide}}{The normalised (lower-case) name of the selection
+criterion actually used.}
+\item{\code{best_model}}{Character name of the model selected by \code{decide}.}
 \item{\code{recommendation}}{A plain-language character string explaining
-the selection, including dispersion, zero-inflation context, and a
-note when AIC and BIC point to different models.}
+the selection, including the criterion value, dispersion context, and
+zero-inflation test results.}
 }
 }
 \description{
 Fits all four count regression models supported by glmOJ (Poisson, negative
 binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-the best by AIC and BIC, and provides a plain-language recommendation
-informed by dispersion and zero-inflation diagnostics.
+the best by the metric given in \code{decide}, and provides a plain-language
+recommendation informed by dispersion and zero-inflation diagnostics.
 }
 \details{
-\strong{Model selection:} Both AIC and BIC are computed. When they agree, the
-jointly best model is chosen. When they disagree, the simpler model
-(Poisson < NB < ZIP < ZINB) is selected with a note.
+\strong{Model selection:} The model with the best value of \code{decide} is chosen.
+For \code{"AIC"} and \code{"BIC"} the model with the \emph{lowest} value wins; for
+\code{"LogLik"} and \code{"McFadden"} the model with the \emph{highest} value wins.
+AIC and BIC are always computed and displayed regardless of \code{decide}.
+When \code{decide = "McFadden"}, intercept-only null models are fitted for each
+family to compute the pseudo-R².
 
 \strong{Zero-inflation diagnostics:} DHARMa simulation tests are run on both
 the Poisson and negative binomial fits. Results appear in
@@ -63,7 +73,9 @@ df <- data.frame(
   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
-result <- countGLM(y ~ x1, data = df)
+result <- countGLM(y ~ x1, data = df)           # default: BIC
+result <- countGLM(y ~ x1, data = df, decide = "AIC")
+result <- countGLM(y ~ x1, data = df, decide = "McFadden")
 print(result)
 summary(result)
 
