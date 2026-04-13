@@ -18,7 +18,9 @@ interpreting count regression models. The four supported families are:
 
 A general-purpose wrapper
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four and selects the best by AIC.
+fits all four and selects the best by a user-chosen criterion
+(`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`, or `"McFadden"`
+(McFadden pseudo-R²).
 
 ------------------------------------------------------------------------
 
@@ -230,8 +232,9 @@ confirming that overdispersion is a genuine problem for the Poisson fit.
 
 Rather than fitting each model manually,
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four families at once and selects the best by AIC — arriving at
-the same conclusion automatically.
+fits all four families at once and selects the best by the criterion
+specified in `decide` (default `"BIC"`) — arriving at the same
+conclusion automatically.
 
 #### Overall EQI formula
 
@@ -253,7 +256,7 @@ print(result1)
 #>     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, 
 #>     data = Greenberg26.dat)
 #> 
-#> Model comparison (sorted by AIC):
+#> Model comparison (sorted by BIC (ascending)):
 #>    model     AIC    BIC
 #>   negbin 2964.32 3066.9
 #>  poisson 3179.45 3276.0
@@ -261,11 +264,11 @@ print(result1)
 #> Selected model: negbin
 #> 
 #> Recommendation:
-#>   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)
-#>   agree. The Poisson dispersion ratio is 1.62 (> 1.5), indicating
-#>   overdispersion. DHARMa zero-inflation test is significant for the
-#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
-#>   0.654); excess zeros may be explained by overdispersion alone.
+#>   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson
+#>   dispersion ratio is 1.62 (> 1.5), indicating overdispersion. DHARMa
+#>   zero-inflation test is significant for the Poisson fit (p = 0.000)
+#>   but not for the Negative Binomial fit (p = 0.654); excess zeros may
+#>   be explained by overdispersion alone.
 ```
 
 The wrapper selects the same winner as the manual LRT. Individual fits
@@ -299,7 +302,7 @@ print(result2)
 #>     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, 
 #>     data = Greenberg26.dat)
 #> 
-#> Model comparison (sorted by AIC):
+#> Model comparison (sorted by BIC (ascending)):
 #>    model     AIC     BIC
 #>   negbin 2953.72 3074.41
 #>  poisson 3144.98 3259.64
@@ -307,11 +310,11 @@ print(result2)
 #> Selected model: negbin
 #> 
 #> Recommendation:
-#>   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)
-#>   agree. The Poisson dispersion ratio is 1.49, consistent with
-#>   equidispersion. DHARMa zero-inflation test is significant for the
-#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
-#>   0.828); excess zeros may be explained by overdispersion alone.
+#>   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson
+#>   dispersion ratio is 1.49, consistent with equidispersion. DHARMa
+#>   zero-inflation test is significant for the Poisson fit (p = 0.000)
+#>   but not for the Negative Binomial fit (p = 0.828); excess zeros may
+#>   be explained by overdispersion alone.
 ```
 
 Again the negative binomial is selected. The non-nested comparison
@@ -516,11 +519,11 @@ zi$plot
 ### 8. Automatic Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four count families and selects the best by AIC. Road length
-(`log_road_length`) is included as an offset in the count component;
-because `ziformula = NULL`, it is automatically applied to the
-zero-inflation component as well — `countGLM` prints a note confirming
-this:
+fits all four count families and selects the best by the criterion in
+`decide` (default `"BIC"`). Road length (`log_road_length`) is included
+as an offset in the count component; because `ziformula = NULL`, it is
+automatically applied to the zero-inflation component as well —
+`countGLM` prints a note confirming this:
 
 ``` r
 result_cam <- countGLM(
@@ -539,21 +542,20 @@ print(result_cam)
 #> countGLM(formula = cam_count ~ pnhblk + pnhwht + total_crime_rate + 
 #>     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)
 #> 
-#> Model comparison (sorted by AIC):
+#> Model comparison (sorted by BIC (ascending)):
 #>   model      AIC      BIC
 #>  negbin 11306.16 11394.49
 #> 
 #> Selected model: negbin
 #> 
 #> Recommendation:
-#>   Negative Binomial was selected — both AIC (11306.16) and BIC
-#>   (11394.49) agree.
+#>   Negative Binomial was selected by BIC (BIC = 11394.49).
 ```
 
-The AIC and BIC tables show the ranking across all four families. The
-selected model is **negbin**. The recommendation note captures the
-relevant dispersion and zero-inflation diagnostics automatically,
-explaining why this family was preferred.
+The comparison table shows AIC and BIC for all four families, sorted by
+the selection criterion. The selected model is **negbin**. The
+recommendation captures the relevant dispersion and zero-inflation
+diagnostics automatically, explaining why this family was preferred.
 
 ### 9. Interpreting the Winning Model
 

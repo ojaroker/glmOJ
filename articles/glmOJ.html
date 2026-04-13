@@ -89,7 +89,9 @@ families are:</p>
 </tbody>
 </table>
 <p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four and
-selects the best by AIC.</p>
+selects the best by a user-chosen criterion (<code>decide</code>):
+<code>"BIC"</code> (default), <code>"AIC"</code>, <code>"LogLik"</code>,
+or <code>"McFadden"</code> (McFadden pseudo-R²).</p>
 <hr>
 </div>
 <div class="section level2">
@@ -284,8 +286,9 @@ fit.</p>
 <h3 id="using-the-countglm-wrapper">5. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
 </h3>
 <p>Rather than fitting each model manually, <code><a href="../reference/countGLM.html">countGLM()</a></code> fits
-all four families at once and selects the best by AIC — arriving at the
-same conclusion automatically.</p>
+all four families at once and selects the best by the criterion
+specified in <code>decide</code> (default <code>"BIC"</code>) — arriving
+at the same conclusion automatically.</p>
 <div class="section level4">
 <h4 id="overall-eqi-formula">Overall EQI formula<a class="anchor" aria-label="anchor" href="#overall-eqi-formula"></a>
 </h4>
@@ -307,7 +310,7 @@ same conclusion automatically.</p>
 <span><span class="co">#&gt;     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, </span></span>
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model comparison (sorted by AIC):</span></span>
+<span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;    model     AIC    BIC</span></span>
 <span><span class="co">#&gt;   negbin 2964.32 3066.9</span></span>
 <span><span class="co">#&gt;  poisson 3179.45 3276.0</span></span>
@@ -315,11 +318,11 @@ same conclusion automatically.</p>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2964.32) and BIC (3066.90)</span></span>
-<span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.62 (&gt; 1.5), indicating</span></span>
-<span><span class="co">#&gt;   overdispersion. DHARMa zero-inflation test is significant for the</span></span>
-<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
-<span><span class="co">#&gt;   0.654); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
+<span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 1.62 (&gt; 1.5), indicating overdispersion. DHARMa</span></span>
+<span><span class="co">#&gt;   zero-inflation test is significant for the Poisson fit (p = 0.000)</span></span>
+<span><span class="co">#&gt;   but not for the Negative Binomial fit (p = 0.654); excess zeros may</span></span>
+<span><span class="co">#&gt;   be explained by overdispersion alone.</span></span></code></pre></div>
 <p>The wrapper selects the same winner as the manual LRT. Individual
 fits remain accessible: <code>result1$fits$negbin</code>,
 <code>result1$fits$poisson</code>, etc.</p>
@@ -352,7 +355,7 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt;     metro + gdp2017b + fac_penalty_count + CIDDist + EPAregion, </span></span>
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model comparison (sorted by AIC):</span></span>
+<span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;    model     AIC     BIC</span></span>
 <span><span class="co">#&gt;   negbin 2953.72 3074.41</span></span>
 <span><span class="co">#&gt;  poisson 3144.98 3259.64</span></span>
@@ -360,11 +363,11 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Negative Binomial was selected — both AIC (2953.72) and BIC (3074.41)</span></span>
-<span><span class="co">#&gt;   agree. The Poisson dispersion ratio is 1.49, consistent with</span></span>
-<span><span class="co">#&gt;   equidispersion. DHARMa zero-inflation test is significant for the</span></span>
-<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
-<span><span class="co">#&gt;   0.828); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
+<span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 1.49, consistent with equidispersion. DHARMa</span></span>
+<span><span class="co">#&gt;   zero-inflation test is significant for the Poisson fit (p = 0.000)</span></span>
+<span><span class="co">#&gt;   but not for the Negative Binomial fit (p = 0.828); excess zeros may</span></span>
+<span><span class="co">#&gt;   be explained by overdispersion alone.</span></span></code></pre></div>
 <p>Again the negative binomial is selected. The non-nested comparison
 between these two winning models (overall EQI vs sub-indices) can be
 done with a Vuong test via
@@ -556,10 +559,12 @@ road length is included as an offset:</p>
 <h3 id="automatic-model-selection-with-countglm">8. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm"></a>
 </h3>
 <p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four count families and selects the
-best by AIC. Road length (<code>log_road_length</code>) is included as
-an offset in the count component; because <code>ziformula = NULL</code>,
-it is automatically applied to the zero-inflation component as well —
-<code>countGLM</code> prints a note confirming this:</p>
+best by the criterion in <code>decide</code> (default
+<code>"BIC"</code>). Road length (<code>log_road_length</code>) is
+included as an offset in the count component; because
+<code>ziformula = NULL</code>, it is automatically applied to the
+zero-inflation component as well — <code>countGLM</code> prints a note
+confirming this:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhblk</span> <span class="op">+</span></span>
@@ -577,19 +582,19 @@ it is automatically applied to the zero-inflation component as well —
 <span><span class="co">#&gt; countGLM(formula = cam_count ~ pnhblk + pnhwht + total_crime_rate + </span></span>
 <span><span class="co">#&gt;     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model comparison (sorted by AIC):</span></span>
+<span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;   model      AIC      BIC</span></span>
 <span><span class="co">#&gt;  negbin 11306.16 11394.49</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Negative Binomial was selected — both AIC (11306.16) and BIC</span></span>
-<span><span class="co">#&gt;   (11394.49) agree.</span></span></code></pre></div>
-<p>The AIC and BIC tables show the ranking across all four families. The
-selected model is <strong>negbin</strong>. The recommendation note
-captures the relevant dispersion and zero-inflation diagnostics
-automatically, explaining why this family was preferred.</p>
+<span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 11394.49).</span></span></code></pre></div>
+<p>The comparison table shows AIC and BIC for all four families, sorted
+by the selection criterion. The selected model is
+<strong>negbin</strong>. The recommendation captures the relevant
+dispersion and zero-inflation diagnostics automatically, explaining why
+this family was preferred.</p>
 </div>
 <div class="section level3">
 <h3 id="interpreting-the-winning-model">9. Interpreting the Winning Model<a class="anchor" aria-label="anchor" href="#interpreting-the-winning-model"></a>

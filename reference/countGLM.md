@@ -2,14 +2,14 @@
 
 Fits all four count regression models supported by glmOJ (Poisson,
 negative binomial, zero-inflated Poisson, zero-inflated negative
-binomial), selects the best by AIC and BIC, and provides a
-plain-language recommendation informed by dispersion and zero-inflation
-diagnostics.
+binomial), selects the best by the metric given in `decide`, and
+provides a plain-language recommendation informed by dispersion and
+zero-inflation diagnostics.
 
 ## Usage
 
 ``` r
-countGLM(formula, data, ziformula = NULL, ...)
+countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
 ```
 
 ## Arguments
@@ -31,6 +31,13 @@ countGLM(formula, data, ziformula = NULL, ...)
   and
   [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md).
   When `NULL` (default), the same right-hand side as `formula` is used.
+
+- decide:
+
+  Character string specifying the model-selection criterion. One of
+  `"BIC"` (default), `"AIC"`, `"LogLik"` (log-likelihood, higher is
+  better), or `"McFadden"` (McFadden pseudo-R², higher is better).
+  Matching is case-insensitive.
 
 - ...:
 
@@ -60,23 +67,34 @@ An object of class `"countGLM"`, a list with:
 
   A named numeric vector of BICs, sorted ascending.
 
+- `metric_table`:
+
+  A named numeric vector of the selection metric values (the criterion
+  named by `decide`), sorted best-first.
+
+- `decide`:
+
+  The normalised (lower-case) name of the selection criterion actually
+  used.
+
 - `best_model`:
 
-  Character name of the selected model. When AIC and BIC agree this is
-  the jointly best model; when they disagree the simpler of the two
-  candidates is chosen.
+  Character name of the model selected by `decide`.
 
 - `recommendation`:
 
   A plain-language character string explaining the selection, including
-  dispersion, zero-inflation context, and a note when AIC and BIC point
-  to different models.
+  the criterion value, dispersion context, and zero-inflation test
+  results.
 
 ## Details
 
-**Model selection:** Both AIC and BIC are computed. When they agree, the
-jointly best model is chosen. When they disagree, the simpler model
-(Poisson \< NB \< ZIP \< ZINB) is selected with a note.
+**Model selection:** The model with the best value of `decide` is
+chosen. For `"AIC"` and `"BIC"` the model with the *lowest* value wins;
+for `"LogLik"` and `"McFadden"` the model with the *highest* value wins.
+AIC and BIC are always computed and displayed regardless of `decide`.
+When `decide = "McFadden"`, intercept-only null models are fitted for
+each family to compute the pseudo-R².
 
 **Zero-inflation diagnostics:** DHARMa simulation tests are run on both
 the Poisson and negative binomial fits. Results appear in
@@ -104,7 +122,27 @@ df <- data.frame(
   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
-result <- countGLM(y ~ x1, data = df)
+result <- countGLM(y ~ x1, data = df)           # default: BIC
+#> Note: zero-inflation component uses the same predictors as the count component (ziformula = NULL). Use `ziformula` to specify a different formula.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: iteration limit reached
+#> Warning: iteration limit reached
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+result <- countGLM(y ~ x1, data = df, decide = "AIC")
+#> Note: zero-inflation component uses the same predictors as the count component (ziformula = NULL). Use `ziformula` to specify a different formula.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: iteration limit reached
+#> Warning: iteration limit reached
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+#> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
+#> Warning: Zero-inflation component: 2 zeros for 1 predictor(s) (2.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+result <- countGLM(y ~ x1, data = df, decide = "McFadden")
 #> Note: zero-inflation component uses the same predictors as the count component (ziformula = NULL). Use `ziformula` to specify a different formula.
 #> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
 #> Warning: Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per predictor). At least 10 events per predictor is recommended.
@@ -117,37 +155,42 @@ result <- countGLM(y ~ x1, data = df)
 print(result)
 #> 
 #> Call:
-#> countGLM(formula = y ~ x1, data = df)
+#> countGLM(formula = y ~ x1, data = df, decide = "McFadden")
 #> 
-#> Model comparison (sorted by AIC):
-#>             model   AIC   BIC
-#>           poisson 39.02 39.63
-#>            negbin 41.02 41.93
-#>  zeroinfl_poisson 41.43 42.64
-#>   zeroinfl_negbin 43.43 44.94
+#> Model comparison (sorted by McFadden R2 (descending)):
+#>             model   AIC   BIC McFadden R2
+#>  zeroinfl_poisson 41.43 42.64      0.0710
+#>   zeroinfl_negbin 43.43 44.94      0.0710
+#>           poisson 39.02 39.63      0.0459
+#>            negbin 41.02 41.93      0.0407
 #> 
-#> Selected model: poisson
+#> Selected model: zeroinfl_poisson
 #> 
 #> Recommendation:
-#>   Poisson was selected — both AIC (39.02) and BIC (39.63) agree. The
-#>   Poisson dispersion ratio is 1.17, consistent with equidispersion. No
-#>   significant zero-inflation detected (Poisson p = 0.890, Negative
-#>   Binomial p = 0.878).
+#>   Zero-Inflated Poisson was selected by McFadden R² (McFadden R² =
+#>   0.0710). The Poisson dispersion ratio is 1.17, consistent with
+#>   equidispersion. No significant zero-inflation detected (Poisson p =
+#>   0.890, Negative Binomial p = 0.878).
 #> 
 summary(result)
-#> Summary of selected model (poisson):
+#> Summary of selected model (zeroinfl_poisson):
 #> 
 #> 
 #> Call:
-#> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE)
+#> zeroinflPoissonGLM(formula = formula, data = data, ziformula = ziformula)
 #> 
-#> Model family: poissonGLM 
+#> Model family: zeroinflPoissonGLM 
 #> 
-#> Coefficients (on response scale):
+#> Count component (exponentiated coefficients):
 #>         term exp.coef lower.95 upper.95 p.value stars
-#>  (Intercept)   1.7989   1.0683   3.0290  0.0272     *
-#>           x1   1.3396   0.8572   2.0936  0.1993      
+#>  (Intercept)   2.0801   1.2018   3.6002  0.0089    **
+#>           x1   1.3932   0.9095   2.1342  0.1275      
 #> 
-#> Dispersion ratio: 1.1658
-#> AIC: 39.02
+#> Zero-inflation component (exponentiated coefficients):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   0.1201   0.0071   2.0295  0.1417      
+#>           x1   1.7533   0.2286  13.4471  0.5891      
+#> 
+#> Dispersion ratio: 1.1578
+#> AIC: 41.43
 ```

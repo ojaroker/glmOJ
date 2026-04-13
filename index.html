@@ -101,7 +101,7 @@
 </tr>
 </tbody>
 </table>
-<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.md"><code>countGLM()</code></a> fits all four families and selects the best by AIC and BIC, annotated with dispersion and zero-inflation diagnostics.</p>
+<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.md"><code>countGLM()</code></a> fits all four families and selects the best by a user-chosen criterion (<code>decide = "BIC"</code> by default; also accepts <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), annotated with dispersion and zero-inflation diagnostics.</p>
 </div>
 <div class="section level2">
 <h2 id="package-functions">Package functions<a class="anchor" aria-label="anchor" href="#package-functions"></a>
@@ -134,7 +134,7 @@
 </h3>
 <ul>
 <li>
-<strong><code>countGLM(formula, data, ziformula)</code></strong> — Fits all four families, selects the best by AIC and BIC, and returns a plain-language recommendation informed by the Pearson dispersion ratio and observed vs. expected zero counts.</li>
+<strong><code>countGLM(formula, data, ziformula, decide = "BIC")</code></strong> — Fits all four families, selects the best by the criterion in <code>decide</code> (<code>"BIC"</code>, <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), and returns a plain-language recommendation informed by the Pearson dispersion ratio and observed vs. expected zero counts.</li>
 </ul>
 </div>
 </div>
