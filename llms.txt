@@ -186,8 +186,9 @@ dispersion ratio, and a two-panel diagnostic plot.
 
 ## Model Selection
 
-Fit all four model families and select the best by AIC and BIC, with
-plain-language diagnostics to guide interpretation.
+Fit all four model families and select the best by a user-chosen
+criterion (`decide`: `"BIC"` (default), `"AIC"`, `"LogLik"`, or
+`"McFadden"`), with plain-language diagnostics to guide interpretation.
 
 - [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md) :
   Fit and compare count regression models

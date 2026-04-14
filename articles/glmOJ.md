@@ -257,18 +257,20 @@ print(result1)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model     AIC    BIC
-#>   negbin 2964.32 3066.9
-#>  poisson 3179.45 3276.0
+#>             model     AIC     BIC
+#>   zeroinfl_negbin 2845.16 3044.30
+#>            negbin 2964.32 3066.90
+#>  zeroinfl_poisson 2920.58 3113.67
+#>           poisson 3179.45 3276.00
 #> 
-#> Selected model: negbin
+#> Selected model: zeroinfl_negbin
 #> 
 #> Recommendation:
-#>   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson
-#>   dispersion ratio is 1.62 (> 1.5), indicating overdispersion. DHARMa
-#>   zero-inflation test is significant for the Poisson fit (p = 0.000)
-#>   but not for the Negative Binomial fit (p = 0.654); excess zeros may
-#>   be explained by overdispersion alone.
+#>   Zero-Inflated Negative Binomial was selected by BIC (BIC = 3044.30).
+#>   The Poisson dispersion ratio is 1.62 (> 1.5), indicating
+#>   overdispersion. DHARMa zero-inflation test is significant for the
+#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
+#>   0.654); excess zeros may be explained by overdispersion alone.
 ```
 
 The wrapper selects the same winner as the manual LRT. Individual fits
@@ -303,9 +305,11 @@ print(result2)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model     AIC     BIC
-#>   negbin 2953.72 3074.41
-#>  poisson 3144.98 3259.64
+#>             model     AIC     BIC
+#>            negbin 2953.72 3074.41
+#>   zeroinfl_negbin 2856.57 3091.91
+#>  zeroinfl_poisson 2933.58 3162.89
+#>           poisson 3144.98 3259.64
 #> 
 #> Selected model: negbin
 #> 
@@ -543,33 +547,88 @@ print(result_cam)
 #>     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>   model      AIC      BIC
-#>  negbin 11306.16 11394.49
+#>             model      AIC      BIC
+#>   zeroinfl_negbin 11082.49 11251.78
+#>            negbin 11306.16 11394.49
+#>  zeroinfl_poisson 11791.50 11953.43
+#>           poisson 13201.10 13282.07
 #> 
-#> Selected model: negbin
+#> Selected model: zeroinfl_negbin
 #> 
 #> Recommendation:
-#>   Negative Binomial was selected by BIC (BIC = 11394.49).
+#>   Zero-Inflated Negative Binomial was selected by BIC (BIC = 11251.78).
+#>   The Poisson dispersion ratio is 2.42 (> 1.5), indicating
+#>   overdispersion. DHARMa zero-inflation test is significant for the
+#>   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =
+#>   0.542); excess zeros may be explained by overdispersion alone.
 ```
 
 The comparison table shows AIC and BIC for all four families, sorted by
-the selection criterion. The selected model is **negbin**. The
+the selection criterion. The selected model is **zeroinfl_negbin**. The
 recommendation captures the relevant dispersion and zero-inflation
 diagnostics automatically, explaining why this family was preferred.
 
-### 9. Interpreting the Winning Model
+### 9. Checking for Multicollinearity (VIF)
+
+All four model families share the assumption that predictors are not
+strongly collinear.
+[`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
+automatically computes Variance Inflation Factors and stores them in
+`$vif`. To avoid false positives from *structural* collinearity — which
+is expected whenever interaction or polynomial terms are present — VIF
+is computed on an OLS model that retains only the order-1 (main-effect)
+terms from the formula. Offset terms are excluded as well.
+
+``` r
+result_cam$vif
+#>                pnhblk                pnhwht      total_crime_rate 
+#>              1.696259              2.292616              1.152382 
+#>                  hinc                  pvac  modal_zoneindustrial 
+#>              1.592488              1.093179              1.115794 
+#>       modal_zonemixed      modal_zonepublic modal_zoneresidential 
+#>              1.101121              1.151036              1.495288 
+#>       modal_zoneroads 
+#>              1.145420
+```
+
+VIF = 1 means a predictor is uncorrelated with all others; values up to
+~5 are generally acceptable. Any VIF \> 5 triggers a warning. Here all
+predictors are well below that threshold, confirming that
+multicollinearity is not a concern for this model.
+
+To illustrate the interaction-term handling, fitting the Poisson model
+with a quadratic term does **not** inflate the VIF for the underlying
+predictors:
+
+``` r
+result_quad <- suppressWarnings(countGLM(
+  cam_count ~ pnhblk +
+    pnhwht +
+    total_crime_rate +
+    I(total_crime_rate^2) +
+    offset(log_road_length),
+  data = Dahir25.dat
+))
+result_quad$vif # only main-effect terms: pnhblk, pnhwht, total_crime_rate
+#>                pnhblk                pnhwht      total_crime_rate 
+#>              1.683595              1.637775              1.726555 
+#> I(total_crime_rate^2) 
+#>              1.648745
+```
+
+### 10. Interpreting the Winning Model
 
 [`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
 delegates to the best-fitting model automatically:
 
 ``` r
 interpret_coef(result_cam, "total_crime_rate")
-#> Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 39.2% increase in the expected rate of cam_count per unit of exposure (exp(β) = 1.392, 95% CI: [1.333, 1.455]).
+#> Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]). Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]).
 ```
 
 ``` r
 interpret_coef(result_cam, "hinc")
-#> Holding all other predictors constant, a one-unit increase in hinc is associated with a 19.5% decrease in the expected rate of cam_count per unit of exposure (exp(β) = 0.805, 95% CI: [0.744, 0.871]).
+#> Holding all other predictors constant, a one-unit increase in hinc is associated with a 10.8% decrease in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 0.892, 95% CI: [0.807, 0.985]). Holding all other predictors constant, a one-unit increase in hinc is associated with a 10.8% decrease in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 0.892, 95% CI: [0.807, 0.985]).
 ```
 
 For zero-inflated models, the count and zero components can be
@@ -580,7 +639,9 @@ never receives a camera):
 
 ``` r
 interpret_coef(result_cam, "total_crime_rate", component = "count")
+#> Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]). Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]).
 interpret_coef(result_cam, "total_crime_rate", component = "zero")
+#> Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 79.1% decrease in the odds of being a structural zero (exp(β) = 0.209, 95% CI: [0.144, 0.304]).
 ```
 
 ------------------------------------------------------------------------
