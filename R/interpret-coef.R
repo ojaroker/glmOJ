@@ -52,7 +52,10 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 
 .has_offset <- function(fit) {
   off <- tryCatch(fit$offset, error = function(e) NULL)
-  !is.null(off) && length(off) > 0 && any(off != 0)
+  if (is.null(off) || length(off) == 0L) return(FALSE)
+  # zeroinfl stores offsets as a named list (count/zero); flatten if needed
+  if (is.list(off)) off <- unlist(off, use.names = FALSE)
+  tryCatch(any(off != 0, na.rm = TRUE), error = function(e) FALSE)
 }
 
 .response_name <- function(fit) {

@@ -373,11 +373,14 @@ a quadratic term does **not** inflate the VIF for the underlying predictors:
 
 ```{r dahir-vif-interaction}
 result_quad <- suppressWarnings(countGLM(
-  cam_count ~ pnhblk + pnhwht + total_crime_rate + I(total_crime_rate^2) +
+  cam_count ~ pnhblk +
+    pnhwht +
+    total_crime_rate +
+    I(total_crime_rate^2) +
     offset(log_road_length),
   data = Dahir25.dat
 ))
-result_quad$vif   # only main-effect terms: pnhblk, pnhwht, total_crime_rate
+result_quad$vif # only main-effect terms: pnhblk, pnhwht, total_crime_rate
 ```
 
 ### 10. Interpreting the Winning Model
