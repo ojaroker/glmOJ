@@ -59,8 +59,9 @@ reference:
 
   - title: "Model Selection"
     desc: >
-      Fit all four model families and select the best by AIC and BIC, with
-      plain-language diagnostics to guide interpretation.
+      Fit all four model families and select the best by a user-chosen
+      criterion (`decide`: `"BIC"` (default), `"AIC"`, `"LogLik"`, or
+      `"McFadden"`), with plain-language diagnostics to guide interpretation.
     contents:
       - countGLM
 

@@ -90,6 +90,9 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
       linetype = "dashed",
       linewidth = 1
     ) +
+    ggplot2::geom_hline(
+      yintercept = 0
+    ) +
     ggplot2::annotate(
       "text",
       x = obs_count,
@@ -248,8 +251,10 @@ plot_diagnostics <- function(
 #' Convert p-values to significance stars
 #' @noRd
 sig_stars <- function(p) {
-  cut(p,
-      breaks = c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
-      labels = c("***", "**", "*", ".", ""),
-      right  = TRUE)
+  cut(
+    p,
+    breaks = c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+    labels = c("***", "**", "*", ".", ""),
+    right = TRUE
+  )
 }
