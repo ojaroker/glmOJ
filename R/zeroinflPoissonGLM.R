@@ -76,7 +76,7 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, ...) {
   )
 
   effective_zi <- if (is.null(ziformula)) {
-    stats::as.formula(paste("~", deparse(formula[[3L]])))
+    stats::as.formula(paste("~", paste(deparse(formula[[3L]]), collapse = "")))
   } else {
     ziformula
   }
@@ -118,8 +118,8 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, ...) {
 #' Build the pscl-style combined ZI formula
 #' @noRd
 build_zi_formula <- function(formula, ziformula) {
-  count_rhs <- deparse(formula[[3L]])
-  lhs       <- deparse(formula[[2L]])
+  count_rhs <- paste(deparse(formula[[3L]]), collapse = "")
+  lhs       <- paste(deparse(formula[[2L]]), collapse = "")
 
   if (is.null(ziformula)) {
     zero_rhs <- count_rhs

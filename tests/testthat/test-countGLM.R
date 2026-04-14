@@ -37,7 +37,8 @@ test_that("countGLM returns class 'countGLM'", {
 
 test_that("countGLM returns correct slot names", {
   expect_named(result, c("call", "fits", "aic_table", "bic_table",
-                         "metric_table", "decide", "best_model", "recommendation"))
+                         "metric_table", "decide", "best_model", "recommendation",
+                         "vif"))
 })
 
 test_that("countGLM best_model is one of the four valid names", {
@@ -141,4 +142,100 @@ test_that("countGLM errors on invalid decide value", {
     countGLM(y ~ x1, data = df_cglm, decide = "WAIC"),
     "`decide` must be one of"
   )
+})
+
+# --- VIF tests ---
+
+test_that("countGLM vif is NULL with a single predictor", {
+  # Only one main-effect predictor — VIF is undefined
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm))
+  expect_null(r$vif)
+})
+
+test_that("countGLM vif is a named numeric vector with two predictors", {
+  df2 <- data.frame(
+    y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+    x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7),
+    x2 = c(0.1,  0.9, 0.4,  0.7, 0.2, 0.8,  0.5, 0.3,  0.6, 0.0)
+  )
+  r <- suppressWarnings(countGLM(y ~ x1 + x2, data = df2))
+  expect_type(r$vif, "double")
+  expect_named(r$vif)
+  expect_length(r$vif, 2L)
+  expect_true(all(r$vif >= 1))
+})
+
+test_that("countGLM vif excludes interaction terms from computation", {
+  df2 <- data.frame(
+    y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+    x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7),
+    x2 = c(0.1,  0.9, 0.4,  0.7, 0.2, 0.8,  0.5, 0.3,  0.6, 0.0)
+  )
+  # VIF on x1 * x2 should still yield 2 entries (one per main effect), not 3
+  r <- suppressWarnings(countGLM(y ~ x1 * x2, data = df2))
+  expect_length(r$vif, 2L)
+  expect_true(all(c("x1", "x2") %in% names(r$vif)))
+})
+
+test_that("countGLM vif warns when a predictor exceeds threshold of 5", {
+  set.seed(42)
+  n  <- 40L
+  x1 <- rnorm(n)
+  x2 <- x1 + rnorm(n, sd = 0.05)   # near-collinear
+  df_mc <- data.frame(
+    y  = rpois(n, lambda = exp(0.5 + 0.3 * x1)),
+    x1 = x1,
+    x2 = x2
+  )
+  expect_warning(
+    countGLM(y ~ x1 + x2, data = df_mc),
+    "High VIF detected"
+  )
+})
+
+# --- Missing-value (NA) reporting tests ---
+
+test_that("countGLM warns when predictor rows contain NAs", {
+  df_na <- df_cglm
+  df_na$x1[c(2L, 5L)] <- NA
+  expect_warning(
+    countGLM(y ~ x1, data = df_na),
+    "2 row\\(s\\) contain missing values"
+  )
+})
+
+test_that("countGLM warns when response rows contain NAs", {
+  df_na <- df_cglm
+  df_na$y[3L] <- NA
+  expect_warning(
+    countGLM(y ~ x1, data = df_na),
+    "1 row\\(s\\) contain missing values"
+  )
+})
+
+# --- Factor levels with non-standard characters ---
+
+test_that("countGLM handles factors with special-character levels", {
+  df_fac <- data.frame(
+    y    = c(0L, 1L, 2L, 0L, 3L, 1L, 0L, 2L, 1L, 0L),
+    x1   = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7),
+    zone = factor(
+      c("A/B", "(ctrl)", "A/B", "mixed use", "(ctrl)",
+        "A/B", "mixed use", "(ctrl)", "mixed use", "A/B"),
+      levels = c("A/B", "(ctrl)", "mixed use")
+    )
+  )
+  expect_no_error(suppressWarnings(countGLM(y ~ x1 + zone, data = df_fac)))
+})
+
+test_that("countGLM vif handles backtick-quoted column names", {
+  df_bt <- data.frame(
+    y         = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+    `my var`  = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7),
+    `x (2)`   = c(0.1,  0.9, 0.4,  0.7, 0.2, 0.8,  0.5, 0.3,  0.6, 0.0),
+    check.names = FALSE
+  )
+  r <- suppressWarnings(countGLM(y ~ `my var` + `x (2)`, data = df_bt))
+  expect_type(r$vif, "double")
+  expect_length(r$vif, 2L)
 })

@@ -1,6 +1,26 @@
 # Internal diagnostic helpers for count regression models
 # Not exported — used by poissonGLM, negbinGLM, zeroinflPoissonGLM, zeroinflNegbinGLM
 
+#' Warn when NA rows will be silently dropped during model fitting
+#' @noRd
+check_na_rows <- function(formula, data, ziformula = NULL) {
+  vars <- all.vars(formula)
+  if (!is.null(ziformula)) vars <- union(vars, all.vars(ziformula))
+  vars <- intersect(vars, names(data))
+
+  n_dropped <- sum(!stats::complete.cases(data[, vars, drop = FALSE]))
+  if (n_dropped > 0L) {
+    warning(
+      sprintf(
+        "%d row(s) contain missing values and will be dropped before fitting.",
+        n_dropped
+      ),
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
+}
+
 #' Check minimum events-per-predictor for count (and ZI) components
 #' @noRd
 check_sample_size <- function(formula, data, ziformula = NULL) {
@@ -134,6 +154,20 @@ check_dispersion <- function(model) {
   sum(pearson_resid^2) / df_resid
 }
 
+#' @noRd
+.warn_nonfinite_rqr <- function(rqr) {
+  n_bad <- sum(!is.finite(rqr))
+  if (n_bad > 0L) {
+    warning(
+      sprintf(
+        "%d observation(s) produced non-finite randomized quantile residuals and will be excluded from diagnostic plots.",
+        n_bad
+      ),
+      call. = FALSE
+    )
+  }
+}
+
 #' Compute randomized quantile residuals
 #' @noRd
 compute_rqr <- function(
@@ -143,10 +177,14 @@ compute_rqr <- function(
   family <- match.arg(family)
 
   if (family == "poisson") {
-    return(statmod::qres.pois(model))
+    rqr <- suppressWarnings(statmod::qres.pois(model))
+    .warn_nonfinite_rqr(rqr)
+    return(rqr)
   }
   if (family == "negbin") {
-    return(statmod::qres.nbinom(model))
+    rqr <- suppressWarnings(statmod::qres.nbinom(model))
+    .warn_nonfinite_rqr(rqr)
+    return(rqr)
   }
 
   # Zero-inflated: manual CDF-based RQR via pscl::predprob
@@ -171,6 +209,8 @@ compute_rqr <- function(
     numeric(1)
   )
 
+  # Guard against floating-point cases where cdf_ym1 slightly exceeds cdf_y
+  cdf_ym1 <- pmin(cdf_ym1, cdf_y)
   u <- stats::runif(n, min = cdf_ym1, max = cdf_y)
   u <- pmin(pmax(u, 1e-10), 1 - 1e-10)
   stats::qnorm(u)
@@ -246,6 +286,62 @@ plot_diagnostics <- function(
     rqr_plot = patchwork::wrap_plots(p_scatter, p_qq, ncol = 2),
     r2_plot = p_r2
   )
+}
+
+#' Compute VIF on main-effect terms only, avoiding false positives from
+#' structural collinearity (interaction terms, polynomial terms, etc.)
+#'
+#' Extracts terms of order 1 from `formula`, fits an OLS model on those
+#' predictors, and returns VIF values computed from the correlation matrix
+#' of the design matrix. Warns if any VIF exceeds 5.
+#'
+#' @param formula The count-component formula.
+#' @param data The data frame.
+#' @return Named numeric vector of VIF values, or `NULL` if fewer than two
+#'   main-effect predictors are present.
+#' @noRd
+check_vif <- function(formula, data) {
+  tt           <- stats::terms(formula, data = data)
+  term_labels  <- attr(tt, "term.labels")
+  term_orders  <- attr(tt, "order")
+
+  # Keep only order-1 terms (main effects); this excludes x1:x2, I(x^2), etc.
+  main_labels <- term_labels[term_orders == 1L]
+
+  if (length(main_labels) < 2L) {
+    return(NULL)
+  }
+
+  response     <- deparse(formula[[2L]])
+  main_formula <- stats::as.formula(
+    paste(response, "~", paste(main_labels, collapse = " + "))
+  )
+
+  fit_ols <- tryCatch(
+    stats::lm(main_formula, data = data),
+    error = function(e) NULL
+  )
+  if (is.null(fit_ols)) return(NULL)
+
+  X <- stats::model.matrix(fit_ols)[, -1L, drop = FALSE]
+  if (ncol(X) < 2L) return(NULL)
+
+  R    <- stats::cor(X)
+  vifs <- tryCatch(diag(solve(R)), error = function(e) NULL)
+  if (is.null(vifs)) return(NULL)
+
+  high <- names(vifs)[vifs > 5]
+  if (length(high) > 0L) {
+    warning(
+      sprintf(
+        "High VIF detected (> 5) for predictor(s): %s. Multicollinearity may affect estimates.",
+        paste(high, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  vifs
 }
 
 #' Convert p-values to significance stars

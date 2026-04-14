@@ -350,7 +350,37 @@ selection criterion. The selected model is **`r result_cam$best_model`**. The
 recommendation captures the relevant dispersion and zero-inflation diagnostics
 automatically, explaining why this family was preferred.
 
-### 9. Interpreting the Winning Model
+### 9. Checking for Multicollinearity (VIF)
+
+All four model families share the assumption that predictors are not strongly
+collinear. `countGLM()` automatically computes Variance Inflation Factors and
+stores them in `$vif`. To avoid false positives from *structural* collinearity
+— which is expected whenever interaction or polynomial terms are present —
+VIF is computed on an OLS model that retains only the order-1 (main-effect)
+terms from the formula. Offset terms are excluded as well.
+
+```{r dahir-vif}
+result_cam$vif
+```
+
+VIF = 1 means a predictor is uncorrelated with all others; values up to ~5
+are generally acceptable. Any VIF > 5 triggers a warning. Here all
+predictors are well below that threshold, confirming that multicollinearity
+is not a concern for this model.
+
+To illustrate the interaction-term handling, fitting the Poisson model with
+a quadratic term does **not** inflate the VIF for the underlying predictors:
+
+```{r dahir-vif-interaction}
+result_quad <- suppressWarnings(countGLM(
+  cam_count ~ pnhblk + pnhwht + total_crime_rate + I(total_crime_rate^2) +
+    offset(log_road_length),
+  data = Dahir25.dat
+))
+result_quad$vif   # only main-effect terms: pnhblk, pnhwht, total_crime_rate
+```
+
+### 10. Interpreting the Winning Model
 
 `interpret_coef()` delegates to the best-fitting model automatically:
 

@@ -76,7 +76,7 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, ...) {
   )
 
   effective_zi <- if (is.null(ziformula)) {
-    stats::as.formula(paste("~", deparse(formula[[3L]])))
+    stats::as.formula(paste("~", paste(deparse(formula[[3L]]), collapse = "")))
   } else {
     ziformula
   }

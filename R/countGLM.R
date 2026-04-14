@@ -36,6 +36,11 @@
 #'     \item{`recommendation`}{A plain-language character string explaining
 #'       the selection, including the criterion value, dispersion context, and
 #'       zero-inflation test results.}
+#'     \item{`vif`}{Named numeric vector of Variance Inflation Factors for the
+#'       main-effect predictors in `formula` (interaction and polynomial terms
+#'       are excluded to avoid structural-collinearity false positives). `NULL`
+#'       when fewer than two main-effect predictors are present. A warning is
+#'       issued for any VIF > 5.}
 #'   }
 #'
 #' @details
@@ -91,6 +96,12 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
       "component (ziformula = NULL). Use `ziformula` to specify a different formula."
     )
   }
+
+  # Report any rows that will be silently dropped due to missing values
+  check_na_rows(formula, data, ziformula)
+
+  # VIF on main-effect terms only (avoids false positives from interaction terms)
+  vif <- check_vif(formula, data)
 
   # Fit all four models; suppress individual ZI warnings — countGLM handles them
   fits <- list(
@@ -169,7 +180,8 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
       metric_table   = metric_table,
       decide         = decide_norm,
       best_model     = best_name,
-      recommendation = recommendation
+      recommendation = recommendation,
+      vif            = vif
     ),
     class = "countGLM"
   )

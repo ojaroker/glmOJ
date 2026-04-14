@@ -68,9 +68,9 @@ histoqq <- function(
     stop("There is no variation in your data object.")
   }
 
-  # Warn if data are dropped due to missingness
+  # Warn if data are dropped due to missingness or non-finite values
   npass <- length(data)
-  data <- data |> na.omit()
+  data <- data[is.finite(data)]
   if (npass > length(data)) {
     warning(paste0(
       "There were ",
