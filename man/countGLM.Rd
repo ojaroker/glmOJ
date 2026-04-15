@@ -43,6 +43,11 @@ criterion actually used.}
 \item{\code{recommendation}}{A plain-language character string explaining
 the selection, including the criterion value, dispersion context, and
 zero-inflation test results.}
+\item{\code{vif}}{Named numeric vector of Variance Inflation Factors for the
+main-effect predictors in \code{formula} (interaction and polynomial terms
+are excluded to avoid structural-collinearity false positives). \code{NULL}
+when fewer than two main-effect predictors are present. A warning is
+issued for any VIF > 5.}
 }
 }
 \description{
