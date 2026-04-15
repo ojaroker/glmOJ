@@ -17,7 +17,7 @@
 #'   \item{counts}{A \code{data.frame} with columns \code{count} and \code{freq}
 #'     giving the frequency of each observed count value.}
 #'   \item{plot}{A \code{ggplot} object. The plot type depends on the number
-#'     and type of predictors — see Details.}
+#'     and type of predictors - see Details.}
 #'   \item{pairs_plot}{A \code{ggpairs} object showing all pairwise
 #'     relationships among the response and all predictors. The response is
 #'     treated as continuous when it has more than 10 unique values, and as
@@ -157,7 +157,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
   n_pred = length(pred_vars)
 
   if (n_pred == 0) {
-    # No predictors — just show distribution of counts
+    # No predictors - just show distribution of counts
     p = ggplot2::ggplot(df, ggplot2::aes(x = y)) +
       ggplot2::geom_histogram(
         binwidth = 1,
@@ -199,7 +199,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
         ggplot2::scale_fill_steps() +
         ggplot2::labs(fill = "Mean count")
     } else {
-      # One of each — put continuous on x, facet or fill by categorical
+      # One of each - put continuous on x, facet or fill by categorical
       cont_var = pred_vars[which(pred_types == "continuous")]
       cat_var = pred_vars[which(pred_types == "categorical")]
 
@@ -212,8 +212,8 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
         ggplot2::labs(y = "Count")
     }
   } else {
-    # 3+ predictors — use first two and warn
-    warning("More than 2 predictors — plotting first two only (see pairs_plot for all)")
+    # >3 predictors - use first two and warn
+    warning("More than 2 predictors - plotting first two only (see pairs_plot for all)")
     return(plot_count_data(y, mf, pred_vars[1:2], pred_types[1:2]))
   }
 

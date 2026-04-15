@@ -22,7 +22,7 @@ and \code{n_total}.}
 \item{counts}{A \code{data.frame} with columns \code{count} and \code{freq}
 giving the frequency of each observed count value.}
 \item{plot}{A \code{ggplot} object. The plot type depends on the number
-and type of predictors — see Details.}
+and type of predictors - see Details.}
 \item{pairs_plot}{A \code{ggpairs} object showing all pairwise
 relationships among the response and all predictors. The response is
 treated as continuous when it has more than 10 unique values, and as
