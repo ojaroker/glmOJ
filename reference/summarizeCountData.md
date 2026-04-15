@@ -40,7 +40,7 @@ A named list with four elements:
 - plot:
 
   A `ggplot` object. The plot type depends on the number and type of
-  predictors — see Details.
+  predictors - see Details.
 
 - pairs_plot:
 
