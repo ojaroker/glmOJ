@@ -88,6 +88,14 @@ All model fitters compute:
   model; values substantially above 1 (rule of thumb: \> 1.2 from a
   Poisson fit) suggest overdispersion and motivate switching to negative
   binomial and/or a zero-inflated model.
+- **Sample size conditions** — The package checks that the dataset has
+  enough observations relative to the number of predictors; a warning is
+  issued when the effective sample-to-parameter ratio is too low to
+  support reliable estimation.
+- **Variance Inflation Factors (VIFs)** — VIFs are computed for each
+  predictor to flag multicollinearity. Predictors with a VIF above 5 are
+  flagged with a warning so users can investigate correlated predictors
+  before interpreting coefficients.
 
 ## Coefficient interpretation
 

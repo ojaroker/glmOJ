@@ -147,6 +147,10 @@
 <strong>Randomized quantile residuals (RQR)</strong> — For a well-fitting model, RQRs should be approximately standard normal. The diagnostic plot shows them against fitted values (checking for structure) and on a normal Q-Q plot.</li>
 <li>
 <strong>Pearson dispersion ratio</strong> — Pearson chi-squared divided by residual degrees of freedom. Values near 1 are consistent with the assumed model; values substantially above 1 (rule of thumb: &gt; 1.2 from a Poisson fit) suggest overdispersion and motivate switching to negative binomial and/or a zero-inflated model.</li>
+<li>
+<strong>Sample size conditions</strong> — The package checks that the dataset has enough observations relative to the number of predictors; a warning is issued when the effective sample-to-parameter ratio is too low to support reliable estimation.</li>
+<li>
+<strong>Variance Inflation Factors (VIFs)</strong> — VIFs are computed for each predictor to flag multicollinearity. Predictors with a VIF above 5 are flagged with a warning so users can investigate correlated predictors before interpreting coefficients.</li>
 </ul>
 </div>
 <div class="section level2">

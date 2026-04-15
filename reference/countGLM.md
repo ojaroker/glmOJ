@@ -87,6 +87,14 @@ An object of class `"countGLM"`, a list with:
   the criterion value, dispersion context, and zero-inflation test
   results.
 
+- `vif`:
+
+  Named numeric vector of Variance Inflation Factors for the main-effect
+  predictors in `formula` (interaction and polynomial terms are excluded
+  to avoid structural-collinearity false positives). `NULL` when fewer
+  than two main-effect predictors are present. A warning is issued for
+  any VIF \> 5.
+
 ## Details
 
 **Model selection:** The model with the best value of `decide` is

@@ -114,6 +114,13 @@ criterion actually used.</p></dd>
 the selection, including the criterion value, dispersion context, and
 zero-inflation test results.</p></dd>
 
+<dt><code>vif</code></dt>
+<dd><p>Named numeric vector of Variance Inflation Factors for the
+main-effect predictors in <code>formula</code> (interaction and polynomial terms
+are excluded to avoid structural-collinearity false positives). <code>NULL</code>
+when fewer than two main-effect predictors are present. A warning is
+issued for any VIF &gt; 5.</p></dd>
+
 
 </dl></div>
     <div class="section level2">
