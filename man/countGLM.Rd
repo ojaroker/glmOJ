@@ -8,14 +8,15 @@ countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
 }
 \arguments{
 \item{formula}{A model formula for the count component (e.g. \code{y ~ x1 + x2}).
-The response must be a non-negative integer count variable.}
+The response must be non-negative.}
 
 \item{data}{A data frame containing the variables in \code{formula} (and
 \code{ziformula} if provided).}
 
 \item{ziformula}{A one-sided formula for the zero-inflation component passed
-to \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}} and \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}. When \code{NULL}
-(default), the same right-hand side as \code{formula} is used.}
+to \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, and
+\code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}} when they are needed. When \code{NULL} (default), the
+same right-hand side as \code{formula} is used.}
 
 \item{decide}{Character string specifying the model-selection criterion.
 One of \code{"BIC"} (default), \code{"AIC"}, \code{"LogLik"} (log-likelihood, higher
@@ -28,11 +29,13 @@ Matching is case-insensitive.}
 An object of class \code{"countGLM"}, a list with:
 \describe{
 \item{\code{call}}{The matched call.}
-\item{\code{fits}}{A named list of successfully fitted model objects
-(\code{poisson}, \code{negbin}, \code{zeroinfl_poisson}, \code{zeroinfl_negbin}). Any
-model that failed to converge is omitted. Poisson and negative
-binomial fits include \code{diagnostics$zi_test} populated from a DHARMa
-zero-inflation test run internally.}
+\item{\code{fits}}{A named list of successfully fitted model objects. Base
+models (\code{poisson}, \code{negbin}, \code{tweedie}) are always attempted. A
+zero-inflated counterpart (\code{zeroinfl_poisson}, \code{zeroinfl_negbin},
+\code{zeroinfl_tweedie}) is only fitted when zero-inflation is detected by
+the DHARMa test for the corresponding base model. Any model that
+failed to converge is omitted. Base model fits include
+\code{diagnostics$zi_test} populated from the DHARMa zero-inflation test.}
 \item{\code{aic_table}}{A named numeric vector of AICs, sorted ascending.}
 \item{\code{bic_table}}{A named numeric vector of BICs, sorted ascending.}
 \item{\code{metric_table}}{A named numeric vector of the selection metric
@@ -45,31 +48,29 @@ the selection, including the criterion value, dispersion context, and
 zero-inflation test results.}
 \item{\code{vif}}{Named numeric vector of Variance Inflation Factors for the
 main-effect predictors in \code{formula} (interaction and polynomial terms
-are excluded to avoid structural-collinearity false positives). \code{NULL}
-when fewer than two main-effect predictors are present. A warning is
-issued for any VIF > 5.}
+are excluded). \code{NULL} when fewer than two main-effect predictors are
+present. A warning is issued for any VIF > 5.}
 }
 }
 \description{
-Fits all four count regression models supported by glmOJ (Poisson, negative
-binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-the best by the metric given in \code{decide}, and provides a plain-language
-recommendation informed by dispersion and zero-inflation diagnostics.
+Fits three base count regression models (Poisson, negative binomial, and
+Tweedie), runs a DHARMa zero-inflation test on each, fits the corresponding
+zero-inflated counterpart for any model where zero-inflation is detected,
+then selects the best overall model by the metric given in \code{decide}.
 }
 \details{
+\strong{Workflow:} \code{\link[=countGLM]{countGLM()}} fits Poisson, negative binomial, and Tweedie
+base models. It then runs a DHARMa simulation test for zero-inflation on
+each successful base model. For any model where zero-inflation is detected
+(p < 0.05), the corresponding zero-inflated counterpart is fitted. All
+surviving models are compared by \code{decide}.
+
 \strong{Model selection:} The model with the best value of \code{decide} is chosen.
 For \code{"AIC"} and \code{"BIC"} the model with the \emph{lowest} value wins; for
 \code{"LogLik"} and \code{"McFadden"} the model with the \emph{highest} value wins.
 AIC and BIC are always computed and displayed regardless of \code{decide}.
 When \code{decide = "McFadden"}, intercept-only null models are fitted for each
 family to compute the pseudo-R².
-
-\strong{Zero-inflation diagnostics:} DHARMa simulation tests are run on both
-the Poisson and negative binomial fits. Results appear in
-\code{result$fits$poisson$diagnostics$zi_test} and
-\code{result$fits$negbin$diagnostics$zi_test}, and inform the recommendation
-text. Individual model warnings are suppressed; the recommendation
-summarises the findings instead.
 
 Individual models support \code{print()}, \code{summary()}, and \code{plot()}.
 }
@@ -78,14 +79,14 @@ df <- data.frame(
   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
-result <- countGLM(y ~ x1, data = df)           # default: BIC
-result <- countGLM(y ~ x1, data = df, decide = "AIC")
-result <- countGLM(y ~ x1, data = df, decide = "McFadden")
+result <- suppressWarnings(countGLM(y ~ x1, data = df))      # default: BIC
+result <- suppressWarnings(countGLM(y ~ x1, data = df, decide = "AIC"))
+result <- suppressWarnings(countGLM(y ~ x1, data = df, decide = "McFadden"))
 print(result)
 summary(result)
 
 }
 \seealso{
-\code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}},
-\code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}
+\code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=tweedieGLM]{tweedieGLM()}},
+\code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, \code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}
 }

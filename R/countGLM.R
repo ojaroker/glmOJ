@@ -1,17 +1,18 @@
 #' Fit and compare count regression models
 #'
-#' Fits all four count regression models supported by glmOJ (Poisson, negative
-#' binomial, zero-inflated Poisson, zero-inflated negative binomial), selects
-#' the best by the metric given in `decide`, and provides a plain-language
-#' recommendation informed by dispersion and zero-inflation diagnostics.
+#' Fits three base count regression models (Poisson, negative binomial, and
+#' Tweedie), runs a DHARMa zero-inflation test on each, fits the corresponding
+#' zero-inflated counterpart for any model where zero-inflation is detected,
+#' then selects the best overall model by the metric given in `decide`.
 #'
 #' @param formula A model formula for the count component (e.g. `y ~ x1 + x2`).
-#'   The response must be a non-negative integer count variable.
+#'   The response must be non-negative.
 #' @param data A data frame containing the variables in `formula` (and
 #'   `ziformula` if provided).
 #' @param ziformula A one-sided formula for the zero-inflation component passed
-#'   to [zeroinflPoissonGLM()] and [zeroinflNegbinGLM()]. When `NULL`
-#'   (default), the same right-hand side as `formula` is used.
+#'   to [zeroinflPoissonGLM()], [zeroinflNegbinGLM()], and
+#'   [zeroinflTweedieGLM()] when they are needed. When `NULL` (default), the
+#'   same right-hand side as `formula` is used.
 #' @param decide Character string specifying the model-selection criterion.
 #'   One of `"BIC"` (default), `"AIC"`, `"LogLik"` (log-likelihood, higher
 #'   is better), or `"McFadden"` (McFadden pseudo-R², higher is better).
@@ -21,11 +22,13 @@
 #' @return An object of class `"countGLM"`, a list with:
 #'   \describe{
 #'     \item{`call`}{The matched call.}
-#'     \item{`fits`}{A named list of successfully fitted model objects
-#'       (`poisson`, `negbin`, `zeroinfl_poisson`, `zeroinfl_negbin`). Any
-#'       model that failed to converge is omitted. Poisson and negative
-#'       binomial fits include `diagnostics$zi_test` populated from a DHARMa
-#'       zero-inflation test run internally.}
+#'     \item{`fits`}{A named list of successfully fitted model objects. Base
+#'       models (`poisson`, `negbin`, `tweedie`) are always attempted. A
+#'       zero-inflated counterpart (`zeroinfl_poisson`, `zeroinfl_negbin`,
+#'       `zeroinfl_tweedie`) is only fitted when zero-inflation is detected by
+#'       the DHARMa test for the corresponding base model. Any model that
+#'       failed to converge is omitted. Base model fits include
+#'       `diagnostics$zi_test` populated from the DHARMa zero-inflation test.}
 #'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
 #'     \item{`bic_table`}{A named numeric vector of BICs, sorted ascending.}
 #'     \item{`metric_table`}{A named numeric vector of the selection metric
@@ -38,25 +41,23 @@
 #'       zero-inflation test results.}
 #'     \item{`vif`}{Named numeric vector of Variance Inflation Factors for the
 #'       main-effect predictors in `formula` (interaction and polynomial terms
-#'       are excluded to avoid structural-collinearity false positives). `NULL`
-#'       when fewer than two main-effect predictors are present. A warning is
-#'       issued for any VIF > 5.}
+#'       are excluded). `NULL` when fewer than two main-effect predictors are
+#'       present. A warning is issued for any VIF > 5.}
 #'   }
 #'
 #' @details
+#' **Workflow:** [countGLM()] fits Poisson, negative binomial, and Tweedie
+#' base models. It then runs a DHARMa simulation test for zero-inflation on
+#' each successful base model. For any model where zero-inflation is detected
+#' (p < 0.05), the corresponding zero-inflated counterpart is fitted. All
+#' surviving models are compared by `decide`.
+#'
 #' **Model selection:** The model with the best value of `decide` is chosen.
 #' For `"AIC"` and `"BIC"` the model with the *lowest* value wins; for
 #' `"LogLik"` and `"McFadden"` the model with the *highest* value wins.
 #' AIC and BIC are always computed and displayed regardless of `decide`.
 #' When `decide = "McFadden"`, intercept-only null models are fitted for each
 #' family to compute the pseudo-R².
-#'
-#' **Zero-inflation diagnostics:** DHARMa simulation tests are run on both
-#' the Poisson and negative binomial fits. Results appear in
-#' `result$fits$poisson$diagnostics$zi_test` and
-#' `result$fits$negbin$diagnostics$zi_test`, and inform the recommendation
-#' text. Individual model warnings are suppressed; the recommendation
-#' summarises the findings instead.
 #'
 #' Individual models support `print()`, `summary()`, and `plot()`.
 #'
@@ -65,14 +66,14 @@
 #'   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
 #'   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 #' )
-#' result <- countGLM(y ~ x1, data = df)           # default: BIC
-#' result <- countGLM(y ~ x1, data = df, decide = "AIC")
-#' result <- countGLM(y ~ x1, data = df, decide = "McFadden")
+#' result <- suppressWarnings(countGLM(y ~ x1, data = df))      # default: BIC
+#' result <- suppressWarnings(countGLM(y ~ x1, data = df, decide = "AIC"))
+#' result <- suppressWarnings(countGLM(y ~ x1, data = df, decide = "McFadden"))
 #' print(result)
 #' summary(result)
 #'
-#' @seealso [poissonGLM()], [negbinGLM()], [zeroinflPoissonGLM()],
-#'   [zeroinflNegbinGLM()]
+#' @seealso [poissonGLM()], [negbinGLM()], [tweedieGLM()],
+#'   [zeroinflPoissonGLM()], [zeroinflNegbinGLM()], [zeroinflTweedieGLM()]
 #' @export
 countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
   stopifnot(
@@ -90,21 +91,23 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     ))
   }
 
-  if (is.null(ziformula)) {
-    message(
-      "Note: zero-inflation component uses the same predictors as the count ",
-      "component (ziformula = NULL). Use `ziformula` to specify a different formula."
-    )
-  }
-
   # Report any rows that will be silently dropped due to missing values
   check_na_rows(formula, data, ziformula)
+
+  # Detect integer-valued response: AIC/BIC across continuous (Tweedie) and
+  # discrete (Poisson, NegBin) families are not on the same likelihood scale.
+  integer_response <- tryCatch({
+    y_vals <- model.response(model.frame(formula, data))
+    isTRUE(all(is.finite(y_vals) & y_vals == floor(y_vals)))
+  }, error = function(e) FALSE)
 
   # VIF on main-effect terms only (avoids false positives from interaction terms)
   vif <- check_vif(formula, data)
 
-  # Fit all four models; suppress individual ZI warnings — countGLM handles them
-  fits <- list(
+  # ---------------------------------------------------------------------------
+  # Step 1: Fit the three base models (ZI assessment handled below)
+  # ---------------------------------------------------------------------------
+  base_fits <- list(
     poisson = tryCatch(
       poissonGLM(formula, data, assessZeroInflation = FALSE, ...),
       error = function(e) e
@@ -113,37 +116,97 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
       negbinGLM(formula, data, assessZeroInflation = FALSE, ...),
       error = function(e) e
     ),
-    zeroinfl_poisson = tryCatch(
-      zeroinflPoissonGLM(formula, data, ziformula = ziformula, ...),
-      error = function(e) e
-    ),
-    zeroinfl_negbin = tryCatch(
-      zeroinflNegbinGLM(formula, data, ziformula = ziformula, ...),
+    tweedie = tryCatch(
+      tweedieGLM(formula, data, assessZeroInflation = FALSE, ...),
       error = function(e) e
     )
   )
 
-  # Keep only successful fits
-  ok   <- !vapply(fits, inherits, logical(1), "error")
-  fits <- fits[ok]
+  base_ok <- !vapply(base_fits, inherits, logical(1L), "error")
 
-  if (length(fits) == 0L) {
-    stop("All four model fits failed. Check your formula and data.")
-  }
-
-  # Run DHARMa ZI test on Poisson and NB fits and inject into diagnostics
-  for (nm in c("poisson", "negbin")) {
-    if (!is.null(fits[[nm]])) {
-      zi <- tryCatch(
-        run_dharma_zi_test(fits[[nm]]$model, model_type = if (nm == "poisson") "Poisson" else "Negative Binomial"),
-        error = function(e) NULL
+  # Exclude degenerate Tweedie fits on integer count data.
+  # glmmTMB pushes the power parameter p toward the Poisson boundary (p = 1)
+  # when fitting integer counts; the continuous Tweedie density artificially
+  # maximises there.  Such fits are not meaningfully different from Poisson and
+  # should not participate in model comparison.
+  if (base_ok[["tweedie"]] && integer_response) {
+    tw_p <- base_fits[["tweedie"]]$p
+    if (!is.na(tw_p) && (tw_p <= 1.01 || tw_p >= 1.99)) {
+      warning(
+        paste0(
+          sprintf("Tweedie fit converged to a degenerate power parameter (p = %.4f, ", tw_p),
+          "at the boundary of (1, 2)). This typically occurs when glmmTMB is ",
+          "applied to integer count data; the continuous Tweedie density ",
+          "collapses toward the Poisson boundary. Tweedie (and its ",
+          "zero-inflated counterpart) will be excluded from model comparison."
+        ),
+        call. = FALSE
       )
-      fits[[nm]]$diagnostics$zi_test <- zi
+      base_ok[["tweedie"]] <- FALSE
     }
   }
 
-  aics      <- vapply(fits, `[[`, numeric(1), "aic")
-  bics      <- vapply(fits, `[[`, numeric(1), "bic")
+  if (!any(base_ok)) {
+    stop("All base model fits (Poisson, Negative Binomial, Tweedie) failed. Check your formula and data.")
+  }
+
+  # ---------------------------------------------------------------------------
+  # Step 2: Run DHARMa zero-inflation test on each successful base model
+  # ---------------------------------------------------------------------------
+  base_labels <- list(
+    poisson = "Poisson",
+    negbin  = "Negative Binomial",
+    tweedie = "Tweedie"
+  )
+  for (nm in names(base_fits)[base_ok]) {
+    zi <- tryCatch(
+      run_dharma_zi_test(
+        base_fits[[nm]]$model,
+        model_type = base_labels[[nm]]
+      ),
+      error = function(e) NULL
+    )
+    base_fits[[nm]]$diagnostics$zi_test <- zi
+  }
+
+  # ---------------------------------------------------------------------------
+  # Step 3: Conditionally fit zero-inflated counterparts
+  # ---------------------------------------------------------------------------
+  zi_map <- list(
+    poisson = "zeroinfl_poisson",
+    negbin  = "zeroinfl_negbin",
+    tweedie = "zeroinfl_tweedie"
+  )
+  zi_fitters <- list(
+    zeroinfl_poisson = function() zeroinflPoissonGLM(formula, data, ziformula = ziformula, ...),
+    zeroinfl_negbin  = function() zeroinflNegbinGLM(formula, data, ziformula = ziformula, ...),
+    zeroinfl_tweedie = function() zeroinflTweedieGLM(formula, data, ziformula = ziformula, ...)
+  )
+
+  zi_fits <- list()
+  for (nm in names(base_fits)[base_ok]) {
+    zi_result <- base_fits[[nm]]$diagnostics$zi_test
+    if (isTRUE(zi_result$detected)) {
+      zi_nm <- zi_map[[nm]]
+      result <- tryCatch(zi_fitters[[zi_nm]](), error = function(e) e)
+      if (!inherits(result, "error")) {
+        zi_fits[[zi_nm]] <- result
+      }
+    }
+  }
+
+  # Combine base and ZI fits; preserve canonical ordering
+  all_fits_raw <- c(base_fits[base_ok], zi_fits)
+  ordered_names <- c("poisson", "negbin", "tweedie",
+                     "zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
+  fits <- all_fits_raw[intersect(ordered_names, names(all_fits_raw))]
+
+  if (length(fits) == 0L) {
+    stop("All model fits failed. Check your formula and data.")
+  }
+
+  aics      <- vapply(fits, `[[`, numeric(1L), "aic")
+  bics      <- vapply(fits, `[[`, numeric(1L), "bic")
   aic_table <- sort(aics)
   bic_table <- sort(bics)
 
@@ -157,7 +220,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     best_name    <- names(which.min(raw_metrics))
     metric_table <- sort(raw_metrics)
   } else if (decide_norm == "loglik") {
-    raw_metrics  <- vapply(fits, function(f) as.numeric(stats::logLik(f$model)), numeric(1))
+    raw_metrics  <- vapply(fits, function(f) as.numeric(stats::logLik(f$model)), numeric(1L))
     best_name    <- names(which.max(raw_metrics))
     metric_table <- sort(raw_metrics, decreasing = TRUE)
   } else {
@@ -168,8 +231,27 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     metric_table <- sort(raw_metrics, decreasing = TRUE)
   }
 
+  # Warn when comparing Tweedie (continuous density) with Poisson/NegBin
+  # (discrete PMF) on integer count data — the likelihoods are not on the same
+  # scale, which can make AIC/BIC strongly and artifactually favour Tweedie.
+  tweedie_in_fits   <- any(c("tweedie", "zeroinfl_tweedie") %in% names(fits))
+  discrete_in_fits  <- any(c("poisson", "negbin",
+                              "zeroinfl_poisson", "zeroinfl_negbin") %in% names(fits))
+  if (integer_response && tweedie_in_fits && discrete_in_fits) {
+    warning(
+      "The response appears to be integer-valued. Tweedie uses a continuous ",
+      "density while Poisson and negative binomial use discrete probability ",
+      "mass functions. AIC and BIC are not comparable across these likelihood ",
+      "scales and may strongly favour Tweedie artifactually on count data. ",
+      "Interpret the IC table with caution; consider restricting comparison to ",
+      "discrete-family models (Poisson, negative binomial) for integer counts.",
+      call. = FALSE
+    )
+  }
+
   recommendation <- build_recommendation(fits, best_name, aic_table, bic_table,
-                                         metric_table, decide_norm)
+                                         metric_table, decide_norm,
+                                         integer_response = integer_response)
 
   structure(
     list(
@@ -207,11 +289,20 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
         negbinGLM = MASS::glm.nb(
           stats::as.formula(null_str), data = data
         ),
+        tweedieGLM = glmmTMB::glmmTMB(
+          stats::as.formula(null_str), data = data,
+          family = glmmTMB::tweedie(link = "log")
+        ),
         zeroinflPoissonGLM = pscl::zeroinfl(
           stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "poisson"
         ),
         zeroinflNegbinGLM = pscl::zeroinfl(
           stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "negbin"
+        ),
+        zeroinflTweedieGLM = glmmTMB::glmmTMB(
+          stats::as.formula(null_str), data = data,
+          family    = glmmTMB::tweedie(link = "log"),
+          ziformula = ~ 1
         )
       ),
       error = function(e) NULL
@@ -221,7 +312,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     ll_null <- tryCatch(as.numeric(stats::logLik(null_fit)), error = function(e) NA_real_)
     if (is.na(ll_null) || ll_null == 0) return(NA_real_)
     1 - ll_full / ll_null
-  }, numeric(1))
+  }, numeric(1L))
 }
 
 # ---------------------------------------------------------------------------
@@ -232,14 +323,17 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
   switch(name,
     poisson          = "Poisson",
     negbin           = "Negative Binomial",
+    tweedie          = "Tweedie",
     zeroinfl_poisson = "Zero-Inflated Poisson",
     zeroinfl_negbin  = "Zero-Inflated Negative Binomial",
+    zeroinfl_tweedie = "Zero-Inflated Tweedie",
     name
   )
 }
 
 build_recommendation <- function(fits, best_name, aic_table, bic_table,
-                                  metric_table, decide) {
+                                  metric_table, decide,
+                                  integer_response = FALSE) {
   disp_msg <- zi_msg <- ""
 
   # --- Overdispersion: use Poisson dispersion ratio ---
@@ -261,30 +355,33 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     }
   }
 
-  # --- Zero-inflation: use DHARMa results from both Poisson and NB ---
-  pois_zi <- pois_fit$diagnostics$zi_test
-  nb_fit   <- fits[["negbin"]]
-  nb_zi    <- nb_fit$diagnostics$zi_test
+  # --- Zero-inflation: summarise DHARMa results across base models ---
+  zi_detected_labels <- character(0L)
+  zi_p_parts         <- character(0L)
 
-  pois_detected <- isTRUE(pois_zi$detected)
-  nb_detected   <- isTRUE(nb_zi$detected)
+  for (nm in c("poisson", "negbin", "tweedie")) {
+    fit_nm <- fits[[nm]]
+    if (!is.null(fit_nm)) {
+      zi_res <- fit_nm$diagnostics$zi_test
+      if (!is.null(zi_res) && !is.na(zi_res$p_value)) {
+        zi_p_parts <- c(
+          zi_p_parts,
+          sprintf("%s p = %.3f", .model_label(nm), zi_res$p_value)
+        )
+        if (isTRUE(zi_res$detected)) {
+          zi_detected_labels <- c(zi_detected_labels, .model_label(nm))
+        }
+      }
+    }
+  }
 
-  if (pois_detected && nb_detected) {
+  if (length(zi_detected_labels) > 0L) {
     zi_msg <- sprintf(
-      "DHARMa zero-inflation test is significant for both Poisson (p = %.3f) and Negative Binomial (p = %.3f) fits, suggesting structural excess zeros.",
-      pois_zi$p_value, nb_zi$p_value
+      "Zero-inflation detected for %s; corresponding ZI model(s) were fitted.",
+      paste(zi_detected_labels, collapse = " and ")
     )
-  } else if (pois_detected && !nb_detected) {
-    zi_msg <- sprintf(
-      "DHARMa zero-inflation test is significant for the Poisson fit (p = %.3f) but not for the Negative Binomial fit (p = %.3f); excess zeros may be explained by overdispersion alone.",
-      pois_zi$p_value, nb_zi$p_value
-    )
-  } else if (!pois_detected && !is.null(pois_zi)) {
-    zi_msg <- sprintf(
-      "No significant zero-inflation detected (Poisson p = %.3f%s).",
-      pois_zi$p_value,
-      if (!is.null(nb_zi)) sprintf(", Negative Binomial p = %.3f", nb_zi$p_value) else ""
-    )
+  } else if (length(zi_p_parts) > 0L) {
+    zi_msg <- "No significant zero-inflation detected in any base model."
   }
 
   # --- Selection message ---
@@ -302,7 +399,19 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     .model_label(best_name), metric_label, metric_label, val_str
   )
 
-  parts <- c(selection_msg, disp_msg, zi_msg)
+  # Flag non-comparable likelihood scales when Tweedie selected on integer data
+  ic_caveat <- ""
+  best_is_tweedie <- best_name %in% c("tweedie", "zeroinfl_tweedie")
+  if (integer_response && best_is_tweedie) {
+    ic_caveat <- paste0(
+      "Caution: Tweedie was selected on integer count data, but its ",
+      "continuous density yields likelihoods on a different scale than ",
+      "Poisson/negative binomial PMFs. The IC advantage may be ",
+      "artifactual. Consider verifying with discrete-family models."
+    )
+  }
+
+  parts <- c(selection_msg, disp_msg, zi_msg, ic_caveat)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }

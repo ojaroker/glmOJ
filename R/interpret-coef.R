@@ -8,7 +8,8 @@
 #' from zero (p > 0.05).
 #'
 #' @param model A fitted model returned by [poissonGLM()], [negbinGLM()],
-#'   [zeroinflPoissonGLM()], [zeroinflNegbinGLM()], or [countGLM()].
+#'   [tweedieGLM()], [zeroinflPoissonGLM()], [zeroinflNegbinGLM()],
+#'   [zeroinflTweedieGLM()], or [countGLM()].
 #'   For `countGLM`, the best-fitting model is used automatically.
 #' @param predictor Character; the exact term name as it appears in the
 #'   coefficient table (e.g. `"pctnonwhite10"`, `"EPAregion2"`).
@@ -30,6 +31,18 @@ interpret_coef.poissonGLM <- function(model, predictor, component = "count") {
 #' @export
 interpret_coef.negbinGLM <- function(model, predictor, component = "count") {
   .interp_standard(model, predictor)
+}
+
+#' @export
+interpret_coef.tweedieGLM <- function(model, predictor, component = "count") {
+  .interp_glmmtmb_standard(model, predictor)
+}
+
+#' @export
+interpret_coef.zeroinflTweedieGLM <- function(model, predictor,
+                                               component = "count") {
+  component <- match.arg(component, c("count", "zero"))
+  .interp_glmmtmb_zeroinfl(model, predictor, component)
 }
 
 #' @export
@@ -124,6 +137,71 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
     sprintf("the expected rate of %s per unit of exposure", resp)
   } else {
     sprintf("the expected count of %s", resp)
+  }
+
+  msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
+                     outcome_phrase, pval)
+  cat(msg, "\n")
+  invisible(msg)
+}
+
+# glmmTMB stores summary$coefficients as a list ($cond, $zi, …), not a plain
+# matrix, so we pull p-values from the already-built coefficient table instead.
+.response_name_glmmtmb <- function(fit) {
+  tryCatch(
+    deparse(formula(fit$model)[[2L]]),
+    error = function(e) "the response"
+  )
+}
+
+.interp_glmmtmb_standard <- function(model, predictor) {
+  coef_df <- model$coefficients
+  row <- coef_df[coef_df$term == predictor, ]
+  if (nrow(row) == 0L) {
+    stop(sprintf(
+      "Predictor '%s' not found. Available terms:\n  %s",
+      predictor, paste(coef_df$term, collapse = ", ")
+    ))
+  }
+
+  pval    <- row$p.value
+  resp    <- .response_name_glmmtmb(model)
+  has_off <- .has_offset(model$model)
+
+  outcome_phrase <- if (has_off) {
+    sprintf("the expected rate of %s per unit of exposure", resp)
+  } else {
+    sprintf("the expected value of %s", resp)
+  }
+
+  msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
+                     outcome_phrase, pval)
+  cat(msg, "\n")
+  invisible(msg)
+}
+
+.interp_glmmtmb_zeroinfl <- function(model, predictor, component) {
+  coef_df <- model$coefficients[[component]]
+  row <- coef_df[coef_df$term == predictor, ]
+  if (nrow(row) == 0L) {
+    stop(sprintf(
+      "Predictor '%s' not found in the %s component. Available terms:\n  %s",
+      predictor, component, paste(coef_df$term, collapse = ", ")
+    ))
+  }
+
+  pval    <- row$p.value
+  resp    <- .response_name_glmmtmb(model)
+  has_off <- .has_offset(model$model)
+
+  if (component == "count") {
+    outcome_phrase <- if (has_off) {
+      sprintf("the expected rate of %s per unit of exposure", resp)
+    } else {
+      sprintf("the expected value of %s (among non-structural zeros)", resp)
+    }
+  } else {
+    outcome_phrase <- "the odds of being a structural zero"
   }
 
   msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,

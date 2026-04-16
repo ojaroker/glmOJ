@@ -54,7 +54,8 @@
 #' print(fit)
 #' plot(fit)
 #'
-#' @seealso [negbinGLM()], [zeroinflPoissonGLM()], [countGLM()], [stats::glm()]
+#' @seealso [negbinGLM()], [tweedieGLM()], [zeroinflPoissonGLM()],
+#'   [countGLM()], [stats::glm()]
 #' @export
 poissonGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
   stopifnot(
@@ -64,6 +65,12 @@ poissonGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
 
   check_sample_size(formula, data)
   fit <- stats::glm(formula, data = data, family = stats::poisson(), ...)
+  if (!isTRUE(fit$converged)) {
+    stop(
+      "Poisson GLM did not converge. Check for extreme predictor values, perfect separation, or collinearity.",
+      call. = FALSE
+    )
+  }
 
   # DHARMa zero-inflation test
   zi_test <- NULL
@@ -71,7 +78,7 @@ poissonGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
     zi_test <- run_dharma_zi_test(fit, model_type = "Poisson")
     if (isTRUE(zi_test$detected)) {
       warning(sprintf(
-        "Possible zero-inflation detected by DHARMa test (p = %.3f). Consider zeroinflPoissonGLM() or zeroinflNegbinGLM().",
+        "Possible zero-inflation detected by DHARMa test (p = %.3f). Consider zeroinflPoissonGLM(), zeroinflNegbinGLM(), or zeroinflTweedieGLM().",
         zi_test$p_value
       ), call. = FALSE)
     }

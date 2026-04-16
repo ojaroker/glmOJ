@@ -21,15 +21,19 @@ test_that("countGLM errors on invalid ziformula", {
   )
 })
 
-# Shared test data
+# Shared test data — low-count Poisson-ish data (few/no structural zeros)
 df_cglm <- data.frame(
   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
 )
 
-# Fit once; countGLM fits all 4 models and small datasets often hit
-# iteration limits for NB and zero-inflated optimisers — suppress expected warnings
+# Fit once; countGLM fits base models and possibly ZI counterparts —
+# small datasets often hit iteration limits — suppress expected warnings
 result <- suppressWarnings(countGLM(y ~ x1, data = df_cglm))
+
+# All six valid model names (base + ZI counterparts)
+valid_models <- c("poisson", "negbin", "tweedie",
+                  "zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
 
 test_that("countGLM returns class 'countGLM'", {
   expect_s3_class(result, "countGLM")
@@ -41,20 +45,19 @@ test_that("countGLM returns correct slot names", {
                          "vif"))
 })
 
-test_that("countGLM best_model is one of the four valid names", {
-  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
-  expect_true(result$best_model %in% valid)
+test_that("countGLM best_model is one of the valid model names", {
+  expect_true(result$best_model %in% valid_models)
 })
 
-test_that("countGLM aic_table is a named numeric vector of length <= 4", {
+test_that("countGLM aic_table is a named numeric vector of length <= 6", {
   expect_type(result$aic_table, "double")
-  expect_lte(length(result$aic_table), 4L)
+  expect_lte(length(result$aic_table), 6L)
   expect_false(is.null(names(result$aic_table)))
 })
 
-test_that("countGLM bic_table is a named numeric vector of length <= 4", {
+test_that("countGLM bic_table is a named numeric vector of length <= 6", {
   expect_type(result$bic_table, "double")
-  expect_lte(length(result$bic_table), 4L)
+  expect_lte(length(result$bic_table), 6L)
   expect_false(is.null(names(result$bic_table)))
 })
 
@@ -69,6 +72,14 @@ test_that("countGLM each successful fit inherits countGLMfit", {
       inherits(result$fits[[nm]], "countGLMfit"),
       label = paste("model", nm, "inherits countGLMfit")
     )
+  }
+})
+
+test_that("countGLM tweedie fit (if present) is a tweedieGLM", {
+  tw <- result$fits[["tweedie"]]
+  if (!is.null(tw)) {
+    expect_s3_class(tw, "tweedieGLM")
+    expect_s3_class(tw, "countGLMfit")
   }
 })
 
@@ -101,6 +112,33 @@ test_that("countGLM negbin fit has zi_test populated", {
   }
 })
 
+test_that("countGLM tweedie fit has zi_test populated", {
+  tw <- result$fits[["tweedie"]]
+  if (!is.null(tw)) {
+    expect_type(tw$diagnostics$zi_test, "list")
+    expect_named(tw$diagnostics$zi_test, c("detected", "p_value", "plot"))
+  }
+})
+
+test_that("countGLM ZI models are only fitted when ZI is detected", {
+  # For each ZI model present, the corresponding base model must have detected ZI
+  zi_base_map <- c(
+    zeroinfl_poisson = "poisson",
+    zeroinfl_negbin  = "negbin",
+    zeroinfl_tweedie = "tweedie"
+  )
+  for (zi_nm in names(zi_base_map)) {
+    if (!is.null(result$fits[[zi_nm]])) {
+      base_nm <- zi_base_map[[zi_nm]]
+      base_zi <- result$fits[[base_nm]]$diagnostics$zi_test
+      expect_true(
+        isTRUE(base_zi$detected),
+        label = paste(zi_nm, "should only appear when", base_nm, "detects ZI")
+      )
+    }
+  }
+})
+
 # --- decide parameter tests ---
 
 test_that("countGLM default decide is 'bic'", {
@@ -110,21 +148,19 @@ test_that("countGLM default decide is 'bic'", {
 test_that("countGLM metric_table is a named numeric vector", {
   expect_type(result$metric_table, "double")
   expect_false(is.null(names(result$metric_table)))
-  expect_lte(length(result$metric_table), 4L)
+  expect_lte(length(result$metric_table), 6L)
 })
 
 test_that("countGLM decide = 'AIC' is accepted case-insensitively", {
   r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "AIC"))
   expect_equal(r$decide, "aic")
-  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
-  expect_true(r$best_model %in% valid)
+  expect_true(r$best_model %in% valid_models)
 })
 
 test_that("countGLM decide = 'loglik' selects a valid model", {
   r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "loglik"))
   expect_equal(r$decide, "loglik")
-  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
-  expect_true(r$best_model %in% valid)
+  expect_true(r$best_model %in% valid_models)
   # metric_table should be sorted descending (best = highest loglik first)
   mt <- r$metric_table
   expect_true(all(diff(mt) <= 0))
@@ -133,8 +169,7 @@ test_that("countGLM decide = 'loglik' selects a valid model", {
 test_that("countGLM decide = 'McFadden' selects a valid model", {
   r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm, decide = "McFadden"))
   expect_equal(r$decide, "mcfadden")
-  valid <- c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
-  expect_true(r$best_model %in% valid)
+  expect_true(r$best_model %in% valid_models)
 })
 
 test_that("countGLM errors on invalid decide value", {
@@ -144,10 +179,46 @@ test_that("countGLM errors on invalid decide value", {
   )
 })
 
+# --- ZI model conditional fitting test with heavily zero-inflated data ---
+
+test_that("countGLM fits ZI models when ZI is detected in base models", {
+  set.seed(99)
+  n <- 40L
+  df_zi <- data.frame(
+    y  = c(rep(0L, 28L), rpois(12L, lambda = 4L)),
+    x1 = rnorm(n)
+  )
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_zi))
+
+  # At least one base model should detect ZI for this heavily zero-inflated data
+  base_zi_detected <- any(vapply(
+    c("poisson", "negbin", "tweedie"),
+    function(nm) {
+      fit_nm <- r$fits[[nm]]
+      !is.null(fit_nm) && isTRUE(fit_nm$diagnostics$zi_test$detected)
+    },
+    logical(1L)
+  ))
+
+  # If ZI was detected in any base model, at least one ZI counterpart should be fitted
+  zi_models_fitted <- intersect(
+    names(r$fits),
+    c("zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
+  )
+
+  if (base_zi_detected) {
+    expect_gt(length(zi_models_fitted), 0L)
+  }
+
+  # All fitted ZI models should inherit zeroinflGLMfit
+  for (nm in zi_models_fitted) {
+    expect_true(inherits(r$fits[[nm]], "zeroinflGLMfit"))
+  }
+})
+
 # --- VIF tests ---
 
 test_that("countGLM vif is NULL with a single predictor", {
-  # Only one main-effect predictor — VIF is undefined
   r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm))
   expect_null(r$vif)
 })
@@ -191,6 +262,52 @@ test_that("countGLM vif warns when a predictor exceeds threshold of 5", {
     countGLM(y ~ x1 + x2, data = df_mc),
     "High VIF detected"
   )
+})
+
+# --- Integer-response / Tweedie likelihood-scale warning ---
+
+test_that("countGLM warns about Tweedie incompatibility on integer data", {
+  # When Tweedie is fitted to integer counts, either:
+  #   (a) p collapses to the boundary → "degenerate" warning + Tweedie excluded, or
+  #   (b) p stays in (1,2) → "integer-valued" likelihood-scale warning
+  # Either way, at least one Tweedie-related warning must fire.
+  warns <- character(0L)
+  withCallingHandlers(
+    countGLM(y ~ x1, data = df_cglm),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_true(
+    any(grepl("integer-valued|degenerate|boundary", warns)),
+    label = "a Tweedie-incompatibility warning was issued"
+  )
+})
+
+test_that("countGLM recommendation includes IC caveat when Tweedie wins on integer data", {
+  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm))
+  if (r$best_model %in% c("tweedie", "zeroinfl_tweedie")) {
+    expect_true(grepl("artifactual|continuous density", r$recommendation))
+  }
+})
+
+test_that("countGLM does not warn about likelihood scale for continuous response", {
+  df_cont <- data.frame(
+    y  = c(0, 0.5, 1.2, 0, 3.4, 0, 1.8, 2.7, 0, 0.9,
+           0, 2.1, 0, 4.6, 0.3, 0, 1.5, 0, 3.0, 0.7),
+    x1 = rnorm(20L)
+  )
+  # Collect all warnings; none should mention "integer-valued"
+  warns <- character(0L)
+  withCallingHandlers(
+    suppressMessages(suppressWarnings(countGLM(y ~ x1, data = df_cont))),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(any(grepl("integer-valued", warns)))
 })
 
 # --- Missing-value (NA) reporting tests ---
@@ -238,4 +355,26 @@ test_that("countGLM vif handles backtick-quoted column names", {
   r <- suppressWarnings(countGLM(y ~ `my var` + `x (2)`, data = df_bt))
   expect_type(r$vif, "double")
   expect_length(r$vif, 2L)
+})
+
+# --- Degenerate Tweedie exclusion test ---
+
+test_that("countGLM warns and excludes degenerate Tweedie on integer data", {
+  # Collect all warnings during the countGLM run
+  warns <- character(0L)
+  r <- withCallingHandlers(
+    countGLM(y ~ x1, data = df_cglm),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  # When Tweedie p collapses to the boundary, a degenerate warning fires and
+  # Tweedie is removed from the comparison set
+  if (any(grepl("degenerate|boundary", warns))) {
+    expect_false("tweedie" %in% names(r$fits))
+    expect_false("zeroinfl_tweedie" %in% names(r$fits))
+    expect_true(r$best_model %in% c("poisson", "negbin",
+                                    "zeroinfl_poisson", "zeroinfl_negbin"))
+  }
 })

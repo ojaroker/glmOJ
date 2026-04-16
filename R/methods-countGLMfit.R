@@ -12,6 +12,36 @@
 # ---- print methods -----------------------------------------------------
 
 #' @export
+print.tweedieGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family: tweedieGLM\n")
+  cat("\nCoefficients (on response scale):\n")
+  print(.fmt_coef_table(x$coefficients, digits), row.names = FALSE)
+  if (!is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  if (!is.na(x$p))   cat(sprintf("Power (p): %.4f\n", x$p))
+  cat(sprintf("Dispersion ratio: %.4f\n", x$diagnostics$dispersion_ratio))
+  cat(sprintf("AIC: %.2f\n", x$aic))
+  invisible(x)
+}
+
+#' @export
+print.zeroinflTweedieGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family: zeroinflTweedieGLM\n")
+  cat("\nCount component (exponentiated coefficients):\n")
+  print(.fmt_coef_table(x$coefficients$count, digits), row.names = FALSE)
+  cat("\nZero-inflation component (exponentiated coefficients):\n")
+  print(.fmt_coef_table(x$coefficients$zero, digits), row.names = FALSE)
+  if (!is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  if (!is.na(x$p))   cat(sprintf("Power (p): %.4f\n", x$p))
+  cat(sprintf("Dispersion ratio: %.4f\n", x$diagnostics$dispersion_ratio))
+  cat(sprintf("AIC: %.2f\n", x$aic))
+  invisible(x)
+}
+
+#' @export
 print.countGLMfit <- function(x, digits = 4, ...) {
   cat("\nCall:\n")
   print(x$call)

@@ -48,7 +48,8 @@
 #' overdispersion (variance > mean). A Pearson dispersion ratio from
 #' [poissonGLM()] substantially above 1 (rule of thumb: > 1.5) is a common
 #' signal. The negative binomial adds a free parameter `theta` to model this
-#' extra variance. If zero-inflation is also detected, consider
+#' extra variance. For semi-continuous or non-integer data, consider
+#' [tweedieGLM()]. If zero-inflation is also detected, consider
 #' [zeroinflNegbinGLM()].
 #'
 #' @examples
@@ -60,7 +61,8 @@
 #' print(fit)
 #' plot(fit)
 #'
-#' @seealso [poissonGLM()], [zeroinflNegbinGLM()], [countGLM()], [MASS::glm.nb()]
+#' @seealso [poissonGLM()], [tweedieGLM()], [zeroinflNegbinGLM()],
+#'   [countGLM()], [MASS::glm.nb()]
 #' @export
 negbinGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
   stopifnot(
@@ -70,6 +72,12 @@ negbinGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
 
   check_sample_size(formula, data)
   fit <- MASS::glm.nb(formula, data = data, ...)
+  if (!isTRUE(fit$converged)) {
+    stop(
+      "Negative binomial GLM did not converge. Check for extreme predictor values, perfect separation, or collinearity.",
+      call. = FALSE
+    )
+  }
 
   # DHARMa zero-inflation test
   zi_test <- NULL

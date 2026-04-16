@@ -8,7 +8,8 @@ interpret_coef(model, predictor, component = "count")
 }
 \arguments{
 \item{model}{A fitted model returned by \code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}},
-\code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, or \code{\link[=countGLM]{countGLM()}}.
+\code{\link[=tweedieGLM]{tweedieGLM()}}, \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}},
+\code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}, or \code{\link[=countGLM]{countGLM()}}.
 For \code{countGLM}, the best-fitting model is used automatically.}
 
 \item{predictor}{Character; the exact term name as it appears in the

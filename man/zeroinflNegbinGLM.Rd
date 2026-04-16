@@ -60,10 +60,11 @@ change in the odds of being a structural zero (vs. entering the count
 process) for a one-unit increase in the predictor.
 }
 
-\strong{When to use:} Zero-inflated negative binomial is the most flexible of
-the four models — it handles both excess zeros \emph{and} overdispersion in the
-non-zero counts. Prefer this over \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}} when the non-zero
-counts themselves remain overdispersed after zero-inflation is accounted for.
+\strong{When to use:} Zero-inflated negative binomial handles both excess zeros
+\emph{and} overdispersion in the non-zero counts. Prefer this over
+\code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}} when the non-zero counts remain overdispersed. For
+semi-continuous or non-integer data with excess zeros, consider
+\code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}.
 }
 \examples{
 df <- data.frame(
@@ -79,6 +80,6 @@ fit2 <- zeroinflNegbinGLM(y ~ x1, data = df, ziformula = ~ 1)
 
 }
 \seealso{
-\code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=countGLM]{countGLM()}},
-\code{\link[pscl:zeroinfl]{pscl::zeroinfl()}}
+\code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}},
+\code{\link[=countGLM]{countGLM()}}, \code{\link[pscl:zeroinfl]{pscl::zeroinfl()}}
 }

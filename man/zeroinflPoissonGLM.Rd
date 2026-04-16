@@ -79,6 +79,6 @@ fit2 <- zeroinflPoissonGLM(y ~ x1, data = df, ziformula = ~ 1)
 
 }
 \seealso{
-\code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, \code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=countGLM]{countGLM()}},
-\code{\link[pscl:zeroinfl]{pscl::zeroinfl()}}
+\code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, \code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}, \code{\link[=poissonGLM]{poissonGLM()}},
+\code{\link[=countGLM]{countGLM()}}, \code{\link[pscl:zeroinfl]{pscl::zeroinfl()}}
 }

@@ -64,8 +64,8 @@
 #' # Intercept-only zero component:
 #' fit2 <- zeroinflPoissonGLM(y ~ x1, data = df, ziformula = ~ 1)
 #'
-#' @seealso [zeroinflNegbinGLM()], [poissonGLM()], [countGLM()],
-#'   [pscl::zeroinfl()]
+#' @seealso [zeroinflNegbinGLM()], [zeroinflTweedieGLM()], [poissonGLM()],
+#'   [countGLM()], [pscl::zeroinfl()]
 #' @export
 zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, ...) {
   stopifnot(

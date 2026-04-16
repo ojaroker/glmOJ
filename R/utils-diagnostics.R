@@ -77,6 +77,18 @@ check_sample_size <- function(formula, data, ziformula = NULL) {
 #' @return Named list: detected (logical), p_value (numeric), plot (ggplot).
 #' @noRd
 run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
+  # Guard: DHARMa simulates nsim * n draws from the fitted distribution.
+  # With extreme fitted values (e.g. lambda > 1e8 for Poisson) this can
+  # hang or exhaust memory, so bail out early with a missing result.
+  max_fitted <- tryCatch(max(fitted(fit), na.rm = TRUE), error = function(e) NA_real_)
+  if (!is.finite(max_fitted) || max_fitted > 1e8) {
+    warning(sprintf(
+      "%s: fitted values are extreme (max = %.2e); skipping DHARMa zero-inflation test.",
+      model_type, max_fitted
+    ), call. = FALSE)
+    return(list(detected = NA, p_value = NA_real_, plot = NULL))
+  }
+
   simres <- suppressMessages(
     DHARMa::simulateResiduals(fit, n = n_sim, plot = FALSE, refit = FALSE)
   )
@@ -87,7 +99,14 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
 
   # Simulated zero counts (one per replicate); observed zero count
   sim_counts <- colSums(simres$simulatedResponse == 0)
-  obs_count <- sum(fit$y == 0)
+  # fit$y works for glm/glm.nb/zeroinfl; for glmmTMB use fit$frame[[1]]
+  obs_count <- tryCatch(
+    sum(fit$y == 0),
+    error = function(e) {
+      y <- tryCatch(fit$frame[[1L]], error = function(e2) NULL)
+      if (is.null(y)) NA_integer_ else sum(y == 0)
+    }
+  )
 
   # Place label left of line when observed is in the upper half of the range
   # to avoid clipping at the right plot edge
@@ -146,11 +165,22 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
 #' Compute the Pearson dispersion ratio
 #' @noRd
 check_dispersion <- function(model) {
-  df_resid <- model$df.residual
-  if (is.null(df_resid) || df_resid == 0) {
+  # model$df.residual is NULL for glmmTMB objects; fall back to the generic
+  df_resid <- tryCatch(
+    {
+      dr <- model$df.residual
+      if (is.null(dr) || length(dr) == 0L) stats::df.residual(model) else dr
+    },
+    error = function(e) NULL
+  )
+  if (is.null(df_resid) || length(df_resid) == 0L || df_resid == 0) {
     return(NA_real_)
   }
-  pearson_resid <- residuals(model, type = "pearson")
+  pearson_resid <- tryCatch(
+    residuals(model, type = "pearson"),
+    error = function(e) NULL
+  )
+  if (is.null(pearson_resid)) return(NA_real_)
   sum(pearson_resid^2) / df_resid
 }
 
@@ -172,7 +202,8 @@ check_dispersion <- function(model) {
 #' @noRd
 compute_rqr <- function(
   model,
-  family = c("poisson", "negbin", "zeroinfl_poisson", "zeroinfl_negbin")
+  family = c("poisson", "negbin", "tweedie",
+             "zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
 ) {
   family <- match.arg(family)
 
@@ -187,7 +218,24 @@ compute_rqr <- function(
     return(rqr)
   }
 
-  # Zero-inflated: manual CDF-based RQR via pscl::predprob
+  # Tweedie (glmmTMB): DHARMa simulation-based quantile residuals → normal scale
+  if (family %in% c("tweedie", "zeroinfl_tweedie")) {
+    max_fitted <- tryCatch(max(fitted(model), na.rm = TRUE), error = function(e) NA_real_)
+    if (!is.finite(max_fitted) || max_fitted > 1e8) {
+      n_obs <- tryCatch(length(fitted(model)), error = function(e) 0L)
+      rqr <- rep(NA_real_, n_obs)
+      .warn_nonfinite_rqr(rqr)
+      return(rqr)
+    }
+    simres <- suppressMessages(
+      DHARMa::simulateResiduals(model, n = 500L, plot = FALSE, refit = FALSE)
+    )
+    rqr <- stats::qnorm(pmin(pmax(simres$scaledResiduals, 1e-10), 1 - 1e-10))
+    .warn_nonfinite_rqr(rqr)
+    return(rqr)
+  }
+
+  # Zero-inflated (pscl): manual CDF-based RQR via pscl::predprob
   pp <- pscl::predprob(model)
   y <- model$y
   cts <- as.integer(colnames(pp))

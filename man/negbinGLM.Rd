@@ -60,7 +60,8 @@ change in the expected count for a one-unit increase in the predictor.
 overdispersion (variance > mean). A Pearson dispersion ratio from
 \code{\link[=poissonGLM]{poissonGLM()}} substantially above 1 (rule of thumb: > 1.5) is a common
 signal. The negative binomial adds a free parameter \code{theta} to model this
-extra variance. If zero-inflation is also detected, consider
+extra variance. For semi-continuous or non-integer data, consider
+\code{\link[=tweedieGLM]{tweedieGLM()}}. If zero-inflation is also detected, consider
 \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}.
 }
 \examples{
@@ -74,5 +75,6 @@ plot(fit)
 
 }
 \seealso{
-\code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}}, \code{\link[=countGLM]{countGLM()}}, \code{\link[MASS:glm.nb]{MASS::glm.nb()}}
+\code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=tweedieGLM]{tweedieGLM()}}, \code{\link[=zeroinflNegbinGLM]{zeroinflNegbinGLM()}},
+\code{\link[=countGLM]{countGLM()}}, \code{\link[MASS:glm.nb]{MASS::glm.nb()}}
 }

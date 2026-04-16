@@ -68,5 +68,6 @@ plot(fit)
 
 }
 \seealso{
-\code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}}, \code{\link[=countGLM]{countGLM()}}, \code{\link[stats:glm]{stats::glm()}}
+\code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=tweedieGLM]{tweedieGLM()}}, \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}},
+\code{\link[=countGLM]{countGLM()}}, \code{\link[stats:glm]{stats::glm()}}
 }
