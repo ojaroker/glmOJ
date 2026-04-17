@@ -129,12 +129,14 @@ change in the expected count for a one-unit increase in the predictor.</p>
 overdispersion (variance &gt; mean). A Pearson dispersion ratio from
 <code><a href="poissonGLM.html">poissonGLM()</a></code> substantially above 1 (rule of thumb: &gt; 1.5) is a common
 signal. The negative binomial adds a free parameter <code>theta</code> to model this
-extra variance. If zero-inflation is also detected, consider
+extra variance. For semi-continuous or non-integer data, consider
+<code><a href="tweedieGLM.html">tweedieGLM()</a></code>. If zero-inflation is also detected, consider
 <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="poissonGLM.html">poissonGLM()</a></code>, <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code>, <code><a href="countGLM.html">countGLM()</a></code>, <code><a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link">MASS::glm.nb()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="poissonGLM.html">poissonGLM()</a></code>, <code><a href="tweedieGLM.html">tweedieGLM()</a></code>, <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code>,
+<code><a href="countGLM.html">countGLM()</a></code>, <code><a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link">MASS::glm.nb()</a></code></p></div>
     </div>
 
     <div class="section level2">

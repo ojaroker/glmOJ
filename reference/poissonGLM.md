@@ -105,6 +105,7 @@ is good) and `diagnostics$zi_test$p_value` for zero-inflation.
 ## See also
 
 [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md),
+[`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md),
 [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md),
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
 [`stats::glm()`](https://rdrr.io/r/stats/glm.html)

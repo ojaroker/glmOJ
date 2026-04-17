@@ -312,19 +312,17 @@ at the same conclusion automatically.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;             model     AIC     BIC</span></span>
-<span><span class="co">#&gt;   zeroinfl_negbin 2845.16 3044.30</span></span>
 <span><span class="co">#&gt;            negbin 2964.32 3066.90</span></span>
 <span><span class="co">#&gt;  zeroinfl_poisson 2920.58 3113.67</span></span>
 <span><span class="co">#&gt;           poisson 3179.45 3276.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Selected model: zeroinfl_negbin</span></span>
+<span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Zero-Inflated Negative Binomial was selected by BIC (BIC = 3044.30).</span></span>
-<span><span class="co">#&gt;   The Poisson dispersion ratio is 1.62 (&gt; 1.5), indicating</span></span>
-<span><span class="co">#&gt;   overdispersion. DHARMa zero-inflation test is significant for the</span></span>
-<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
-<span><span class="co">#&gt;   0.654); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
+<span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 1.62 (&gt; 1.5), indicating overdispersion.</span></span>
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
+<span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
 <p>The wrapper selects the same winner as the manual LRT. Individual
 fits remain accessible: <code>result1$fits$negbin</code>,
 <code>result1$fits$poisson</code>, etc.</p>
@@ -360,7 +358,6 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;             model     AIC     BIC</span></span>
 <span><span class="co">#&gt;            negbin 2953.72 3074.41</span></span>
-<span><span class="co">#&gt;   zeroinfl_negbin 2856.57 3091.91</span></span>
 <span><span class="co">#&gt;  zeroinfl_poisson 2933.58 3162.89</span></span>
 <span><span class="co">#&gt;           poisson 3144.98 3259.64</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -368,10 +365,9 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson</span></span>
-<span><span class="co">#&gt;   dispersion ratio is 1.49, consistent with equidispersion. DHARMa</span></span>
-<span><span class="co">#&gt;   zero-inflation test is significant for the Poisson fit (p = 0.000)</span></span>
-<span><span class="co">#&gt;   but not for the Negative Binomial fit (p = 0.828); excess zeros may</span></span>
-<span><span class="co">#&gt;   be explained by overdispersion alone.</span></span></code></pre></div>
+<span><span class="co">#&gt;   dispersion ratio is 1.49, consistent with equidispersion.</span></span>
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
+<span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
 <p>Again the negative binomial is selected. The non-nested comparison
 between these two winning models (overall EQI vs sub-indices) can be
 done with a Vuong test via
@@ -588,24 +584,23 @@ confirming this:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;             model      AIC      BIC</span></span>
-<span><span class="co">#&gt;   zeroinfl_negbin 11082.49 11251.78</span></span>
 <span><span class="co">#&gt;            negbin 11306.16 11394.49</span></span>
+<span><span class="co">#&gt;           tweedie 11493.07 11588.75</span></span>
 <span><span class="co">#&gt;  zeroinfl_poisson 11791.50 11953.43</span></span>
 <span><span class="co">#&gt;           poisson 13201.10 13282.07</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Selected model: zeroinfl_negbin</span></span>
+<span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Zero-Inflated Negative Binomial was selected by BIC (BIC = 11251.78).</span></span>
-<span><span class="co">#&gt;   The Poisson dispersion ratio is 2.42 (&gt; 1.5), indicating</span></span>
-<span><span class="co">#&gt;   overdispersion. DHARMa zero-inflation test is significant for the</span></span>
-<span><span class="co">#&gt;   Poisson fit (p = 0.000) but not for the Negative Binomial fit (p =</span></span>
-<span><span class="co">#&gt;   0.542); excess zeros may be explained by overdispersion alone.</span></span></code></pre></div>
+<span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.5), indicating overdispersion.</span></span>
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson and Tweedie; corresponding ZI</span></span>
+<span><span class="co">#&gt;   model(s) were fitted.</span></span></code></pre></div>
 <p>The comparison table shows AIC and BIC for all four families, sorted
 by the selection criterion. The selected model is
-<strong>zeroinfl_negbin</strong>. The recommendation captures the
-relevant dispersion and zero-inflation diagnostics automatically,
-explaining why this family was preferred.</p>
+<strong>negbin</strong>. The recommendation captures the relevant
+dispersion and zero-inflation diagnostics automatically, explaining why
+this family was preferred.</p>
 </div>
 <div class="section level3">
 <h3 id="checking-for-multicollinearity-vif">9. Checking for Multicollinearity (VIF)<a class="anchor" aria-label="anchor" href="#checking-for-multicollinearity-vif"></a>
@@ -656,10 +651,10 @@ for the underlying predictors:</p>
 automatically:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]). Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]).</span></span></code></pre></div>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 39.2% increase in the expected rate of cam_count per unit of exposure (exp(β) = 1.392, 95% CI: [1.333, 1.455]).</span></span></code></pre></div>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"hinc"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in hinc is associated with a 10.8% decrease in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 0.892, 95% CI: [0.807, 0.985]). Holding all other predictors constant, a one-unit increase in hinc is associated with a 10.8% decrease in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 0.892, 95% CI: [0.807, 0.985]).</span></span></code></pre></div>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in hinc is associated with a 19.5% decrease in the expected rate of cam_count per unit of exposure (exp(β) = 0.805, 95% CI: [0.744, 0.871]).</span></span></code></pre></div>
 <p>For zero-inflated models, the count and zero components can be
 interpreted separately. The count component describes the expected
 camera count among tracts that are in the counting process; the zero
@@ -667,9 +662,7 @@ component describes the odds of being a structural zero (a tract that
 never receives a camera):</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of ~pnhblk + pnhwht + total_crime_rate + hinc + pvac + modal_zone +  per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]). Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 15.7% increase in the expected rate of     offset(log_road_length) per unit of exposure (exp(β) = 1.157, 95% CI: [1.098, 1.219]).</span></span>
-<span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 79.1% decrease in the odds of being a structural zero (exp(β) = 0.209, 95% CI: [0.144, 0.304]).</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>

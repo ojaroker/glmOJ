@@ -192,6 +192,16 @@ dispersion ratio, and a two-panel diagnostic plot.
 - [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)
   : Fit a zero-inflated negative binomial regression model
 
+### Tweedie
+
+- [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)
+  : Fit a Tweedie regression model
+
+### Zero-Inflated Tweedie
+
+- [`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md)
+  : Fit a zero-inflated Tweedie regression model
+
 ## Model Selection
 
 Fit all four model families and select the best by a user-chosen

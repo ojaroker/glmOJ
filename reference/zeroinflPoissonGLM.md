@@ -107,6 +107,7 @@ non-zero counts are also overdispersed, prefer
 ## See also
 
 [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md),
+[`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md),
 [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md),
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
 [`pscl::zeroinfl()`](https://rdrr.io/pkg/pscl/man/zeroinfl.html)

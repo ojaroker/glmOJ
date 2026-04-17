@@ -112,12 +112,15 @@ overdispersion (variance \> mean). A Pearson dispersion ratio from
 [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md)
 substantially above 1 (rule of thumb: \> 1.5) is a common signal. The
 negative binomial adds a free parameter `theta` to model this extra
-variance. If zero-inflation is also detected, consider
+variance. For semi-continuous or non-integer data, consider
+[`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md).
+If zero-inflation is also detected, consider
 [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md).
 
 ## See also
 
 [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md),
+[`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md),
 [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md),
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
 [`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html)

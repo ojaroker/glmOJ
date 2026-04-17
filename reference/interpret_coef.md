@@ -20,8 +20,10 @@ interpret_coef(model, predictor, component = "count")
   A fitted model returned by
   [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md),
   [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md),
+  [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md),
   [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md),
   [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md),
+  [`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md),
   or
   [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md).
   For `countGLM`, the best-fitting model is used automatically.

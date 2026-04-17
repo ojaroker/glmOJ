@@ -101,16 +101,17 @@ An object of class
   multiplicative change in the odds of being a structural zero (vs.
   entering the count process) for a one-unit increase in the predictor.
 
-**When to use:** Zero-inflated negative binomial is the most flexible of
-the four models — it handles both excess zeros *and* overdispersion in
-the non-zero counts. Prefer this over
+**When to use:** Zero-inflated negative binomial handles both excess
+zeros *and* overdispersion in the non-zero counts. Prefer this over
 [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md)
-when the non-zero counts themselves remain overdispersed after
-zero-inflation is accounted for.
+when the non-zero counts remain overdispersed. For semi-continuous or
+non-integer data with excess zeros, consider
+[`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md).
 
 ## See also
 
 [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md),
+[`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md),
 [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md),
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
 [`pscl::zeroinfl()`](https://rdrr.io/pkg/pscl/man/zeroinfl.html)
