@@ -264,52 +264,6 @@ test_that("countGLM vif warns when a predictor exceeds threshold of 5", {
   )
 })
 
-# --- Integer-response / Tweedie likelihood-scale warning ---
-
-test_that("countGLM warns about Tweedie incompatibility on integer data", {
-  # When Tweedie is fitted to integer counts, either:
-  #   (a) p collapses to the boundary → "degenerate" warning + Tweedie excluded, or
-  #   (b) p stays in (1,2) → "integer-valued" likelihood-scale warning
-  # Either way, at least one Tweedie-related warning must fire.
-  warns <- character(0L)
-  withCallingHandlers(
-    countGLM(y ~ x1, data = df_cglm),
-    warning = function(w) {
-      warns <<- c(warns, conditionMessage(w))
-      invokeRestart("muffleWarning")
-    }
-  )
-  expect_true(
-    any(grepl("integer-valued|degenerate|boundary", warns)),
-    label = "a Tweedie-incompatibility warning was issued"
-  )
-})
-
-test_that("countGLM recommendation includes IC caveat when Tweedie wins on integer data", {
-  r <- suppressWarnings(countGLM(y ~ x1, data = df_cglm))
-  if (r$best_model %in% c("tweedie", "zeroinfl_tweedie")) {
-    expect_true(grepl("artifactual|continuous density", r$recommendation))
-  }
-})
-
-test_that("countGLM does not warn about likelihood scale for continuous response", {
-  df_cont <- data.frame(
-    y  = c(0, 0.5, 1.2, 0, 3.4, 0, 1.8, 2.7, 0, 0.9,
-           0, 2.1, 0, 4.6, 0.3, 0, 1.5, 0, 3.0, 0.7),
-    x1 = rnorm(20L)
-  )
-  # Collect all warnings; none should mention "integer-valued"
-  warns <- character(0L)
-  withCallingHandlers(
-    suppressMessages(suppressWarnings(countGLM(y ~ x1, data = df_cont))),
-    warning = function(w) {
-      warns <<- c(warns, conditionMessage(w))
-      invokeRestart("muffleWarning")
-    }
-  )
-  expect_false(any(grepl("integer-valued", warns)))
-})
-
 # --- Missing-value (NA) reporting tests ---
 
 test_that("countGLM warns when predictor rows contain NAs", {

@@ -98,8 +98,8 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
   # Report any rows that will be silently dropped due to missing values
   check_na_rows(formula, data, ziformula)
 
-  # Detect integer-valued response: AIC/BIC across continuous (Tweedie) and
-  # discrete (Poisson, NegBin) families are not on the same likelihood scale.
+  # Detect integer-valued response: used to identify degenerate Tweedie fits
+  # where glmmTMB pushes p to the boundary on integer count data.
   integer_response <- tryCatch({
     y_vals <- model.response(model.frame(formula, data))
     isTRUE(all(is.finite(y_vals) & y_vals == floor(y_vals)))
@@ -241,27 +241,8 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     metric_table <- sort(raw_metrics, decreasing = TRUE)
   }
 
-  # Warn when comparing Tweedie (continuous density) with Poisson/NegBin
-  # (discrete PMF) on integer count data — the likelihoods are not on the same
-  # scale, which can make AIC/BIC strongly and artifactually favour Tweedie.
-  tweedie_in_fits   <- any(c("tweedie", "zeroinfl_tweedie") %in% names(fits))
-  discrete_in_fits  <- any(c("poisson", "negbin",
-                              "zeroinfl_poisson", "zeroinfl_negbin") %in% names(fits))
-  if (integer_response && tweedie_in_fits && discrete_in_fits) {
-    warning(
-      "The response appears to be integer-valued. Tweedie uses a continuous ",
-      "density while Poisson and negative binomial use discrete probability ",
-      "mass functions. AIC and BIC are not comparable across these likelihood ",
-      "scales and may strongly favour Tweedie artifactually on count data. ",
-      "Interpret the IC table with caution; consider restricting comparison to ",
-      "discrete-family models (Poisson, negative binomial) for integer counts.",
-      call. = FALSE
-    )
-  }
-
   recommendation <- build_recommendation(fits, best_name, aic_table, bic_table,
-                                         metric_table, decide_norm,
-                                         integer_response = integer_response)
+                                         metric_table, decide_norm)
 
   structure(
     list(
@@ -342,8 +323,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
 }
 
 build_recommendation <- function(fits, best_name, aic_table, bic_table,
-                                  metric_table, decide,
-                                  integer_response = FALSE) {
+                                  metric_table, decide) {
   disp_msg <- zi_msg <- ""
 
   # --- Overdispersion: use Poisson dispersion ratio ---
@@ -423,19 +403,7 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     .model_label(best_name), metric_label, metric_label, val_str
   )
 
-  # Flag non-comparable likelihood scales when Tweedie selected on integer data
-  ic_caveat <- ""
-  best_is_tweedie <- best_name %in% c("tweedie", "zeroinfl_tweedie")
-  if (integer_response && best_is_tweedie) {
-    ic_caveat <- paste0(
-      "Caution: Tweedie was selected on integer count data, but its ",
-      "continuous density yields likelihoods on a different scale than ",
-      "Poisson/negative binomial PMFs. The IC advantage may be ",
-      "artifactual. Consider verifying with discrete-family models."
-    )
-  }
-
-  parts <- c(selection_msg, disp_msg, zi_msg, tw_zi_note, ic_caveat)
+  parts <- c(selection_msg, disp_msg, zi_msg, tw_zi_note)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }

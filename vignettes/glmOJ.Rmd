@@ -170,7 +170,7 @@ that overdispersion is a genuine problem for the Poisson fit.
 
 ### 5. Using the `countGLM` Wrapper
 
-Rather than fitting each model manually, `countGLM()` fits all four families
+Rather than fitting each model manually, `countGLM()` fits all six families
 at once and selects the best by the criterion specified in `decide` (default
 `"BIC"`) — arriving at the same conclusion automatically.
 
@@ -330,7 +330,7 @@ zi$plot
 
 ### 8. Automatic Model Selection with `countGLM`
 
-`countGLM()` fits all four count families and selects the best by the
+`countGLM()` fits all six count families and selects the best by the
 criterion in `decide` (default `"BIC"`). Road length (`log_road_length`) is
 included as an offset in the count component; because `ziformula = NULL`, it
 is automatically applied to the zero-inflation component as well — `countGLM`
@@ -350,7 +350,7 @@ result_cam <- countGLM(
 print(result_cam)
 ```
 
-The comparison table shows AIC and BIC for all four families, sorted by the
+The comparison table shows AIC and BIC for all six families, sorted by the
 selection criterion. The selected model is **`r result_cam$best_model`**. The
 recommendation captures the relevant dispersion and zero-inflation diagnostics
 automatically, explaining why this family was preferred.

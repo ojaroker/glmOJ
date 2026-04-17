@@ -58,11 +58,8 @@
 #'
 #' **When to use:** Tweedie regression is appropriate for non-negative count
 #' data with complex variance structures not well captured by Poisson or
-#' negative binomial. Note that Tweedie uses a continuous distribution
-#' internally (compound Poisson-Gamma), so it evaluates a density rather than
-#' a PMF; AIC/BIC comparisons with Poisson or negative binomial are not on the
-#' same likelihood scale and should be interpreted with caution. If
-#' zero-inflation is also present, consider [zeroinflTweedieGLM()].
+#' negative binomial. If zero-inflation is also present, consider
+#' [zeroinflTweedieGLM()].
 #'
 #' @examples
 #' df <- data.frame(
