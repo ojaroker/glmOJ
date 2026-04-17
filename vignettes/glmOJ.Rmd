@@ -25,18 +25,23 @@ library(glmOJ)
 ## Overview
 
 `glmOJ` provides a streamlined workflow for fitting, diagnosing, and
-interpreting count regression models. The four supported families are:
+interpreting count regression models. The six supported families are:
 
 | Function | Model |
 |---|---|
 | `poissonGLM()` | Poisson GLM |
 | `negbinGLM()` | Negative Binomial GLM |
+| `tweedieGLM()` | Tweedie GLM |
 | `zeroinflPoissonGLM()` | Zero-Inflated Poisson |
 | `zeroinflNegbinGLM()` | Zero-Inflated Negative Binomial |
+| `zeroinflTweedieGLM()` | Zero-Inflated Tweedie |
 
-A general-purpose wrapper `countGLM()` fits all four and selects the best by
+A general-purpose wrapper `countGLM()` fits all six and selects the best by
 a user-chosen criterion (`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`,
-or `"McFadden"` (McFadden pseudo-R²).
+or `"McFadden"` (McFadden pseudo-R²). Zero-inflated Tweedie is always fitted
+alongside the base Tweedie model (rather than being gated on a DHARMa test)
+because Tweedie's dispersion parameter can absorb excess zeros, making the
+DHARMa zero-inflation test unreliable for this family.
 
 ---
 
@@ -404,6 +409,80 @@ odds of being a structural zero (a tract that never receives a camera):
 interpret_coef(result_cam, "total_crime_rate", component = "count")
 interpret_coef(result_cam, "total_crime_rate", component = "zero")
 ```
+
+---
+
+## Case Study 3: Zero-Inflated Tweedie (Simulated Count Data)
+
+The `ZITweedie.dat` dataset illustrates when `zeroinflTweedieGLM()` is the
+appropriate model. The response `y` is a non-negative integer count simulated
+from a compound Poisson-Gamma (Tweedie, $p = 1.5$, $\phi = 2.0$) with
+structural zeros added on top. The true model has two independent predictors:
+`x1` drives the count mean and `x2` drives zero-inflation.
+
+```{r load-zitw}
+data("ZITweedie.dat")
+```
+
+### 11. Data Exploration
+
+```{r zitw-summarize, fig.height = 4}
+summarizeCountData(y ~ x1 + x2, data = ZITweedie.dat)
+```
+
+The frequency table is dominated by zeros (~57%), and the variance far exceeds
+the mean — both signs that a standard Poisson or negative binomial model will
+fit poorly.
+
+### 12. Automatic Model Selection with `countGLM`
+
+`countGLM()` fits all six families. Unlike Poisson and negative binomial,
+`zeroinfl_tweedie` is **always** fitted alongside `tweedie`: because glmmTMB
+can absorb excess zeros by inflating the dispersion parameter $\phi$, the
+DHARMa zero-inflation test is unreliable for Tweedie. AIC/BIC arbitrates
+between the base and zero-inflated Tweedie fits directly.
+
+```{r zitw-countglm}
+result_zitw <- suppressWarnings(
+  countGLM(y ~ x1 + x2, data = ZITweedie.dat)
+)
+print(result_zitw)
+```
+
+The recommendation confirms that `zeroinfl_tweedie` was selected and notes
+that it was always included in the candidate set regardless of the DHARMa
+result.
+
+### 13. Fitting Zero-Inflated Tweedie Directly
+
+`zeroinflTweedieGLM()` can also be called directly, which is useful when the
+ZI predictor differs from the count predictor. Here the true ZI predictor is
+`x2`, so we supply it via `ziformula`:
+
+```{r zitw-direct}
+fit_zitw <- suppressWarnings(
+  zeroinflTweedieGLM(y ~ x1, data = ZITweedie.dat, ziformula = ~x2)
+)
+print(fit_zitw)
+```
+
+### 14. Interpreting Both Components
+
+The count component describes the expected count among observations that are
+not structural zeros; the zero component describes the odds of being a
+structural zero.
+
+```{r zitw-interp-count}
+interpret_coef(fit_zitw, "x1", component = "count")
+```
+
+```{r zitw-interp-zero}
+interpret_coef(fit_zitw, "x2", component = "zero")
+```
+
+The estimated $\hat{p}$ (`r round(fit_zitw$p, 3)`) is well within (1, 2),
+confirming the Tweedie family is appropriate. The estimated $\hat{\phi}$ is
+`r round(fit_zitw$phi, 3)`.
 
 ---
 

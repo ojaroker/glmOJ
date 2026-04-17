@@ -50,7 +50,7 @@
 #' **When to use:** Zero-inflated negative binomial handles both excess zeros
 #' *and* overdispersion in the non-zero counts. Prefer this over
 #' [zeroinflPoissonGLM()] when the non-zero counts remain overdispersed. For
-#' semi-continuous or non-integer data with excess zeros, consider
+#' count data with complex variance structures and excess zeros, consider
 #' [zeroinflTweedieGLM()].
 #'
 #' @examples

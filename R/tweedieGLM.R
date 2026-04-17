@@ -4,7 +4,7 @@
 #' on the response scale (exponentiated), randomized quantile residuals (RQR),
 #' estimated dispersion (`phi`) and power (`p`) parameters, and diagnostic
 #' plots. The Tweedie family generalises Poisson and Gamma distributions and is
-#' well-suited to non-negative semi-continuous data with a point mass at zero.
+#' well-suited to non-negative count data with complex variance structures.
 #'
 #' @param formula A model formula (e.g. `y ~ x1 + x2`). The response must be
 #'   non-negative.
@@ -56,11 +56,13 @@
 #' multiplicative change in the expected response for a one-unit increase in
 #' the predictor, holding all other predictors constant.
 #'
-#' **When to use:** Tweedie regression is appropriate for non-negative
-#' semi-continuous data with exact zeros and continuous positive values, or
-#' when count data have complex variance structures not well captured by Poisson
-#' or negative binomial. If zero-inflation is also detected, consider
-#' [zeroinflTweedieGLM()].
+#' **When to use:** Tweedie regression is appropriate for non-negative count
+#' data with complex variance structures not well captured by Poisson or
+#' negative binomial. Note that Tweedie uses a continuous distribution
+#' internally (compound Poisson-Gamma), so it evaluates a density rather than
+#' a PMF; AIC/BIC comparisons with Poisson or negative binomial are not on the
+#' same likelihood scale and should be interpreted with caution. If
+#' zero-inflation is also present, consider [zeroinflTweedieGLM()].
 #'
 #' @examples
 #' df <- data.frame(

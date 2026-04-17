@@ -55,7 +55,7 @@ Fits a Tweedie GLM (via \code{\link[glmmTMB:glmmTMB]{glmmTMB::glmmTMB()}}) and r
 on the response scale (exponentiated), randomized quantile residuals (RQR),
 estimated dispersion (\code{phi}) and power (\code{p}) parameters, and diagnostic
 plots. The Tweedie family generalises Poisson and Gamma distributions and is
-well-suited to non-negative semi-continuous data with a point mass at zero.
+well-suited to non-negative count data with complex variance structures.
 }
 \details{
 \strong{Three parameters:} The Tweedie family is characterised by three estimated
@@ -68,11 +68,13 @@ close to 2, it resembles Gamma.
 multiplicative change in the expected response for a one-unit increase in
 the predictor, holding all other predictors constant.
 
-\strong{When to use:} Tweedie regression is appropriate for non-negative
-semi-continuous data with exact zeros and continuous positive values, or
-when count data have complex variance structures not well captured by Poisson
-or negative binomial. If zero-inflation is also detected, consider
-\code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}.
+\strong{When to use:} Tweedie regression is appropriate for non-negative count
+data with complex variance structures not well captured by Poisson or
+negative binomial. Note that Tweedie uses a continuous distribution
+internally (compound Poisson-Gamma), so it evaluates a density rather than
+a PMF; AIC/BIC comparisons with Poisson or negative binomial are not on the
+same likelihood scale and should be interpreted with caution. If
+zero-inflation is also present, consider \code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}.
 }
 \examples{
 df <- data.frame(

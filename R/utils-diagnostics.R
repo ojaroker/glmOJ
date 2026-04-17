@@ -100,13 +100,18 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
   # Simulated zero counts (one per replicate); observed zero count
   sim_counts <- colSums(simres$simulatedResponse == 0)
   # fit$y works for glm/glm.nb/zeroinfl; for glmmTMB use fit$frame[[1]]
-  obs_count <- tryCatch(
-    sum(fit$y == 0),
-    error = function(e) {
-      y <- tryCatch(fit$frame[[1L]], error = function(e2) NULL)
-      if (is.null(y)) NA_integer_ else sum(y == 0)
+  obs_count <- tryCatch({
+    y_raw <- fit$y
+    if (!is.null(y_raw) && length(y_raw) > 0L) {
+      sum(y_raw == 0)
+    } else {
+      y_frame <- fit$frame[[1L]]
+      if (is.null(y_frame)) NA_integer_ else sum(y_frame == 0)
     }
-  )
+  }, error = function(e) {
+    y <- tryCatch(fit$frame[[1L]], error = function(e2) NULL)
+    if (is.null(y)) NA_integer_ else sum(y == 0)
+  })
 
   # Place label left of line when observed is in the upper half of the range
   # to avoid clipping at the right plot edge

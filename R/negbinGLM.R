@@ -48,7 +48,7 @@
 #' overdispersion (variance > mean). A Pearson dispersion ratio from
 #' [poissonGLM()] substantially above 1 (rule of thumb: > 1.5) is a common
 #' signal. The negative binomial adds a free parameter `theta` to model this
-#' extra variance. For semi-continuous or non-integer data, consider
+#' extra variance. For count data with complex variance structures, consider
 #' [tweedieGLM()]. If zero-inflation is also detected, consider
 #' [zeroinflNegbinGLM()].
 #'

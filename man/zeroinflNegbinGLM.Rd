@@ -63,7 +63,7 @@ process) for a one-unit increase in the predictor.
 \strong{When to use:} Zero-inflated negative binomial handles both excess zeros
 \emph{and} overdispersion in the non-zero counts. Prefer this over
 \code{\link[=zeroinflPoissonGLM]{zeroinflPoissonGLM()}} when the non-zero counts remain overdispersed. For
-semi-continuous or non-integer data with excess zeros, consider
+count data with complex variance structures and excess zeros, consider
 \code{\link[=zeroinflTweedieGLM]{zeroinflTweedieGLM()}}.
 }
 \examples{
