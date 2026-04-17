@@ -57,6 +57,14 @@ reference:
     contents:
       - zeroinflNegbinGLM
 
+  - subtitle: "Tweedie"
+    contents:
+      - tweedieGLM
+
+  - subtitle: "Zero-Inflated Tweedie"
+    contents:
+      - zeroinflTweedieGLM
+
   - title: "Model Selection"
     desc: >
       Fit all four model families and select the best by a user-chosen
