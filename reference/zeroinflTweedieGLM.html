@@ -127,10 +127,13 @@ change in the odds of being a structural zero (vs. entering the count
 process) for a one-unit increase in the predictor. A value greater than 1
 means higher odds of a structural zero.</p></li>
 </ul><p><strong>When to use:</strong> Zero-inflated Tweedie is the most flexible model in glmOJ.
-It handles excess zeros, non-negative semi-continuous responses, and complex
-variance structures simultaneously. Prefer this over <code><a href="zeroinflPoissonGLM.html">zeroinflPoissonGLM()</a></code>
-or <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code> when the response is semi-continuous rather than
-strictly integer-valued.</p>
+It handles excess zeros and complex variance structures simultaneously.
+Prefer this over <code><a href="zeroinflPoissonGLM.html">zeroinflPoissonGLM()</a></code> or <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code> when count
+data show overdispersion and excess zeros that neither of those families
+adequately captures. When using <code><a href="countGLM.html">countGLM()</a></code>, this model is always fitted
+alongside the base Tweedie and selected via AIC/BIC — the DHARMa
+zero-inflation test is bypassed for Tweedie because glmmTMB can absorb
+excess zeros through its dispersion parameter.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

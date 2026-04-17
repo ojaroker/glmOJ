@@ -3,11 +3,11 @@
 on the response scale (exponentiated), randomized quantile residuals (RQR),
 estimated dispersion (phi) and power (p) parameters, and diagnostic
 plots. The Tweedie family generalises Poisson and Gamma distributions and is
-well-suited to non-negative semi-continuous data with a point mass at zero."><meta property="og:description" content="Fits a Tweedie GLM (via glmmTMB::glmmTMB()) and returns model coefficients
+well-suited to non-negative count data with complex variance structures."><meta property="og:description" content="Fits a Tweedie GLM (via glmmTMB::glmmTMB()) and returns model coefficients
 on the response scale (exponentiated), randomized quantile residuals (RQR),
 estimated dispersion (phi) and power (p) parameters, and diagnostic
 plots. The Tweedie family generalises Poisson and Gamma distributions and is
-well-suited to non-negative semi-continuous data with a point mass at zero."></head><body>
+well-suited to non-negative count data with complex variance structures."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -44,7 +44,7 @@ well-suited to non-negative semi-continuous data with a point mass at zero."></h
 on the response scale (exponentiated), randomized quantile residuals (RQR),
 estimated dispersion (<code>phi</code>) and power (<code>p</code>) parameters, and diagnostic
 plots. The Tweedie family generalises Poisson and Gamma distributions and is
-well-suited to non-negative semi-continuous data with a point mass at zero.</p>
+well-suited to non-negative count data with complex variance structures.</p>
     </div>
 
     <div class="section level2">
@@ -142,10 +142,9 @@ close to 2, it resembles Gamma.</p>
 <p><strong>Coefficient interpretation:</strong> Exponentiating a coefficient gives the
 multiplicative change in the expected response for a one-unit increase in
 the predictor, holding all other predictors constant.</p>
-<p><strong>When to use:</strong> Tweedie regression is appropriate for non-negative
-semi-continuous data with exact zeros and continuous positive values, or
-when count data have complex variance structures not well captured by Poisson
-or negative binomial. If zero-inflation is also detected, consider
+<p><strong>When to use:</strong> Tweedie regression is appropriate for non-negative count
+data with complex variance structures not well captured by Poisson or
+negative binomial. If zero-inflation is also present, consider
 <code><a href="zeroinflTweedieGLM.html">zeroinflTweedieGLM()</a></code>.</p>
     </div>
     <div class="section level2">

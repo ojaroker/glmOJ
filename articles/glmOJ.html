@@ -62,7 +62,7 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p><code>glmOJ</code> provides a streamlined workflow for fitting,
-diagnosing, and interpreting count regression models. The four supported
+diagnosing, and interpreting count regression models. The six supported
 families are:</p>
 <table class="table">
 <thead><tr class="header">
@@ -79,19 +79,31 @@ families are:</p>
 <td>Negative Binomial GLM</td>
 </tr>
 <tr class="odd">
+<td><code><a href="../reference/tweedieGLM.html">tweedieGLM()</a></code></td>
+<td>Tweedie GLM</td>
+</tr>
+<tr class="even">
 <td><code><a href="../reference/zeroinflPoissonGLM.html">zeroinflPoissonGLM()</a></code></td>
 <td>Zero-Inflated Poisson</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code><a href="../reference/zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code></td>
 <td>Zero-Inflated Negative Binomial</td>
 </tr>
+<tr class="even">
+<td><code><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM()</a></code></td>
+<td>Zero-Inflated Tweedie</td>
+</tr>
 </tbody>
 </table>
-<p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four and
+<p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six and
 selects the best by a user-chosen criterion (<code>decide</code>):
 <code>"BIC"</code> (default), <code>"AIC"</code>, <code>"LogLik"</code>,
-or <code>"McFadden"</code> (McFadden pseudo-R²).</p>
+or <code>"McFadden"</code> (McFadden pseudo-R²). Zero-inflated Tweedie
+is always fitted alongside the base Tweedie model (rather than being
+gated on a DHARMa test) because Tweedie’s dispersion parameter can
+absorb excess zeros, making the DHARMa zero-inflation test unreliable
+for this family.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -286,9 +298,9 @@ fit.</p>
 <h3 id="using-the-countglm-wrapper">5. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
 </h3>
 <p>Rather than fitting each model manually, <code><a href="../reference/countGLM.html">countGLM()</a></code> fits
-all four families at once and selects the best by the criterion
-specified in <code>decide</code> (default <code>"BIC"</code>) — arriving
-at the same conclusion automatically.</p>
+all six families at once and selects the best by the criterion specified
+in <code>decide</code> (default <code>"BIC"</code>) — arriving at the
+same conclusion automatically.</p>
 <div class="section level4">
 <h4 id="overall-eqi-formula">Overall EQI formula<a class="anchor" aria-label="anchor" href="#overall-eqi-formula"></a>
 </h4>
@@ -558,7 +570,7 @@ road length is included as an offset:</p>
 <div class="section level3">
 <h3 id="automatic-model-selection-with-countglm">8. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm"></a>
 </h3>
-<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all four count families and selects the
+<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six count families and selects the
 best by the criterion in <code>decide</code> (default
 <code>"BIC"</code>). Road length (<code>log_road_length</code>) is
 included as an offset in the count component; because
@@ -594,9 +606,10 @@ confirming this:</p>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson</span></span>
 <span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.5), indicating overdispersion.</span></span>
-<span><span class="co">#&gt;   Zero-inflation detected for Poisson and Tweedie; corresponding ZI</span></span>
-<span><span class="co">#&gt;   model(s) were fitted.</span></span></code></pre></div>
-<p>The comparison table shows AIC and BIC for all four families, sorted
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
+<span><span class="co">#&gt;   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p</span></span>
+<span><span class="co">#&gt;   = 0.010; ZI test unreliable for this family).</span></span></code></pre></div>
+<p>The comparison table shows AIC and BIC for all six families, sorted
 by the selection criterion. The selected model is
 <strong>negbin</strong>. The recommendation captures the relevant
 dispersion and zero-inflation diagnostics automatically, explaining why
@@ -663,6 +676,168 @@ never receives a camera):</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="case-study-3-zero-inflated-tweedie-simulated-count-data">Case Study 3: Zero-Inflated Tweedie (Simulated Count Data)<a class="anchor" aria-label="anchor" href="#case-study-3-zero-inflated-tweedie-simulated-count-data"></a>
+</h2>
+<p>The <code>ZITweedie.dat</code> dataset illustrates when
+<code><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM()</a></code> is the appropriate model. The response
+<code>y</code> is a non-negative integer count simulated from a compound
+Poisson-Gamma (Tweedie,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">p = 1.5</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>=</mo><mn>2.0</mn></mrow><annotation encoding="application/x-tex">\phi = 2.0</annotation></semantics></math>)
+with structural zeros added on top. The true model has two independent
+predictors: <code>x1</code> drives the count mean and <code>x2</code>
+drives zero-inflation.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ZITweedie.dat"</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="data-exploration-2">11. Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration-2"></a>
+</h3>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/summarizeCountData.html">summarizeCountData</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $summary</span></span>
+<span><span class="co">#&gt;   mean      var var_mean_ratio n_zero n_total</span></span>
+<span><span class="co">#&gt; 1 4.13 105.2011       25.47242    244     400</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $counts</span></span>
+<span><span class="co">#&gt;    count freq</span></span>
+<span><span class="co">#&gt; 1      0  244</span></span>
+<span><span class="co">#&gt; 2      1   18</span></span>
+<span><span class="co">#&gt; 3      2   19</span></span>
+<span><span class="co">#&gt; 4      3   15</span></span>
+<span><span class="co">#&gt; 5      4   12</span></span>
+<span><span class="co">#&gt; 6      5   14</span></span>
+<span><span class="co">#&gt; 7      6    6</span></span>
+<span><span class="co">#&gt; 8      7    4</span></span>
+<span><span class="co">#&gt; 9      8    7</span></span>
+<span><span class="co">#&gt; 10     9   10</span></span>
+<span><span class="co">#&gt; 11    10    6</span></span>
+<span><span class="co">#&gt; 12    11    4</span></span>
+<span><span class="co">#&gt; 13    12    1</span></span>
+<span><span class="co">#&gt; 14    13    2</span></span>
+<span><span class="co">#&gt; 15    14    3</span></span>
+<span><span class="co">#&gt; 16    15    2</span></span>
+<span><span class="co">#&gt; 17    17    4</span></span>
+<span><span class="co">#&gt; 18    18    2</span></span>
+<span><span class="co">#&gt; 19    19    3</span></span>
+<span><span class="co">#&gt; 20    20    3</span></span>
+<span><span class="co">#&gt; 21    22    2</span></span>
+<span><span class="co">#&gt; 22    24    3</span></span>
+<span><span class="co">#&gt; 23    25    2</span></span>
+<span><span class="co">#&gt; 24    26    1</span></span>
+<span><span class="co">#&gt; 25    27    1</span></span>
+<span><span class="co">#&gt; 26    31    2</span></span>
+<span><span class="co">#&gt; 27    32    3</span></span>
+<span><span class="co">#&gt; 28    33    1</span></span>
+<span><span class="co">#&gt; 29    35    1</span></span>
+<span><span class="co">#&gt; 30    45    1</span></span>
+<span><span class="co">#&gt; 31    48    1</span></span>
+<span><span class="co">#&gt; 32    58    1</span></span>
+<span><span class="co">#&gt; 33    75    1</span></span>
+<span><span class="co">#&gt; 34   117    1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $plot</span></span></code></pre></div>
+<p><img src="glmOJ_files/figure-html/zitw-summarize-1.png" class="r-plt" alt="" width="768"></p>
+<pre><code><span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $pairs_plot</span></span></code></pre>
+<p><img src="glmOJ_files/figure-html/zitw-summarize-2.png" class="r-plt" alt="" width="768"></p>
+<p>The frequency table is dominated by zeros (~57%), and the variance
+far exceeds the mean — both signs that a standard Poisson or negative
+binomial model will fit poorly.</p>
+</div>
+<div class="section level3">
+<h3 id="automatic-model-selection-with-countglm-1">12. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm-1"></a>
+</h3>
+<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six families. Unlike Poisson and
+negative binomial, <code>zeroinfl_tweedie</code> is
+<strong>always</strong> fitted alongside <code>tweedie</code>: because
+glmmTMB can absorb excess zeros by inflating the dispersion parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>,
+the DHARMa zero-inflation test is unreliable for Tweedie. AIC/BIC
+arbitrates between the base and zero-inflated Tweedie fits directly.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result_zitw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result_zitw</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
+<span><span class="co">#&gt;             model     AIC     BIC</span></span>
+<span><span class="co">#&gt;  zeroinfl_tweedie 1305.41 1337.34</span></span>
+<span><span class="co">#&gt;           tweedie 1433.70 1453.66</span></span>
+<span><span class="co">#&gt;            negbin 1462.02 1477.98</span></span>
+<span><span class="co">#&gt;  zeroinfl_poisson 1649.58 1673.53</span></span>
+<span><span class="co">#&gt;           poisson 3393.04 3405.02</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Selected model: zeroinfl_tweedie</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Recommendation:</span></span>
+<span><span class="co">#&gt;   Zero-Inflated Tweedie was selected by BIC (BIC = 1337.34). The</span></span>
+<span><span class="co">#&gt;   Poisson dispersion ratio is 8.97 (&gt; 1.5), indicating overdispersion.</span></span>
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
+<span><span class="co">#&gt;   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p</span></span>
+<span><span class="co">#&gt;   = 0.938; ZI test unreliable for this family).</span></span></code></pre></div>
+<p>The recommendation confirms that <code>zeroinfl_tweedie</code> was
+selected and notes that it was always included in the candidate set
+regardless of the DHARMa result.</p>
+</div>
+<div class="section level3">
+<h3 id="fitting-zero-inflated-tweedie-directly">13. Fitting Zero-Inflated Tweedie Directly<a class="anchor" aria-label="anchor" href="#fitting-zero-inflated-tweedie-directly"></a>
+</h3>
+<p><code><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM()</a></code> can also be called directly, which
+is useful when the ZI predictor differs from the count predictor. Here
+the true ZI predictor is <code>x2</code>, so we supply it via
+<code>ziformula</code>:</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_zitw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span>, ziformula <span class="op">=</span> <span class="op">~</span><span class="va">x2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_zitw</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; zeroinflTweedieGLM(formula = y ~ x1, data = ZITweedie.dat, ziformula = ~x2)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model family: zeroinflTweedieGLM</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Count component (exponentiated coefficients):</span></span>
+<span><span class="co">#&gt;         term exp.coef lower.95 upper.95 p.value stars</span></span>
+<span><span class="co">#&gt;  (Intercept)   6.3374   5.4737   7.3373       0   ***</span></span>
+<span><span class="co">#&gt;           x1   2.4419   2.1786   2.7369       0   ***</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Zero-inflation component (exponentiated coefficients):</span></span>
+<span><span class="co">#&gt;         term exp.coef lower.95 upper.95 p.value stars</span></span>
+<span><span class="co">#&gt;  (Intercept)   1.3416   0.9467   1.9010  0.0985     .</span></span>
+<span><span class="co">#&gt;           x2   0.0904   0.0485   0.1682  0.0000   ***</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Dispersion (phi): 2.4293</span></span>
+<span><span class="co">#&gt; Power (p): 1.3366</span></span>
+<span><span class="co">#&gt; Dispersion ratio: 0.8916</span></span>
+<span><span class="co">#&gt; AIC: 1305.57</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="interpreting-both-components">14. Interpreting Both Components<a class="anchor" aria-label="anchor" href="#interpreting-both-components"></a>
+</h3>
+<p>The count component describes the expected count among observations
+that are not structural zeros; the zero component describes the odds of
+being a structural zero.</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">fit_zitw</span>, <span class="st">"x1"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in x1 is associated with a 144.2% increase in the expected value of y (among non-structural zeros) (exp(β) = 2.442, 95% CI: [2.179, 2.737]).</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">fit_zitw</span>, <span class="st">"x2"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in x2 is associated with a 91.0% decrease in the odds of being a structural zero (exp(β) = 0.090, 95% CI: [0.049, 0.168]).</span></span></code></pre></div>
+<p>The estimated
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>p</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{p}</annotation></semantics></math>
+(1.337) is well within (1, 2), confirming the Tweedie family is
+appropriate. The estimated
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>ϕ</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\phi}</annotation></semantics></math>
+is 2.429.</p>
 <hr>
 </div>
 </div>

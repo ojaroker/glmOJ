@@ -56,12 +56,13 @@ An object of class `"countGLM"`, a list with:
 - `fits`:
 
   A named list of successfully fitted model objects. Base models
-  (`poisson`, `negbin`, `tweedie`) are always attempted. A zero-inflated
-  counterpart (`zeroinfl_poisson`, `zeroinfl_negbin`,
-  `zeroinfl_tweedie`) is only fitted when zero-inflation is detected by
-  the DHARMa test for the corresponding base model. Any model that
-  failed to converge is omitted. Base model fits include
-  `diagnostics$zi_test` populated from the DHARMa zero-inflation test.
+  (`poisson`, `negbin`, `tweedie`) are always attempted.
+  `zeroinfl_poisson` and `zeroinfl_negbin` are fitted only when the
+  DHARMa zero-inflation test flags their base model (p \< 0.05).
+  `zeroinfl_tweedie` is **always** fitted alongside `tweedie` because
+  glmmTMB's flexible dispersion makes the DHARMa test unreliable for
+  that family. Any model that failed to converge is omitted. Base model
+  fits include `diagnostics$zi_test` populated from the DHARMa test.
 
 - `aic_table`:
 
@@ -102,9 +103,13 @@ An object of class `"countGLM"`, a list with:
 
 **Workflow:** `countGLM()` fits Poisson, negative binomial, and Tweedie
 base models. It then runs a DHARMa simulation test for zero-inflation on
-each successful base model. For any model where zero-inflation is
-detected (p \< 0.05), the corresponding zero-inflated counterpart is
-fitted. All surviving models are compared by `decide`.
+each successful base model. For Poisson and negative binomial, the
+zero-inflated counterpart is fitted only when zero-inflation is detected
+(p \< 0.05). For Tweedie, the zero-inflated counterpart is **always**
+fitted alongside the base model: glmmTMB can absorb excess zeros by
+inflating the dispersion parameter `phi`, which makes the DHARMa ZI test
+unreliable for this family. All surviving models are compared by
+`decide`.
 
 **Model selection:** The model with the best value of `decide` is
 chosen. For `"AIC"` and `"BIC"` the model with the *lowest* value wins;
@@ -152,7 +157,7 @@ print(result)
 #> Recommendation:
 #>   Poisson was selected by McFadden R² (McFadden R² = 0.0459). The
 #>   Poisson dispersion ratio is 1.17, consistent with equidispersion. No
-#>   significant zero-inflation detected in any base model.
+#>   significant zero-inflation detected for Poisson or Negative Binomial.
 #> 
 summary(result)
 #> Summary of selected model (poisson):

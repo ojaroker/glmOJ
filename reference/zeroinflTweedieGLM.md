@@ -109,13 +109,17 @@ An object of class
   A value greater than 1 means higher odds of a structural zero.
 
 **When to use:** Zero-inflated Tweedie is the most flexible model in
-glmOJ. It handles excess zeros, non-negative semi-continuous responses,
-and complex variance structures simultaneously. Prefer this over
+glmOJ. It handles excess zeros and complex variance structures
+simultaneously. Prefer this over
 [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md)
 or
 [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)
-when the response is semi-continuous rather than strictly
-integer-valued.
+when count data show overdispersion and excess zeros that neither of
+those families adequately captures. When using
+[`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
+this model is always fitted alongside the base Tweedie and selected via
+AIC/BIC — the DHARMa zero-inflation test is bypassed for Tweedie because
+glmmTMB can absorb excess zeros through its dispersion parameter.
 
 ## See also
 

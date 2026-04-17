@@ -88,12 +88,13 @@ Matching is case-insensitive.</p></dd>
 
 <dt><code>fits</code></dt>
 <dd><p>A named list of successfully fitted model objects. Base
-models (<code>poisson</code>, <code>negbin</code>, <code>tweedie</code>) are always attempted. A
-zero-inflated counterpart (<code>zeroinfl_poisson</code>, <code>zeroinfl_negbin</code>,
-<code>zeroinfl_tweedie</code>) is only fitted when zero-inflation is detected by
-the DHARMa test for the corresponding base model. Any model that
-failed to converge is omitted. Base model fits include
-<code>diagnostics$zi_test</code> populated from the DHARMa zero-inflation test.</p></dd>
+models (<code>poisson</code>, <code>negbin</code>, <code>tweedie</code>) are always attempted.
+<code>zeroinfl_poisson</code> and <code>zeroinfl_negbin</code> are fitted only when the
+DHARMa zero-inflation test flags their base model (p &lt; 0.05).
+<code>zeroinfl_tweedie</code> is <strong>always</strong> fitted alongside <code>tweedie</code> because
+glmmTMB's flexible dispersion makes the DHARMa test unreliable for
+that family. Any model that failed to converge is omitted. Base model
+fits include <code>diagnostics$zi_test</code> populated from the DHARMa test.</p></dd>
 
 <dt><code>aic_table</code></dt>
 <dd><p>A named numeric vector of AICs, sorted ascending.</p></dd>
@@ -129,9 +130,12 @@ present. A warning is issued for any VIF &gt; 5.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><strong>Workflow:</strong> <code>countGLM()</code> fits Poisson, negative binomial, and Tweedie
 base models. It then runs a DHARMa simulation test for zero-inflation on
-each successful base model. For any model where zero-inflation is detected
-(p &lt; 0.05), the corresponding zero-inflated counterpart is fitted. All
-surviving models are compared by <code>decide</code>.</p>
+each successful base model. For Poisson and negative binomial, the
+zero-inflated counterpart is fitted only when zero-inflation is detected
+(p &lt; 0.05). For Tweedie, the zero-inflated counterpart is <strong>always</strong> fitted
+alongside the base model: glmmTMB can absorb excess zeros by inflating the
+dispersion parameter <code>phi</code>, which makes the DHARMa ZI test unreliable for
+this family. All surviving models are compared by <code>decide</code>.</p>
 <p><strong>Model selection:</strong> The model with the best value of <code>decide</code> is chosen.
 For <code>"AIC"</code> and <code>"BIC"</code> the model with the <em>lowest</em> value wins; for
 <code>"LogLik"</code> and <code>"McFadden"</code> the model with the <em>highest</em> value wins.
@@ -170,7 +174,7 @@ family to compute the pseudo-R².</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Recommendation:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Poisson was selected by McFadden R² (McFadden R² = 0.0459). The</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Poisson dispersion ratio is 1.17, consistent with equidispersion. No</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   significant zero-inflation detected in any base model.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   significant zero-inflation detected for Poisson or Negative Binomial.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary of selected model (poisson):</span>

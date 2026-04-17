@@ -7,20 +7,25 @@ library(glmOJ)
 ## Overview
 
 `glmOJ` provides a streamlined workflow for fitting, diagnosing, and
-interpreting count regression models. The four supported families are:
+interpreting count regression models. The six supported families are:
 
 | Function                                                                                 | Model                           |
 |------------------------------------------------------------------------------------------|---------------------------------|
 | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md)                 | Poisson GLM                     |
 | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md)                   | Negative Binomial GLM           |
+| [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)                 | Tweedie GLM                     |
 | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md) | Zero-Inflated Poisson           |
 | [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)   | Zero-Inflated Negative Binomial |
+| [`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md) | Zero-Inflated Tweedie           |
 
 A general-purpose wrapper
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four and selects the best by a user-chosen criterion
-(`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`, or `"McFadden"`
-(McFadden pseudo-R²).
+fits all six and selects the best by a user-chosen criterion (`decide`):
+`"BIC"` (default), `"AIC"`, `"LogLik"`, or `"McFadden"` (McFadden
+pseudo-R²). Zero-inflated Tweedie is always fitted alongside the base
+Tweedie model (rather than being gated on a DHARMa test) because
+Tweedie’s dispersion parameter can absorb excess zeros, making the
+DHARMa zero-inflation test unreliable for this family.
 
 ------------------------------------------------------------------------
 
@@ -232,7 +237,7 @@ confirming that overdispersion is a genuine problem for the Poisson fit.
 
 Rather than fitting each model manually,
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four families at once and selects the best by the criterion
+fits all six families at once and selects the best by the criterion
 specified in `decide` (default `"BIC"`) — arriving at the same
 conclusion automatically.
 
@@ -519,7 +524,7 @@ zi$plot
 ### 8. Automatic Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all four count families and selects the best by the criterion in
+fits all six count families and selects the best by the criterion in
 `decide` (default `"BIC"`). Road length (`log_road_length`) is included
 as an offset in the count component; because `ziformula = NULL`, it is
 automatically applied to the zero-inflation component as well —
@@ -554,11 +559,12 @@ print(result_cam)
 #> Recommendation:
 #>   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson
 #>   dispersion ratio is 2.42 (> 1.5), indicating overdispersion.
-#>   Zero-inflation detected for Poisson and Tweedie; corresponding ZI
-#>   model(s) were fitted.
+#>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
+#>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
+#>   = 0.010; ZI test unreliable for this family).
 ```
 
-The comparison table shows AIC and BIC for all four families, sorted by
+The comparison table shows AIC and BIC for all six families, sorted by
 the selection criterion. The selected model is **negbin**. The
 recommendation captures the relevant dispersion and zero-inflation
 diagnostics automatically, explaining why this family was preferred.
@@ -636,6 +642,176 @@ never receives a camera):
 interpret_coef(result_cam, "total_crime_rate", component = "count")
 interpret_coef(result_cam, "total_crime_rate", component = "zero")
 ```
+
+------------------------------------------------------------------------
+
+## Case Study 3: Zero-Inflated Tweedie (Simulated Count Data)
+
+The `ZITweedie.dat` dataset illustrates when
+[`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md)
+is the appropriate model. The response `y` is a non-negative integer
+count simulated from a compound Poisson-Gamma (Tweedie, $p = 1.5$,
+$\phi = 2.0$) with structural zeros added on top. The true model has two
+independent predictors: `x1` drives the count mean and `x2` drives
+zero-inflation.
+
+``` r
+data("ZITweedie.dat")
+```
+
+### 11. Data Exploration
+
+``` r
+summarizeCountData(y ~ x1 + x2, data = ZITweedie.dat)
+#> $summary
+#>   mean      var var_mean_ratio n_zero n_total
+#> 1 4.13 105.2011       25.47242    244     400
+#> 
+#> $counts
+#>    count freq
+#> 1      0  244
+#> 2      1   18
+#> 3      2   19
+#> 4      3   15
+#> 5      4   12
+#> 6      5   14
+#> 7      6    6
+#> 8      7    4
+#> 9      8    7
+#> 10     9   10
+#> 11    10    6
+#> 12    11    4
+#> 13    12    1
+#> 14    13    2
+#> 15    14    3
+#> 16    15    2
+#> 17    17    4
+#> 18    18    2
+#> 19    19    3
+#> 20    20    3
+#> 21    22    2
+#> 22    24    3
+#> 23    25    2
+#> 24    26    1
+#> 25    27    1
+#> 26    31    2
+#> 27    32    3
+#> 28    33    1
+#> 29    35    1
+#> 30    45    1
+#> 31    48    1
+#> 32    58    1
+#> 33    75    1
+#> 34   117    1
+#> 
+#> $plot
+```
+
+![](glmOJ_files/figure-html/zitw-summarize-1.png)
+
+    #> 
+    #> $pairs_plot
+
+![](glmOJ_files/figure-html/zitw-summarize-2.png)
+
+The frequency table is dominated by zeros (~57%), and the variance far
+exceeds the mean — both signs that a standard Poisson or negative
+binomial model will fit poorly.
+
+### 12. Automatic Model Selection with `countGLM`
+
+[`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
+fits all six families. Unlike Poisson and negative binomial,
+`zeroinfl_tweedie` is **always** fitted alongside `tweedie`: because
+glmmTMB can absorb excess zeros by inflating the dispersion parameter
+$\phi$, the DHARMa zero-inflation test is unreliable for Tweedie.
+AIC/BIC arbitrates between the base and zero-inflated Tweedie fits
+directly.
+
+``` r
+result_zitw <- suppressWarnings(
+  countGLM(y ~ x1 + x2, data = ZITweedie.dat)
+)
+print(result_zitw)
+#> 
+#> Call:
+#> countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)
+#> 
+#> Model comparison (sorted by BIC (ascending)):
+#>             model     AIC     BIC
+#>  zeroinfl_tweedie 1305.41 1337.34
+#>           tweedie 1433.70 1453.66
+#>            negbin 1462.02 1477.98
+#>  zeroinfl_poisson 1649.58 1673.53
+#>           poisson 3393.04 3405.02
+#> 
+#> Selected model: zeroinfl_tweedie
+#> 
+#> Recommendation:
+#>   Zero-Inflated Tweedie was selected by BIC (BIC = 1337.34). The
+#>   Poisson dispersion ratio is 8.97 (> 1.5), indicating overdispersion.
+#>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
+#>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
+#>   = 0.938; ZI test unreliable for this family).
+```
+
+The recommendation confirms that `zeroinfl_tweedie` was selected and
+notes that it was always included in the candidate set regardless of the
+DHARMa result.
+
+### 13. Fitting Zero-Inflated Tweedie Directly
+
+[`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md)
+can also be called directly, which is useful when the ZI predictor
+differs from the count predictor. Here the true ZI predictor is `x2`, so
+we supply it via `ziformula`:
+
+``` r
+fit_zitw <- suppressWarnings(
+  zeroinflTweedieGLM(y ~ x1, data = ZITweedie.dat, ziformula = ~x2)
+)
+print(fit_zitw)
+#> 
+#> Call:
+#> zeroinflTweedieGLM(formula = y ~ x1, data = ZITweedie.dat, ziformula = ~x2)
+#> 
+#> Model family: zeroinflTweedieGLM
+#> 
+#> Count component (exponentiated coefficients):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   6.3374   5.4737   7.3373       0   ***
+#>           x1   2.4419   2.1786   2.7369       0   ***
+#> 
+#> Zero-inflation component (exponentiated coefficients):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.3416   0.9467   1.9010  0.0985     .
+#>           x2   0.0904   0.0485   0.1682  0.0000   ***
+#> 
+#> Dispersion (phi): 2.4293
+#> Power (p): 1.3366
+#> Dispersion ratio: 0.8916
+#> AIC: 1305.57
+```
+
+### 14. Interpreting Both Components
+
+The count component describes the expected count among observations that
+are not structural zeros; the zero component describes the odds of being
+a structural zero.
+
+``` r
+interpret_coef(fit_zitw, "x1", component = "count")
+#> Holding all other predictors constant, a one-unit increase in x1 is associated with a 144.2% increase in the expected value of y (among non-structural zeros) (exp(β) = 2.442, 95% CI: [2.179, 2.737]).
+```
+
+``` r
+interpret_coef(fit_zitw, "x2", component = "zero")
+#> Holding all other predictors constant, a one-unit increase in x2 is associated with a 91.0% decrease in the odds of being a structural zero (exp(β) = 0.090, 95% CI: [0.049, 0.168]).
+```
+
+The estimated $\widehat{p}$ (1.337) is well within (1, 2), confirming
+the Tweedie family is appropriate. The estimated $\widehat{\phi}$ is
+2.429.
 
 ------------------------------------------------------------------------
 

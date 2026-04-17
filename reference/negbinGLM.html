@@ -129,7 +129,7 @@ change in the expected count for a one-unit increase in the predictor.</p>
 overdispersion (variance &gt; mean). A Pearson dispersion ratio from
 <code><a href="poissonGLM.html">poissonGLM()</a></code> substantially above 1 (rule of thumb: &gt; 1.5) is a common
 signal. The negative binomial adds a free parameter <code>theta</code> to model this
-extra variance. For semi-continuous or non-integer data, consider
+extra variance. For count data with complex variance structures, consider
 <code><a href="tweedieGLM.html">tweedieGLM()</a></code>. If zero-inflation is also detected, consider
 <code><a href="zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code>.</p>
     </div>
