@@ -842,6 +842,260 @@ is 2.429.</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="untangling-interactions">Untangling Interactions<a class="anchor" aria-label="anchor" href="#untangling-interactions"></a>
+</h2>
+<p>A single coefficient is not enough to describe an interaction: the
+effect of one predictor depends on the value of another.
+<code><a href="../reference/untangle_interaction.html">untangle_interaction()</a></code> produces the right post-hoc summary
+for each case — categorical × categorical, categorical × continuous, or
+continuous × continuous — in one call. It accepts any model fit returned
+by the package (or a raw <code>glm</code> / <code>glmmTMB</code> object)
+and a pair of interacting variables.</p>
+<p>By default the function does <strong>not</strong> average over any
+<em>categorical</em> predictor outside the interaction of interest; each
+level is reported separately. Continuous controls are held at their mean
+(the <code>emmeans</code> default). Pass names to
+<code>average.over</code> to collapse specific categorical
+predictors.</p>
+<p>We return to the Greenberg environmental-crime data and fit three
+variants of the Poisson model, each with a different interaction, to
+illustrate the three cases.</p>
+<div class="section level3">
+<h3 id="categorical-categorical-metro-eparegion">15. Categorical × Categorical: <code>metro * EPAregion</code><a class="anchor" aria-label="anchor" href="#categorical-categorical-metro-eparegion"></a>
+</h3>
+<p>Does the metro/non-metro contrast look the same across EPA
+regions?</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_cc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
+<span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">metro</span> <span class="op">*</span> <span class="va">EPAregion</span> <span class="op">+</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span> <span class="va">pctnonwhite10</span> <span class="op">+</span> <span class="va">gdp2017b</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res_cc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit_cc</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"EPAregion"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Interaction metro x EPAregion (categorical x categorical).</span></span>
+<span><span class="co">#&gt; 'emmeans' holds estimated marginal means for every combination of the two factors. Columns: Mean = EMM on the response scale, Lower/Upper = 95% confidence bounds. 'plot' contains a faceted ggplot of the means with 95% error bars.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res_cc</span><span class="op">$</span><span class="va">emmeans</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  metro EPAregion      Mean         SE  df     Lower     Upper</span></span>
+<span><span class="co">#&gt;  0     1         0.3943082 0.13219689 Inf 0.2043899 0.7606976</span></span>
+<span><span class="co">#&gt;  1     1         0.6240832 0.13208135 Inf 0.4121865 0.9449119</span></span>
+<span><span class="co">#&gt;  0     2         0.5825585 0.17697119 Inf 0.3211880 1.0566225</span></span>
+<span><span class="co">#&gt;  1     2         0.3590851 0.06358512 Inf 0.2537877 0.5080707</span></span>
+<span><span class="co">#&gt;  0     3         0.0543746 0.02437263 Inf 0.0225869 0.1308985</span></span>
+<span><span class="co">#&gt;  1     3         0.2768718 0.04438896 Inf 0.2022141 0.3790933</span></span>
+<span><span class="co">#&gt;  0     4         0.0529480 0.01006407 Inf 0.0364802 0.0768496</span></span>
+<span><span class="co">#&gt;  1     4         0.1993390 0.02332805 Inf 0.1584815 0.2507297</span></span>
+<span><span class="co">#&gt;  0     5         0.0773253 0.01789516 Inf 0.0491282 0.1217062</span></span>
+<span><span class="co">#&gt;  1     5         0.4527369 0.05269071 Inf 0.3603967 0.5687363</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Confidence level used: 0.95 </span></span>
+<span><span class="co">#&gt; Intervals are back-transformed from the log scale</span></span></code></pre></div>
+<p><code>Mean</code> is the estimated marginal mean on the response
+scale (expected count per county); <code>Lower</code>/<code>Upper</code>
+are 95% confidence bounds. Comparing <code>Mean</code> across
+<code>metro</code> within each <code>EPAregion</code> shows how the
+metro effect varies by region. The companion plot shows every cell-mean
+with its 95% error bar (and is faceted by any categorical predictor left
+unaveraged — here there are none, so a single panel is drawn):</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_cc</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="glmOJ_files/figure-html/untangle-cat-cat-plot-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="categorical-continuous-metro-pctnonwhite10">16. Categorical × Continuous:
+<code>metro * pctnonwhite10</code><a class="anchor" aria-label="anchor" href="#categorical-continuous-metro-pctnonwhite10"></a>
+</h3>
+<p>How does the effect of percent-non-white-population differ between
+metro and non-metro counties? For this case
+<code><a href="../reference/untangle_interaction.html">untangle_interaction()</a></code> returns two pieces:</p>
+<ol style="list-style-type: decimal">
+<li>
+<code>emtrends</code> — the slope of the continuous predictor at
+each level of the factor (on the linear-predictor / link scale).</li>
+<li>
+<code>plot</code> — a faceted <code>ggplot</code> of predicted
+responses across 100 evenly spaced values of the continuous predictor,
+coloured by the factor. Facets are combinations of any categorical
+predictor <em>not</em> in <code>average.over</code> and <em>not</em> in
+the interaction.</li>
+</ol>
+<p>First, leave every other categorical predictor in the model
+unaveraged. <code>EPAregion</code> has 10 levels, which would exceed the
+8-facet limit, so the plot is suppressed with a warning:</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_xc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
+<span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">metro</span> <span class="op">*</span> <span class="va">pctnonwhite10</span> <span class="op">+</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span> <span class="va">gdp2017b</span> <span class="op">+</span> <span class="va">EPAregion</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res_xc_warn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit_xc</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Interaction metro (categorical) x pctnonwhite10 (continuous).</span></span>
+<span><span class="co">#&gt; 'emtrends' gives the slope of pctnonwhite10 at each level of metro on the linear predictor scale: a one-unit increase in pctnonwhite10 shifts the linear predictor by 'Slope' units. Slopes whose CI excludes zero are discernible from zero. Plot suppressed: 10 facet panels exceed the limit of 8. Re-run with overridePlot = TRUE to force it. Facets are combinations of EPAregion.</span></span>
+<span><span class="va">res_xc_warn</span><span class="op">$</span><span class="va">emtrends</span></span>
+<span><span class="co">#&gt;  metro EPAregion      Slope          SE  df       Lower      Upper z.ratio</span></span>
+<span><span class="co">#&gt;  0     1         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     1         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     2         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     2         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     3         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     3         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     4         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     4         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     5         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     5         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     6         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     6         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     7         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     7         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     8         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     8         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     9         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     9         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  0     10        0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975</span></span>
+<span><span class="co">#&gt;  1     10        0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573</span></span>
+<span><span class="co">#&gt;  p.value</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt;   0.0029</span></span>
+<span><span class="co">#&gt;  &lt;0.0001</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Confidence level used: 0.95</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">res_xc_warn</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>Averaging over <code>EPAregion</code> removes the facets and the plot
+is built normally:</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_xc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span></span>
+<span>  <span class="va">fit_xc</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
+<span>  average.over <span class="op">=</span> <span class="st">"EPAregion"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Interaction metro (categorical) x pctnonwhite10 (continuous).</span></span>
+<span><span class="co">#&gt; 'emtrends' gives the slope of pctnonwhite10 at each level of metro on the linear predictor scale: a one-unit increase in pctnonwhite10 shifts the linear predictor by 'Slope' units. Slopes whose CI excludes zero are discernible from zero. 'plot' contains the faceted ggplot of predicted responses vs the continuous predictor, coloured by the factor.</span></span>
+<span><span class="va">res_xc</span><span class="op">$</span><span class="va">emtrends</span></span>
+<span><span class="co">#&gt;  metro      Slope          SE  df       Lower      Upper z.ratio p.value</span></span>
+<span><span class="co">#&gt;  0     0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975  0.0029</span></span>
+<span><span class="co">#&gt;  1     0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573 &lt;0.0001</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Results are averaged over the levels of: EPAregion </span></span>
+<span><span class="co">#&gt; Confidence level used: 0.95</span></span>
+<span><span class="va">res_xc</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="glmOJ_files/figure-html/untangle-cat-cont-1.png" class="r-plt" alt="" width="768"></p>
+<p>If we want every region retained despite exceeding the facet limit,
+we can set <code>overridePlot = TRUE</code>:</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span></span>
+<span>  <span class="va">fit_xc</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
+<span>  overridePlot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="continuous-continuous-pctnonwhite10-gdp2017b">17. Continuous × Continuous:
+<code>pctnonwhite10 * gdp2017b</code><a class="anchor" aria-label="anchor" href="#continuous-continuous-pctnonwhite10-gdp2017b"></a>
+</h3>
+<p>For two continuous predictors <code><a href="../reference/untangle_interaction.html">untangle_interaction()</a></code>
+returns:</p>
+<ol style="list-style-type: decimal">
+<li>Two <code>emtrends_*</code> data frames — the slope of each
+predictor at low (mean − SD), medium (mean), and high (mean + SD) values
+of the other.</li>
+<li>Two <code>johnson_neyman_*</code> objects — the range of the
+moderator over which the focal slope is statistically discernible,
+computed via <code>interactions::johnson_neyman()</code> with FDR
+control.</li>
+</ol>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
+<span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">pctnonwhite10</span> <span class="op">*</span> <span class="va">gdp2017b</span> <span class="op">+</span> <span class="va">metro</span> <span class="op">+</span> <span class="va">EPAregion</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit_nn</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pctnonwhite10"</span>, <span class="st">"gdp2017b"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Interaction pctnonwhite10 x gdp2017b (continuous x continuous).</span></span>
+<span><span class="co">#&gt; 'emtrends_pctnonwhite10' gives the slope of pctnonwhite10 at (mean - SD), mean, and (mean + SD) values of gdp2017b: Slope is the change in the linear predictor for a one-unit increase in pctnonwhite10.</span></span>
+<span><span class="co">#&gt; 'emtrends_gdp2017b' gives the slope of gdp2017b at (mean - SD), mean, and (mean + SD) values of pctnonwhite10 (analogous).</span></span>
+<span><span class="co">#&gt; 'johnson_neyman_pctnonwhite10_by_gdp2017b' reports the range of gdp2017b values over which the slope of pctnonwhite10 on the linear predictor is statistically discernible (control.fdr = TRUE). 'johnson_neyman_gdp2017b_by_pctnonwhite10' is the swapped version.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res_nn</span><span class="op">$</span><span class="va">emtrends_pctnonwhite10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  pctnonwhite10  gdp2017b metro EPAregion      Slope          SE  df      Lower</span></span>
+<span><span class="co">#&gt;       21.49412 -21.20523 0     1         0.02341994 0.002157683 Inf 0.01919096</span></span>
+<span><span class="co">#&gt;       21.49412   6.24597 0     1         0.01976318 0.002040094 Inf 0.01576467</span></span>
+<span><span class="co">#&gt;       21.49412  33.69717 0     1         0.01610642 0.002159178 Inf 0.01187451</span></span>
+<span><span class="co">#&gt;       21.49412 -21.20523 1     1         0.02341994 0.002157683 Inf 0.01919096</span></span>
+<span><span class="co">#&gt;       21.49412   6.24597 1     1         0.01976318 0.002040094 Inf 0.01576467</span></span>
+<span><span class="co">#&gt;       21.49412  33.69717 1     1         0.01610642 0.002159178 Inf 0.01187451</span></span>
+<span><span class="co">#&gt;       Upper z.ratio p.value</span></span>
+<span><span class="co">#&gt;  0.02764892  10.854 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.02376169   9.687 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.02033833   7.460 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.02764892  10.854 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.02376169   9.687 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.02033833   7.460 &lt;0.0001</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Confidence level used: 0.95</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res_nn</span><span class="op">$</span><span class="va">emtrends_gdp2017b</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  gdp2017b pctnonwhite10 metro EPAregion       Slope           SE  df</span></span>
+<span><span class="co">#&gt;  6.245968       1.73973 0     1         0.011563908 0.0014552067 Inf</span></span>
+<span><span class="co">#&gt;  6.245968      21.49412 0     1         0.008932436 0.0009665720 Inf</span></span>
+<span><span class="co">#&gt;  6.245968      41.24851 0     1         0.006300964 0.0005152422 Inf</span></span>
+<span><span class="co">#&gt;  6.245968       1.73973 1     1         0.011563908 0.0014552067 Inf</span></span>
+<span><span class="co">#&gt;  6.245968      21.49412 1     1         0.008932436 0.0009665720 Inf</span></span>
+<span><span class="co">#&gt;  6.245968      41.24851 1     1         0.006300964 0.0005152422 Inf</span></span>
+<span><span class="co">#&gt;        Lower      Upper z.ratio p.value</span></span>
+<span><span class="co">#&gt;  0.008711756 0.01441606   7.947 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.007037990 0.01082688   9.241 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.005291108 0.00731082  12.229 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.008711756 0.01441606   7.947 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.007037990 0.01082688   9.241 &lt;0.0001</span></span>
+<span><span class="co">#&gt;  0.005291108 0.00731082  12.229 &lt;0.0001</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Confidence level used: 0.95</span></span></code></pre></div>
+<p>Johnson-Neyman intervals describe the range of the moderator over
+which the focal slope is statistically discernible. Printing an object
+gives the numerical summary and renders the shaded-region plot; each
+object also carries a <code>$plot</code> element you can extract
+separately:</p>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_nn</span><span class="op">$</span><span class="va">johnson_neyman_pctnonwhite10_by_gdp2017b</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold; text-decoration: underline;">JOHNSON-NEYMAN INTERVAL</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; When gdp2017b is OUTSIDE the interval [104.37, 260.64], the slope of</span></span>
+<span><span class="co">#&gt; pctnonwhite10 is p &lt; .05.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="font-style: italic;">Note: The range of observed values of gdp2017b is </span>[0.01, 720.84]</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Interval calculated using false discovery rate adjusted t = 2.06</span></span></code></pre></div>
+<p><img src="glmOJ_files/figure-html/untangle-jn-1.png" class="r-plt" alt="" width="768"></p>
+<p>The interval shows that the slope of <code>pctnonwhite10</code> is
+significant (p &lt; .05) when <code>gdp2017b</code> is
+<strong>outside</strong> roughly [104, 261] — meaning the
+race–prosecution relationship is detectable in both low- and high-GDP
+counties, but washes out at intermediate values. The reversed call
+(focal = <code>gdp2017b</code>) is in
+<code>res_nn$johnson_neyman_gdp2017b_by_pctnonwhite10</code>.</p>
+<p>If the continuous predictors have already been standardized (mean 0,
+SD 1), pass <code>standardized = TRUE</code> so the low/medium/high grid
+uses <code>-1, 0, 1</code> and the interpretation text refers to a
+“one-standard-deviation increase” rather than a “one-unit increase”.</p>
+<hr>
+</div>
+</div>
+<div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <p>Dahir, Abdi Latif. 2025. “Surveillance Camera Placement and Urban

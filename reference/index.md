@@ -61,7 +61,9 @@ criterion (`decide`: `"BIC"` (default), `"AIC"`, `"LogLik"`, or
 
 ## Interpretation
 
-Natural-language interpretation of model coefficients.
+Natural-language interpretation of model coefficients and interactions.
 
 - [`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
   : Interpret a model coefficient in natural language
+- [`untangle_interaction()`](http://oscar.jaroker.com/glmOJ/reference/untangle_interaction.md)
+  : Untangle a two-way interaction in a fitted model

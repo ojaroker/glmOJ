@@ -815,6 +815,272 @@ the Tweedie family is appropriate. The estimated $\widehat{\phi}$ is
 
 ------------------------------------------------------------------------
 
+## Untangling Interactions
+
+A single coefficient is not enough to describe an interaction: the
+effect of one predictor depends on the value of another.
+[`untangle_interaction()`](http://oscar.jaroker.com/glmOJ/reference/untangle_interaction.md)
+produces the right post-hoc summary for each case — categorical ×
+categorical, categorical × continuous, or continuous × continuous — in
+one call. It accepts any model fit returned by the package (or a raw
+`glm` / `glmmTMB` object) and a pair of interacting variables.
+
+By default the function does **not** average over any *categorical*
+predictor outside the interaction of interest; each level is reported
+separately. Continuous controls are held at their mean (the `emmeans`
+default). Pass names to `average.over` to collapse specific categorical
+predictors.
+
+We return to the Greenberg environmental-crime data and fit three
+variants of the Poisson model, each with a different interaction, to
+illustrate the three cases.
+
+### 15. Categorical × Categorical: `metro * EPAregion`
+
+Does the metro/non-metro contrast look the same across EPA regions?
+
+``` r
+fit_cc <- poissonGLM(
+  FinalEC ~ metro * EPAregion + eqi_2jan2018_vc + pctnonwhite10 + gdp2017b,
+  data = Greenberg26.dat
+)
+
+res_cc <- untangle_interaction(fit_cc, c("metro", "EPAregion"))
+#> Interaction metro x EPAregion (categorical x categorical).
+#> 'emmeans' holds estimated marginal means for every combination of the two factors. Columns: Mean = EMM on the response scale, Lower/Upper = 95% confidence bounds. 'plot' contains a faceted ggplot of the means with 95% error bars.
+head(res_cc$emmeans, 10)
+#>  metro EPAregion      Mean         SE  df     Lower     Upper
+#>  0     1         0.3943082 0.13219689 Inf 0.2043899 0.7606976
+#>  1     1         0.6240832 0.13208135 Inf 0.4121865 0.9449119
+#>  0     2         0.5825585 0.17697119 Inf 0.3211880 1.0566225
+#>  1     2         0.3590851 0.06358512 Inf 0.2537877 0.5080707
+#>  0     3         0.0543746 0.02437263 Inf 0.0225869 0.1308985
+#>  1     3         0.2768718 0.04438896 Inf 0.2022141 0.3790933
+#>  0     4         0.0529480 0.01006407 Inf 0.0364802 0.0768496
+#>  1     4         0.1993390 0.02332805 Inf 0.1584815 0.2507297
+#>  0     5         0.0773253 0.01789516 Inf 0.0491282 0.1217062
+#>  1     5         0.4527369 0.05269071 Inf 0.3603967 0.5687363
+#> 
+#> Confidence level used: 0.95 
+#> Intervals are back-transformed from the log scale
+```
+
+`Mean` is the estimated marginal mean on the response scale (expected
+count per county); `Lower`/`Upper` are 95% confidence bounds. Comparing
+`Mean` across `metro` within each `EPAregion` shows how the metro effect
+varies by region. The companion plot shows every cell-mean with its 95%
+error bar (and is faceted by any categorical predictor left unaveraged —
+here there are none, so a single panel is drawn):
+
+``` r
+res_cc$plot
+```
+
+![](glmOJ_files/figure-html/untangle-cat-cat-plot-1.png)
+
+### 16. Categorical × Continuous: `metro * pctnonwhite10`
+
+How does the effect of percent-non-white-population differ between metro
+and non-metro counties? For this case
+[`untangle_interaction()`](http://oscar.jaroker.com/glmOJ/reference/untangle_interaction.md)
+returns two pieces:
+
+1.  `emtrends` — the slope of the continuous predictor at each level of
+    the factor (on the linear-predictor / link scale).
+2.  `plot` — a faceted `ggplot` of predicted responses across 100 evenly
+    spaced values of the continuous predictor, coloured by the factor.
+    Facets are combinations of any categorical predictor *not* in
+    `average.over` and *not* in the interaction.
+
+First, leave every other categorical predictor in the model unaveraged.
+`EPAregion` has 10 levels, which would exceed the 8-facet limit, so the
+plot is suppressed with a warning:
+
+``` r
+fit_xc <- poissonGLM(
+  FinalEC ~ metro * pctnonwhite10 + eqi_2jan2018_vc + gdp2017b + EPAregion,
+  data = Greenberg26.dat
+)
+
+res_xc_warn <- untangle_interaction(fit_xc, c("metro", "pctnonwhite10"))
+#> Interaction metro (categorical) x pctnonwhite10 (continuous).
+#> 'emtrends' gives the slope of pctnonwhite10 at each level of metro on the linear predictor scale: a one-unit increase in pctnonwhite10 shifts the linear predictor by 'Slope' units. Slopes whose CI excludes zero are discernible from zero. Plot suppressed: 10 facet panels exceed the limit of 8. Re-run with overridePlot = TRUE to force it. Facets are combinations of EPAregion.
+res_xc_warn$emtrends
+#>  metro EPAregion      Slope          SE  df       Lower      Upper z.ratio
+#>  0     1         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     1         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     2         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     2         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     3         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     3         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     4         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     4         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     5         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     5         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     6         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     6         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     7         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     7         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     8         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     8         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     9         0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     9         0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  0     10        0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975
+#>  1     10        0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573
+#>  p.value
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#>   0.0029
+#>  <0.0001
+#> 
+#> Confidence level used: 0.95
+is.null(res_xc_warn$plot)
+#> [1] TRUE
+```
+
+Averaging over `EPAregion` removes the facets and the plot is built
+normally:
+
+``` r
+res_xc <- untangle_interaction(
+  fit_xc,
+  c("metro", "pctnonwhite10"),
+  average.over = "EPAregion"
+)
+#> Interaction metro (categorical) x pctnonwhite10 (continuous).
+#> 'emtrends' gives the slope of pctnonwhite10 at each level of metro on the linear predictor scale: a one-unit increase in pctnonwhite10 shifts the linear predictor by 'Slope' units. Slopes whose CI excludes zero are discernible from zero. 'plot' contains the faceted ggplot of predicted responses vs the continuous predictor, coloured by the factor.
+res_xc$emtrends
+#>  metro      Slope          SE  df       Lower      Upper z.ratio p.value
+#>  0     0.01047499 0.003521538 Inf 0.003572898 0.01737707   2.975  0.0029
+#>  1     0.02517181 0.002380665 Inf 0.020505787 0.02983782  10.573 <0.0001
+#> 
+#> Results are averaged over the levels of: EPAregion 
+#> Confidence level used: 0.95
+res_xc$plot
+```
+
+![](glmOJ_files/figure-html/untangle-cat-cont-1.png)
+
+If we want every region retained despite exceeding the facet limit, we
+can set `overridePlot = TRUE`:
+
+``` r
+untangle_interaction(
+  fit_xc,
+  c("metro", "pctnonwhite10"),
+  overridePlot = TRUE
+)
+```
+
+### 17. Continuous × Continuous: `pctnonwhite10 * gdp2017b`
+
+For two continuous predictors
+[`untangle_interaction()`](http://oscar.jaroker.com/glmOJ/reference/untangle_interaction.md)
+returns:
+
+1.  Two `emtrends_*` data frames — the slope of each predictor at low
+    (mean − SD), medium (mean), and high (mean + SD) values of the
+    other.
+2.  Two `johnson_neyman_*` objects — the range of the moderator over
+    which the focal slope is statistically discernible, computed via
+    `interactions::johnson_neyman()` with FDR control.
+
+``` r
+fit_nn <- poissonGLM(
+  FinalEC ~ pctnonwhite10 * gdp2017b + metro + EPAregion,
+  data = Greenberg26.dat
+)
+
+res_nn <- untangle_interaction(fit_nn, c("pctnonwhite10", "gdp2017b"))
+#> Interaction pctnonwhite10 x gdp2017b (continuous x continuous).
+#> 'emtrends_pctnonwhite10' gives the slope of pctnonwhite10 at (mean - SD), mean, and (mean + SD) values of gdp2017b: Slope is the change in the linear predictor for a one-unit increase in pctnonwhite10.
+#> 'emtrends_gdp2017b' gives the slope of gdp2017b at (mean - SD), mean, and (mean + SD) values of pctnonwhite10 (analogous).
+#> 'johnson_neyman_pctnonwhite10_by_gdp2017b' reports the range of gdp2017b values over which the slope of pctnonwhite10 on the linear predictor is statistically discernible (control.fdr = TRUE). 'johnson_neyman_gdp2017b_by_pctnonwhite10' is the swapped version.
+head(res_nn$emtrends_pctnonwhite10)
+#>  pctnonwhite10  gdp2017b metro EPAregion      Slope          SE  df      Lower
+#>       21.49412 -21.20523 0     1         0.02341994 0.002157683 Inf 0.01919096
+#>       21.49412   6.24597 0     1         0.01976318 0.002040094 Inf 0.01576467
+#>       21.49412  33.69717 0     1         0.01610642 0.002159178 Inf 0.01187451
+#>       21.49412 -21.20523 1     1         0.02341994 0.002157683 Inf 0.01919096
+#>       21.49412   6.24597 1     1         0.01976318 0.002040094 Inf 0.01576467
+#>       21.49412  33.69717 1     1         0.01610642 0.002159178 Inf 0.01187451
+#>       Upper z.ratio p.value
+#>  0.02764892  10.854 <0.0001
+#>  0.02376169   9.687 <0.0001
+#>  0.02033833   7.460 <0.0001
+#>  0.02764892  10.854 <0.0001
+#>  0.02376169   9.687 <0.0001
+#>  0.02033833   7.460 <0.0001
+#> 
+#> Confidence level used: 0.95
+head(res_nn$emtrends_gdp2017b)
+#>  gdp2017b pctnonwhite10 metro EPAregion       Slope           SE  df
+#>  6.245968       1.73973 0     1         0.011563908 0.0014552067 Inf
+#>  6.245968      21.49412 0     1         0.008932436 0.0009665720 Inf
+#>  6.245968      41.24851 0     1         0.006300964 0.0005152422 Inf
+#>  6.245968       1.73973 1     1         0.011563908 0.0014552067 Inf
+#>  6.245968      21.49412 1     1         0.008932436 0.0009665720 Inf
+#>  6.245968      41.24851 1     1         0.006300964 0.0005152422 Inf
+#>        Lower      Upper z.ratio p.value
+#>  0.008711756 0.01441606   7.947 <0.0001
+#>  0.007037990 0.01082688   9.241 <0.0001
+#>  0.005291108 0.00731082  12.229 <0.0001
+#>  0.008711756 0.01441606   7.947 <0.0001
+#>  0.007037990 0.01082688   9.241 <0.0001
+#>  0.005291108 0.00731082  12.229 <0.0001
+#> 
+#> Confidence level used: 0.95
+```
+
+Johnson-Neyman intervals describe the range of the moderator over which
+the focal slope is statistically discernible. Printing an object gives
+the numerical summary and renders the shaded-region plot; each object
+also carries a `$plot` element you can extract separately:
+
+``` r
+res_nn$johnson_neyman_pctnonwhite10_by_gdp2017b
+#> JOHNSON-NEYMAN INTERVAL
+#> 
+#> When gdp2017b is OUTSIDE the interval [104.37, 260.64], the slope of
+#> pctnonwhite10 is p < .05.
+#> 
+#> Note: The range of observed values of gdp2017b is [0.01, 720.84]
+#> 
+#> Interval calculated using false discovery rate adjusted t = 2.06
+```
+
+![](glmOJ_files/figure-html/untangle-jn-1.png)
+
+The interval shows that the slope of `pctnonwhite10` is significant (p
+\< .05) when `gdp2017b` is **outside** roughly \[104, 261\] — meaning
+the race–prosecution relationship is detectable in both low- and
+high-GDP counties, but washes out at intermediate values. The reversed
+call (focal = `gdp2017b`) is in
+`res_nn$johnson_neyman_gdp2017b_by_pctnonwhite10`.
+
+If the continuous predictors have already been standardized (mean 0, SD
+1), pass `standardized = TRUE` so the low/medium/high grid uses
+`-1, 0, 1` and the interpretation text refers to a
+“one-standard-deviation increase” rather than a “one-unit increase”.
+
+------------------------------------------------------------------------
+
 ## References
 
 Dahir, Abdi Latif. 2025. “Surveillance Camera Placement and Urban

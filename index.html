@@ -48,7 +48,7 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="glmoj">glmOJ<a class="anchor" aria-label="anchor" href="#glmoj"></a>
 </h1></div>
-<p><strong>glmOJ</strong> is an R package that provides a structured workflow for count regression modeling. It wraps <code>glm</code>, <a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link"><code>MASS::glm.nb</code></a>, and <a href="https://rdrr.io/pkg/pscl/man/zeroinfl.html" class="external-link"><code>pscl::zeroinfl</code></a> to fit, diagnose, and interpret count regression models, with all output reported on the response scale rather than the link scale.</p>
+<p><strong>glmOJ</strong> is an R package that provides a structured workflow for count and semi-continuous regression modeling. It wraps <code>glm</code>, <a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link"><code>MASS::glm.nb</code></a>, <a href="https://rdrr.io/pkg/pscl/man/zeroinfl.html" class="external-link"><code>pscl::zeroinfl</code></a>, and <a href="https://rdrr.io/pkg/glmmTMB/man/glmmTMB.html" class="external-link"><code>glmmTMB::glmmTMB</code></a> to fit, diagnose, and interpret count regression models, with all output reported on the response scale rather than the link scale.</p>
 <div class="section level2">
 <h2 id="what-the-package-does">What the package does<a class="anchor" aria-label="anchor" href="#what-the-package-does"></a>
 </h2>
@@ -81,27 +81,37 @@
 <tbody>
 <tr class="odd">
 <td>Poisson</td>
-<td><a href="http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md"><code>poissonGLM()</code></a></td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/poissonGLM.html"><code>poissonGLM()</code></a></td>
 <td>Counts with mean ≈ variance</td>
 </tr>
 <tr class="even">
 <td>Negative binomial</td>
-<td><a href="http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md"><code>negbinGLM()</code></a></td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/negbinGLM.html"><code>negbinGLM()</code></a></td>
 <td>Counts with variance &gt; mean (overdispersion)</td>
 </tr>
 <tr class="odd">
-<td>Zero-inflated Poisson</td>
-<td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md"><code>zeroinflPoissonGLM()</code></a></td>
-<td>Excess zeros + equidispersed non-zero counts</td>
+<td>Tweedie</td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.html"><code>tweedieGLM()</code></a></td>
+<td>Non-negative semi-continuous data; power parameter estimated freely</td>
 </tr>
 <tr class="even">
+<td>Zero-inflated Poisson</td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.html"><code>zeroinflPoissonGLM()</code></a></td>
+<td>Excess zeros + equidispersed non-zero counts</td>
+</tr>
+<tr class="odd">
 <td>Zero-inflated negative binomial</td>
-<td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md"><code>zeroinflNegbinGLM()</code></a></td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.html"><code>zeroinflNegbinGLM()</code></a></td>
 <td>Excess zeros + overdispersed non-zero counts</td>
+</tr>
+<tr class="even">
+<td>Zero-inflated Tweedie</td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.html"><code>zeroinflTweedieGLM()</code></a></td>
+<td>Excess zeros + semi-continuous non-zero values</td>
 </tr>
 </tbody>
 </table>
-<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.md"><code>countGLM()</code></a> fits all four families and selects the best by a user-chosen criterion (<code>decide = "BIC"</code> by default; also accepts <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), annotated with dispersion and zero-inflation diagnostics.</p>
+<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.html"><code>countGLM()</code></a> fits all six families and selects the best by a user-chosen criterion (<code>decide = "BIC"</code> by default; also accepts <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), annotated with dispersion and zero-inflation diagnostics.</p>
 </div>
 <div class="section level2">
 <h2 id="package-functions">Package functions<a class="anchor" aria-label="anchor" href="#package-functions"></a>
@@ -127,6 +137,10 @@
 <strong><code>zeroinflPoissonGLM(formula, data, ziformula)</code></strong> — Zero-inflated Poisson via <a href="https://rdrr.io/pkg/pscl/man/zeroinfl.html" class="external-link"><code>pscl::zeroinfl</code></a>. Separate coefficient tables for the count and zero-inflation components.</li>
 <li>
 <strong><code>zeroinflNegbinGLM(formula, data, ziformula)</code></strong> — Zero-inflated negative binomial via <a href="https://rdrr.io/pkg/pscl/man/zeroinfl.html" class="external-link"><code>pscl::zeroinfl</code></a>.</li>
+<li>
+<strong><code>tweedieGLM(formula, data)</code></strong> — Tweedie GLM via <a href="https://rdrr.io/pkg/glmmTMB/man/glmmTMB.html" class="external-link"><code>glmmTMB::glmmTMB</code></a>. Returns the estimated dispersion <code>phi</code> and power parameter <code>p</code>.</li>
+<li>
+<strong><code>zeroinflTweedieGLM(formula, data, ziformula)</code></strong> — Zero-inflated Tweedie via <a href="https://rdrr.io/pkg/glmmTMB/man/glmmTMB.html" class="external-link"><code>glmmTMB::glmmTMB</code></a>. Separate coefficient tables for the count and zero-inflation components.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -134,7 +148,7 @@
 </h3>
 <ul>
 <li>
-<strong><code>countGLM(formula, data, ziformula, decide = "BIC")</code></strong> — Fits all four families, selects the best by the criterion in <code>decide</code> (<code>"BIC"</code>, <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), and returns a plain-language recommendation informed by the Pearson dispersion ratio and observed vs. expected zero counts.</li>
+<strong><code>countGLM(formula, data, ziformula, decide = "BIC")</code></strong> — Fits all six families, selects the best by the criterion in <code>decide</code> (<code>"BIC"</code>, <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), and returns a plain-language recommendation informed by the Pearson dispersion ratio and observed vs. expected zero counts. Zero-inflated Tweedie is always fitted alongside base Tweedie; ZI Poisson and ZI Negative Binomial are fitted only when DHARMa detects significant zero-inflation in their base counterpart.</li>
 </ul>
 </div>
 </div>
@@ -154,15 +168,13 @@
 </ul>
 </div>
 <div class="section level2">
-<h2 id="coefficient-interpretation">Coefficient interpretation<a class="anchor" aria-label="anchor" href="#coefficient-interpretation"></a>
+<h2 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a>
 </h2>
-<p>All coefficients are reported on the <strong>response scale</strong> (exponentiated). For the count component of any model, exponentiating a coefficient gives the multiplicative change in the expected count for a one-unit increase in the predictor, adjusting for simultaneous linear changes in other predictors. For example, a value of 1.5 means a 50% higher expected count.</p>
-<p>For the zero-inflation component of ZI models, the exponentiated coefficient gives the multiplicative change in the odds of being a structural zero.</p>
 <div class="section level3">
 <h3 id="interpret_coef">
 <code>interpret_coef()</code><a class="anchor" aria-label="anchor" href="#interpret_coef"></a>
 </h3>
-<p><strong><code>interpret_coef(model, predictor, component = "count")</code></strong> generates a plain-language sentence for a single coefficient. It works with all model types returned by the package:</p>
+<p><strong><code>interpret_coef(model, predictor, component = "count")</code></strong> generates a plain-language sentence for a single exponentiated coefficient, with a 95% Wald CI. It works with all model types returned by the package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in pctnonwhite10 is</span></span>
@@ -181,11 +193,65 @@
 </ul>
 <p>The term name passed to <code>predictor</code> must match exactly the string in the coefficient table (e.g. <code>"EPAregion2"</code>, not <code>"EPAregion"</code>). If the term is not found, the function stops with a list of available terms.</p>
 </div>
+<div class="section level3">
+<h3 id="untangle_interaction">
+<code>untangle_interaction()</code><a class="anchor" aria-label="anchor" href="#untangle_interaction"></a>
+</h3>
+<p><strong><code>untangle_interaction(model, interaction, average.over = NULL, standardized = FALSE, n = 100, overridePlot = FALSE)</code></strong> produces post-hoc summaries that describe how two interacting predictors jointly shape the fitted response. The output adapts to the types of the two variables.</p>
+<div class="section level4">
+<h4 id="categorical--categorical">Categorical × Categorical<a class="anchor" aria-label="anchor" href="#categorical--categorical"></a>
+</h4>
+<p>Returns a data frame of estimated marginal means (<a href="https://rdrr.io/pkg/emmeans/man/emmeans.html" class="external-link"><code>emmeans::emmeans()</code></a>) for every combination of the two factors, plus a ggplot of those means with 95% error bars:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"EPAregion"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">emmeans</span>   <span class="co"># data frame: Mean, SE, df, Lower, Upper per cell</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">plot</span>      <span class="co"># geom_point + geom_errorbar, faceted by extra categoricals</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="categorical--continuous">Categorical × Continuous<a class="anchor" aria-label="anchor" href="#categorical--continuous"></a>
+</h4>
+<p>Returns the slope of the continuous predictor at each level of the factor (on the link scale, via <a href="https://rdrr.io/pkg/emmeans/man/emtrends.html" class="external-link"><code>emmeans::emtrends()</code></a>), plus a ggplot of predicted responses across <code>n</code> evenly-spaced values of the continuous predictor coloured by the factor:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">emtrends</span>   <span class="co"># Slope, SE, df, Lower, Upper per factor level</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">plot</span>       <span class="co"># geom_line + geom_ribbon, faceted by extra categoricals</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="continuous--continuous">Continuous × Continuous<a class="anchor" aria-label="anchor" href="#continuous--continuous"></a>
+</h4>
+<p>Returns slopes of each predictor at low (mean − SD), medium (mean), and high (mean + SD) values of the other, plus Johnson-Neyman intervals (<a href="https://rdrr.io/pkg/interactions/man/johnson_neyman.html" class="external-link"><code>interactions::johnson_neyman()</code></a>, FDR-corrected) in both directions:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pctnonwhite10"</span>, <span class="st">"gdp2017b"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">emtrends_pctnonwhite10</span>          <span class="co"># slopes of pctnonwhite10 at 3 levels of gdp2017b</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">emtrends_gdp2017b</span>               <span class="co"># slopes of gdp2017b at 3 levels of pctnonwhite10</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">johnson_neyman_pctnonwhite10_by_gdp2017b</span>  <span class="co"># J-N object; $plot for the figure</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">johnson_neyman_gdp2017b_by_pctnonwhite10</span>  <span class="co"># swapped direction</span></span></code></pre></div>
+<p>Pass <code>standardized = TRUE</code> when predictors have been pre-standardised (mean 0, SD 1): the low/medium/high grid becomes −1, 0, 1 and the printed interpretation refers to a “one-standard-deviation increase”.</p>
+</div>
+<div class="section level4">
+<h4 id="controlling-which-categoricals-are-averaged-over">Controlling which categoricals are averaged over<a class="anchor" aria-label="anchor" href="#controlling-which-categoricals-are-averaged-over"></a>
+</h4>
+<p>By default, every categorical predictor in the model <em>other</em> than the two interaction variables is kept separate — emmeans reports each level rather than collapsing across it. Pass names to <code>average.over</code> to opt specific variables into averaging:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># EPAregion has 10 levels; facet count would exceed 8 → plot suppressed</span></span>
+<span><span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Permit averaging over EPAregion → single-panel plot returned</span></span>
+<span><span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
+<span>                     average.over <span class="op">=</span> <span class="st">"EPAregion"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Force the plot regardless of facet count</span></span>
+<span><span class="fu"><a href="reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
+<span>                     overridePlot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>When the number of facets would exceed 8 and <code>overridePlot = FALSE</code>, the plot is silently replaced with <code>NULL</code> and a warning is issued. The data frames are always returned regardless.</p>
+<p>All three functions accept every model type returned by the package, as well as raw <code>glm</code> and <code>glmmTMB</code> fits. For <code>countGLM</code> objects, the best-fitting component model is used automatically.</p>
+</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install from GitHub</span></span>
 <span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"ojaroker/glmOJ"</span><span class="op">)</span></span></code></pre></div>
