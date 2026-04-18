@@ -75,6 +75,7 @@ reference:
 
   - title: "Interpretation"
     desc: >
-      Natural-language interpretation of model coefficients.
+      Natural-language interpretation of model coefficients and interactions.
     contents:
       - interpret_coef
+      - untangle_interaction

@@ -35,6 +35,7 @@ Imports:
     tidyr
 Suggests:
     emmeans,
+    interactions,
     knitr,
     lmtest,
     nonnest2,

@@ -486,6 +486,144 @@ confirming the Tweedie family is appropriate. The estimated $\hat{\phi}$ is
 
 ---
 
+## Untangling Interactions
+
+A single coefficient is not enough to describe an interaction: the effect of
+one predictor depends on the value of another. `untangle_interaction()`
+produces the right post-hoc summary for each case — categorical × categorical,
+categorical × continuous, or continuous × continuous — in one call. It
+accepts any model fit returned by the package (or a raw `glm` / `glmmTMB`
+object) and a pair of interacting variables.
+
+By default the function does **not** average over any *categorical* predictor
+outside the interaction of interest; each level is reported separately.
+Continuous controls are held at their mean (the `emmeans` default). Pass
+names to `average.over` to collapse specific categorical predictors.
+
+We return to the Greenberg environmental-crime data and fit three variants
+of the Poisson model, each with a different interaction, to illustrate the
+three cases.
+
+### 15. Categorical × Categorical: `metro * EPAregion`
+
+Does the metro/non-metro contrast look the same across EPA regions?
+
+```{r untangle-cat-cat}
+fit_cc <- poissonGLM(
+  FinalEC ~ metro * EPAregion + eqi_2jan2018_vc + pctnonwhite10 + gdp2017b,
+  data = Greenberg26.dat
+)
+
+res_cc <- untangle_interaction(fit_cc, c("metro", "EPAregion"))
+head(res_cc$emmeans, 10)
+```
+
+`Mean` is the estimated marginal mean on the response scale (expected count
+per county); `Lower`/`Upper` are 95% confidence bounds. Comparing `Mean`
+across `metro` within each `EPAregion` shows how the metro effect varies by
+region. The companion plot shows every cell-mean with its 95% error bar
+(and is faceted by any categorical predictor left unaveraged — here there
+are none, so a single panel is drawn):
+
+```{r untangle-cat-cat-plot, fig.height = 5}
+res_cc$plot
+```
+
+### 16. Categorical × Continuous: `metro * pctnonwhite10`
+
+How does the effect of percent-non-white-population differ between metro and
+non-metro counties? For this case `untangle_interaction()` returns two
+pieces:
+
+1.  `emtrends` — the slope of the continuous predictor at each level of the
+    factor (on the linear-predictor / link scale).
+2.  `plot` — a faceted `ggplot` of predicted responses across 100 evenly
+    spaced values of the continuous predictor, coloured by the factor.
+    Facets are combinations of any categorical predictor *not* in
+    `average.over` and *not* in the interaction.
+
+First, leave every other categorical predictor in the model unaveraged.
+`EPAregion` has 10 levels, which would exceed the 8-facet limit, so the
+plot is suppressed with a warning:
+
+```{r untangle-cat-cont-warn}
+fit_xc <- poissonGLM(
+  FinalEC ~ metro * pctnonwhite10 + eqi_2jan2018_vc + gdp2017b + EPAregion,
+  data = Greenberg26.dat
+)
+
+res_xc_warn <- untangle_interaction(fit_xc, c("metro", "pctnonwhite10"))
+res_xc_warn$emtrends
+is.null(res_xc_warn$plot)
+```
+
+Averaging over `EPAregion` removes the facets and the plot is built
+normally:
+
+```{r untangle-cat-cont, fig.height = 4}
+res_xc <- untangle_interaction(
+  fit_xc,
+  c("metro", "pctnonwhite10"),
+  average.over = "EPAregion"
+)
+res_xc$emtrends
+res_xc$plot
+```
+
+If we want every region retained despite exceeding the facet limit, we can
+set `overridePlot = TRUE`:
+
+```{r untangle-cat-cont-override, eval = FALSE}
+untangle_interaction(
+  fit_xc,
+  c("metro", "pctnonwhite10"),
+  overridePlot = TRUE
+)
+```
+
+### 17. Continuous × Continuous: `pctnonwhite10 * gdp2017b`
+
+For two continuous predictors `untangle_interaction()` returns:
+
+1.  Two `emtrends_*` data frames — the slope of each predictor at low
+    (mean − SD), medium (mean), and high (mean + SD) values of the other.
+2.  Two `johnson_neyman_*` objects — the range of the moderator over which
+    the focal slope is statistically discernible, computed via
+    `interactions::johnson_neyman()` with FDR control.
+
+```{r untangle-cont-cont, fig.height = 4}
+fit_nn <- poissonGLM(
+  FinalEC ~ pctnonwhite10 * gdp2017b + metro + EPAregion,
+  data = Greenberg26.dat
+)
+
+res_nn <- untangle_interaction(fit_nn, c("pctnonwhite10", "gdp2017b"))
+head(res_nn$emtrends_pctnonwhite10)
+head(res_nn$emtrends_gdp2017b)
+```
+
+Johnson-Neyman intervals describe the range of the moderator over which the
+focal slope is statistically discernible. Printing an object gives the
+numerical summary and renders the shaded-region plot; each object also
+carries a `$plot` element you can extract separately:
+
+```{r untangle-jn, fig.height = 4}
+res_nn$johnson_neyman_pctnonwhite10_by_gdp2017b
+```
+
+The interval shows that the slope of `pctnonwhite10` is significant (p < .05)
+when `gdp2017b` is **outside** roughly [104, 261] — meaning the race–prosecution
+relationship is detectable in both low- and high-GDP counties, but washes out
+at intermediate values. The reversed call (focal = `gdp2017b`) is in
+`res_nn$johnson_neyman_gdp2017b_by_pctnonwhite10`.
+
+If the continuous predictors have already been standardized (mean 0, SD 1),
+pass `standardized = TRUE` so the low/medium/high grid uses `-1, 0, 1` and
+the interpretation text refers to a "one-standard-deviation increase"
+rather than a "one-unit increase".
+
+---
+
 ## References
 
 Dahir, Abdi Latif. 2025. "Surveillance Camera Placement and Urban
