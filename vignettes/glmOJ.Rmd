@@ -61,7 +61,7 @@ data("Greenberg26.dat")
 Before fitting, `summarizeCountData()` gives a quick numerical and graphical
 overview of the count response alongside each predictor.
 
-```{r summarize, fig.height = 6}
+```{r summarize, fig.height = 6, cache = TRUE}
 summarizeCountData(
   FinalEC ~ eqi_2jan2018_vc +
     pctnonwhite10 +
@@ -275,7 +275,7 @@ data("Dahir25.dat")
 
 ### 7. Data Exploration
 
-```{r dahir-summarize, fig.height = 5}
+```{r dahir-summarize, fig.height = 5, cache = TRUE}
 summarizeCountData(
   cam_count ~ total_crime_rate + hinc + modal_zone + pvac,
   data = Dahir25.dat
@@ -426,7 +426,7 @@ data("ZITweedie.dat")
 
 ### 11. Data Exploration
 
-```{r zitw-summarize, fig.height = 4}
+```{r zitw-summarize, fig.height = 4, cache = TRUE}
 summarizeCountData(y ~ x1 + x2, data = ZITweedie.dat)
 ```
 
