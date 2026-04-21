@@ -84,10 +84,9 @@ dispersion ratio, and a two-panel diagnostic plot (fitted values vs. RQR
   six families, selects the best by the criterion in `decide` (`"BIC"`,
   `"AIC"`, `"LogLik"`, or `"McFadden"`), and returns a plain-language
   recommendation informed by the Pearson dispersion ratio and observed
-  vs. expected zero counts. Zero-inflated Tweedie is always fitted
-  alongside base Tweedie; ZI Poisson and ZI Negative Binomial are fitted
-  only when DHARMa detects significant zero-inflation in their base
-  counterpart.
+  vs. expected zero counts. Each zero-inflated counterpart (Poisson,
+  Negative Binomial, Tweedie) is fitted only when DHARMa detects
+  significant zero-inflation in its base model.
 
 ## Condition checking
 

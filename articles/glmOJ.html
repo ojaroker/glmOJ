@@ -99,11 +99,9 @@ families are:</p>
 <p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six and
 selects the best by a user-chosen criterion (<code>decide</code>):
 <code>"BIC"</code> (default), <code>"AIC"</code>, <code>"LogLik"</code>,
-or <code>"McFadden"</code> (McFadden pseudo-R²). Zero-inflated Tweedie
-is always fitted alongside the base Tweedie model (rather than being
-gated on a DHARMa test) because Tweedie’s dispersion parameter can
-absorb excess zeros, making the DHARMa zero-inflation test unreliable
-for this family.</p>
+or <code>"McFadden"</code> (McFadden pseudo-R²). Each zero-inflated
+counterpart (Poisson, Negative Binomial, Tweedie) is fitted only when
+the DHARMa zero-inflation test flags its base model (p &lt; 0.05).</p>
 <hr>
 </div>
 <div class="section level2">
@@ -606,9 +604,8 @@ confirming this:</p>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson</span></span>
 <span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.5), indicating overdispersion.</span></span>
-<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
-<span><span class="co">#&gt;   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p</span></span>
-<span><span class="co">#&gt;   = 0.010).</span></span></code></pre></div>
+<span><span class="co">#&gt;   Zero-inflation detected for Poisson and Tweedie; corresponding ZI</span></span>
+<span><span class="co">#&gt;   model(s) were fitted.</span></span></code></pre></div>
 <p>The comparison table shows AIC and BIC for all six families, sorted
 by the selection criterion. The selected model is
 <strong>negbin</strong>. The recommendation captures the relevant
@@ -751,13 +748,10 @@ binomial model will fit poorly.</p>
 <div class="section level3">
 <h3 id="automatic-model-selection-with-countglm-1">12. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm-1"></a>
 </h3>
-<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six families. Unlike Poisson and
-negative binomial, <code>zeroinfl_tweedie</code> is
-<strong>always</strong> fitted alongside <code>tweedie</code>: because
-glmmTMB can absorb excess zeros by inflating the dispersion parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>,
-the DHARMa zero-inflation test is unreliable for Tweedie. AIC/BIC
-arbitrates between the base and zero-inflated Tweedie fits directly.</p>
+<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits the three base families and then fits
+each zero-inflated counterpart only when the DHARMa zero-inflation test
+flags its base model (p &lt; 0.05). AIC/BIC then arbitrates among
+whichever models were fit.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_zitw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
@@ -769,23 +763,17 @@ arbitrates between the base and zero-inflated Tweedie fits directly.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
 <span><span class="co">#&gt;             model     AIC     BIC</span></span>
-<span><span class="co">#&gt;  zeroinfl_tweedie 1305.41 1337.34</span></span>
 <span><span class="co">#&gt;           tweedie 1433.70 1453.66</span></span>
 <span><span class="co">#&gt;            negbin 1462.02 1477.98</span></span>
 <span><span class="co">#&gt;  zeroinfl_poisson 1649.58 1673.53</span></span>
 <span><span class="co">#&gt;           poisson 3393.04 3405.02</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Selected model: zeroinfl_tweedie</span></span>
+<span><span class="co">#&gt; Selected model: tweedie</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
-<span><span class="co">#&gt;   Zero-Inflated Tweedie was selected by BIC (BIC = 1337.34). The</span></span>
-<span><span class="co">#&gt;   Poisson dispersion ratio is 8.97 (&gt; 1.5), indicating overdispersion.</span></span>
-<span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
-<span><span class="co">#&gt;   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p</span></span>
-<span><span class="co">#&gt;   = 0.938).</span></span></code></pre></div>
-<p>The recommendation confirms that <code>zeroinfl_tweedie</code> was
-selected and notes that it was always included in the candidate set
-regardless of the DHARMa result.</p>
+<span><span class="co">#&gt;   Tweedie was selected by BIC (BIC = 1453.66). The Poisson dispersion</span></span>
+<span><span class="co">#&gt;   ratio is 8.97 (&gt; 1.5), indicating overdispersion. Zero-inflation</span></span>
+<span><span class="co">#&gt;   detected for Poisson; corresponding ZI model(s) were fitted.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="fitting-zero-inflated-tweedie-directly">13. Fitting Zero-Inflated Tweedie Directly<a class="anchor" aria-label="anchor" href="#fitting-zero-inflated-tweedie-directly"></a>

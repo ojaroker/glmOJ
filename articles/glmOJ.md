@@ -22,10 +22,9 @@ A general-purpose wrapper
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
 fits all six and selects the best by a user-chosen criterion (`decide`):
 `"BIC"` (default), `"AIC"`, `"LogLik"`, or `"McFadden"` (McFadden
-pseudo-R²). Zero-inflated Tweedie is always fitted alongside the base
-Tweedie model (rather than being gated on a DHARMa test) because
-Tweedie’s dispersion parameter can absorb excess zeros, making the
-DHARMa zero-inflation test unreliable for this family.
+pseudo-R²). Each zero-inflated counterpart (Poisson, Negative Binomial,
+Tweedie) is fitted only when the DHARMa zero-inflation test flags its
+base model (p \< 0.05).
 
 ------------------------------------------------------------------------
 
@@ -559,9 +558,8 @@ print(result_cam)
 #> Recommendation:
 #>   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson
 #>   dispersion ratio is 2.42 (> 1.5), indicating overdispersion.
-#>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
-#>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
-#>   = 0.010).
+#>   Zero-inflation detected for Poisson and Tweedie; corresponding ZI
+#>   model(s) were fitted.
 ```
 
 The comparison table shows AIC and BIC for all six families, sorted by
@@ -721,12 +719,10 @@ binomial model will fit poorly.
 ### 12. Automatic Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all six families. Unlike Poisson and negative binomial,
-`zeroinfl_tweedie` is **always** fitted alongside `tweedie`: because
-glmmTMB can absorb excess zeros by inflating the dispersion parameter
-$\phi$, the DHARMa zero-inflation test is unreliable for Tweedie.
-AIC/BIC arbitrates between the base and zero-inflated Tweedie fits
-directly.
+fits the three base families and then fits each zero-inflated
+counterpart only when the DHARMa zero-inflation test flags its base
+model (p \< 0.05). AIC/BIC then arbitrates among whichever models were
+fit.
 
 ``` r
 result_zitw <- suppressWarnings(
@@ -739,25 +735,18 @@ print(result_zitw)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
 #>             model     AIC     BIC
-#>  zeroinfl_tweedie 1305.41 1337.34
 #>           tweedie 1433.70 1453.66
 #>            negbin 1462.02 1477.98
 #>  zeroinfl_poisson 1649.58 1673.53
 #>           poisson 3393.04 3405.02
 #> 
-#> Selected model: zeroinfl_tweedie
+#> Selected model: tweedie
 #> 
 #> Recommendation:
-#>   Zero-Inflated Tweedie was selected by BIC (BIC = 1337.34). The
-#>   Poisson dispersion ratio is 8.97 (> 1.5), indicating overdispersion.
-#>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
-#>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
-#>   = 0.938).
+#>   Tweedie was selected by BIC (BIC = 1453.66). The Poisson dispersion
+#>   ratio is 8.97 (> 1.5), indicating overdispersion. Zero-inflation
+#>   detected for Poisson; corresponding ZI model(s) were fitted.
 ```
-
-The recommendation confirms that `zeroinfl_tweedie` was selected and
-notes that it was always included in the candidate set regardless of the
-DHARMa result.
 
 ### 13. Fitting Zero-Inflated Tweedie Directly
 

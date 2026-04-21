@@ -123,9 +123,8 @@ or
 when count data show overdispersion and excess zeros that neither of
 those families adequately captures. When using
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
-this model is always fitted alongside the base Tweedie and selected via
-AIC/BIC — the DHARMa zero-inflation test is bypassed for Tweedie because
-glmmTMB can absorb excess zeros through its dispersion parameter.
+this model is fitted only when the DHARMa zero-inflation test flags the
+base Tweedie fit (p \< 0.05).
 
 ## See also
 
