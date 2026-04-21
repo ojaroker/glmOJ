@@ -38,10 +38,9 @@ interpreting count regression models. The six supported families are:
 
 A general-purpose wrapper `countGLM()` fits all six and selects the best by
 a user-chosen criterion (`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`,
-or `"McFadden"` (McFadden pseudo-R²). Zero-inflated Tweedie is always fitted
-alongside the base Tweedie model (rather than being gated on a DHARMa test)
-because Tweedie's dispersion parameter can absorb excess zeros, making the
-DHARMa zero-inflation test unreliable for this family.
+or `"McFadden"` (McFadden pseudo-R²). Each zero-inflated counterpart
+(Poisson, Negative Binomial, Tweedie) is fitted only when the DHARMa
+zero-inflation test flags its base model (p < 0.05).
 
 ---
 
@@ -436,11 +435,9 @@ fit poorly.
 
 ### 12. Automatic Model Selection with `countGLM`
 
-`countGLM()` fits all six families. Unlike Poisson and negative binomial,
-`zeroinfl_tweedie` is **always** fitted alongside `tweedie`: because glmmTMB
-can absorb excess zeros by inflating the dispersion parameter $\phi$, the
-DHARMa zero-inflation test is unreliable for Tweedie. AIC/BIC arbitrates
-between the base and zero-inflated Tweedie fits directly.
+`countGLM()` fits the three base families and then fits each zero-inflated
+counterpart only when the DHARMa zero-inflation test flags its base model
+(p < 0.05). AIC/BIC then arbitrates among whichever models were fit.
 
 ```{r zitw-countglm}
 result_zitw <- suppressWarnings(
@@ -448,10 +445,6 @@ result_zitw <- suppressWarnings(
 )
 print(result_zitw)
 ```
-
-The recommendation confirms that `zeroinfl_tweedie` was selected and notes
-that it was always included in the candidate set regardless of the DHARMa
-result.
 
 ### 13. Fitting Zero-Inflated Tweedie Directly
 

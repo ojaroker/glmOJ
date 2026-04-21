@@ -57,10 +57,9 @@
 #' It handles excess zeros and complex variance structures simultaneously.
 #' Prefer this over [zeroinflPoissonGLM()] or [zeroinflNegbinGLM()] when count
 #' data show overdispersion and excess zeros that neither of those families
-#' adequately captures. When using [countGLM()], this model is always fitted
-#' alongside the base Tweedie and selected via AIC/BIC — the DHARMa
-#' zero-inflation test is bypassed for Tweedie because glmmTMB can absorb
-#' excess zeros through its dispersion parameter.
+#' adequately captures. When using [countGLM()], this model is fitted only
+#' when the DHARMa zero-inflation test flags the base Tweedie fit
+#' (p < 0.05).
 #'
 #' @examples
 #' df <- data.frame(

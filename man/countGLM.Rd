@@ -37,12 +37,11 @@ An object of class \code{"countGLM"}, a list with:
 \item{\code{call}}{The matched call.}
 \item{\code{fits}}{A named list of successfully fitted model objects. Base
 models (\code{poisson}, \code{negbin}, \code{tweedie}) are always attempted.
-\code{zeroinfl_poisson} and \code{zeroinfl_negbin} are fitted only when the
-DHARMa zero-inflation test flags their base model (p < 0.05).
-\code{zeroinfl_tweedie} is \strong{always} fitted alongside \code{tweedie} because
-glmmTMB's flexible dispersion makes the DHARMa test unreliable for
-that family. Any model that failed to converge is omitted. Base model
-fits include \code{diagnostics$zi_test} populated from the DHARMa test.}
+\code{zeroinfl_poisson}, \code{zeroinfl_negbin}, and \code{zeroinfl_tweedie} are
+fitted only when the DHARMa zero-inflation test flags their base
+model (p < 0.05). Any model that failed to converge is omitted. Base
+model fits include \code{diagnostics$zi_test} populated from the DHARMa
+test.}
 \item{\code{aic_table}}{A named numeric vector of AICs, sorted ascending.}
 \item{\code{bic_table}}{A named numeric vector of BICs, sorted ascending.}
 \item{\code{metric_table}}{A named numeric vector of the selection metric
@@ -68,12 +67,9 @@ then selects the best overall model by the metric given in \code{decide}.
 \details{
 \strong{Workflow:} \code{\link[=countGLM]{countGLM()}} fits Poisson, negative binomial, and Tweedie
 base models. It then runs a DHARMa simulation test for zero-inflation on
-each successful base model. For Poisson and negative binomial, the
-zero-inflated counterpart is fitted only when zero-inflation is detected
-(p < 0.05). For Tweedie, the zero-inflated counterpart is \strong{always} fitted
-alongside the base model: glmmTMB can absorb excess zeros by inflating the
-dispersion parameter \code{phi}, which makes the DHARMa ZI test unreliable for
-this family. All surviving models are compared by \code{decide}.
+each successful base model. For every family, the zero-inflated counterpart
+is fitted only when zero-inflation is detected (p < 0.05) on its base
+model. All surviving models are compared by \code{decide}.
 
 \strong{Model selection:} The model with the best value of \code{decide} is chosen.
 For \code{"AIC"} and \code{"BIC"} the model with the \emph{lowest} value wins; for

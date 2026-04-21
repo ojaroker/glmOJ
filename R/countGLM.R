@@ -29,12 +29,11 @@
 #'     \item{`call`}{The matched call.}
 #'     \item{`fits`}{A named list of successfully fitted model objects. Base
 #'       models (`poisson`, `negbin`, `tweedie`) are always attempted.
-#'       `zeroinfl_poisson` and `zeroinfl_negbin` are fitted only when the
-#'       DHARMa zero-inflation test flags their base model (p < 0.05).
-#'       `zeroinfl_tweedie` is **always** fitted alongside `tweedie` because
-#'       glmmTMB's flexible dispersion makes the DHARMa test unreliable for
-#'       that family. Any model that failed to converge is omitted. Base model
-#'       fits include `diagnostics$zi_test` populated from the DHARMa test.}
+#'       `zeroinfl_poisson`, `zeroinfl_negbin`, and `zeroinfl_tweedie` are
+#'       fitted only when the DHARMa zero-inflation test flags their base
+#'       model (p < 0.05). Any model that failed to converge is omitted. Base
+#'       model fits include `diagnostics$zi_test` populated from the DHARMa
+#'       test.}
 #'     \item{`aic_table`}{A named numeric vector of AICs, sorted ascending.}
 #'     \item{`bic_table`}{A named numeric vector of BICs, sorted ascending.}
 #'     \item{`metric_table`}{A named numeric vector of the selection metric
@@ -54,12 +53,9 @@
 #' @details
 #' **Workflow:** [countGLM()] fits Poisson, negative binomial, and Tweedie
 #' base models. It then runs a DHARMa simulation test for zero-inflation on
-#' each successful base model. For Poisson and negative binomial, the
-#' zero-inflated counterpart is fitted only when zero-inflation is detected
-#' (p < 0.05). For Tweedie, the zero-inflated counterpart is **always** fitted
-#' alongside the base model: glmmTMB can absorb excess zeros by inflating the
-#' dispersion parameter `phi`, which makes the DHARMa ZI test unreliable for
-#' this family. All surviving models are compared by `decide`.
+#' each successful base model. For every family, the zero-inflated counterpart
+#' is fitted only when zero-inflation is detected (p < 0.05) on its base
+#' model. All surviving models are compared by `decide`.
 #'
 #' **Model selection:** The model with the best value of `decide` is chosen.
 #' For `"AIC"` and `"BIC"` the model with the *lowest* value wins; for
@@ -215,12 +211,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   for (nm in names(base_fits)[base_ok]) {
     zi_result <- base_fits[[nm]]$diagnostics$zi_test
 
-    # Tweedie: always fit the ZI counterpart. glmmTMB can absorb excess zeros
-    # by inflating phi, making the DHARMa ZI test unreliable for this family.
-    # Poisson/NegBin: gate on DHARMa detection as usual.
-    should_fit_zi <- (nm == "tweedie") || isTRUE(zi_result$detected)
-
-    if (should_fit_zi) {
+    if (isTRUE(zi_result$detected)) {
       zi_nm  <- zi_map[[nm]]
       result <- tryCatch(zi_fitters[[zi_nm]](), error = function(e) e)
       if (!inherits(result, "error")) {
@@ -373,7 +364,7 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
   zi_detected_labels <- character(0L)
   zi_p_parts         <- character(0L)
 
-  for (nm in c("poisson", "negbin")) {
+  for (nm in c("poisson", "negbin", "tweedie")) {
     fit_nm <- fits[[nm]]
     if (!is.null(fit_nm)) {
       zi_res <- fit_nm$diagnostics$zi_test
@@ -389,27 +380,13 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     }
   }
 
-  # Tweedie ZI is always fitted; report its DHARMa result only informally.
-  tw_zi_note <- ""
-  if (!is.null(fits[["tweedie"]])) {
-    zi_res <- fits[["tweedie"]]$diagnostics$zi_test
-    if (!is.null(zi_res) && !is.na(zi_res$p_value)) {
-      tw_zi_note <- sprintf(
-        "Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p = %.3f).",
-        zi_res$p_value
-      )
-    } else {
-      tw_zi_note <- "Zero-Inflated Tweedie was fitted alongside Tweedie."
-    }
-  }
-
   if (length(zi_detected_labels) > 0L) {
     zi_msg <- sprintf(
       "Zero-inflation detected for %s; corresponding ZI model(s) were fitted.",
       paste(zi_detected_labels, collapse = " and ")
     )
   } else if (length(zi_p_parts) > 0L) {
-    zi_msg <- "No significant zero-inflation detected for Poisson or Negative Binomial."
+    zi_msg <- "No significant zero-inflation detected."
   }
 
   # --- Selection message ---
@@ -427,7 +404,7 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     .model_label(best_name), metric_label, metric_label, val_str
   )
 
-  parts <- c(selection_msg, disp_msg, zi_msg, tw_zi_note)
+  parts <- c(selection_msg, disp_msg, zi_msg)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }
