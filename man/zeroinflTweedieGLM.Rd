@@ -4,7 +4,7 @@
 \alias{zeroinflTweedieGLM}
 \title{Fit a zero-inflated Tweedie regression model}
 \usage{
-zeroinflTweedieGLM(formula, data, ziformula = NULL, ...)
+zeroinflTweedieGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
 }
 \arguments{
 \item{formula}{A model formula for the \strong{count} component (e.g.
@@ -17,6 +17,10 @@ zeroinflTweedieGLM(formula, data, ziformula = NULL, ...)
 (e.g. \code{~ x1}). When \code{NULL} (default), the same right-hand side as
 \code{formula} is used for both components. Use \code{~ 1} for an intercept-only
 zero-inflation model.}
+
+\item{maxit}{Optional integer; maximum optimizer iterations passed through
+as \code{control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))}. Ignored when the user supplies their own \code{control}
+via \code{...}.}
 
 \item{...}{Additional arguments passed to \code{\link[glmmTMB:glmmTMB]{glmmTMB::glmmTMB()}}.}
 }

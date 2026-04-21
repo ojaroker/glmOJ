@@ -17,6 +17,11 @@
 #'   One of `"BIC"` (default), `"AIC"`, `"LogLik"` (log-likelihood, higher
 #'   is better), or `"McFadden"` (McFadden pseudo-R², higher is better).
 #'   Matching is case-insensitive.
+#' @param maxit Optional integer; maximum optimizer/IWLS iterations. When
+#'   non-`NULL`, forwarded as the `maxit` argument to each underlying fitter
+#'   ([poissonGLM()], [negbinGLM()], [tweedieGLM()], and the ZI counterparts),
+#'   which translate it into the appropriate backend `control` object. A
+#'   single value is applied across every model family.
 #' @param ... Additional arguments passed to each individual model fitter.
 #'
 #' @return An object of class `"countGLM"`, a list with:
@@ -79,12 +84,15 @@
 #' @seealso [poissonGLM()], [negbinGLM()], [tweedieGLM()],
 #'   [zeroinflPoissonGLM()], [zeroinflNegbinGLM()], [zeroinflTweedieGLM()]
 #' @export
-countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
+countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
+                     maxit = NULL, ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
     "ziformula must be a formula or NULL" =
-      is.null(ziformula) || inherits(ziformula, "formula")
+      is.null(ziformula) || inherits(ziformula, "formula"),
+    "maxit must be a positive integer or NULL" =
+      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   decide_norm <- tolower(trimws(decide))
@@ -113,15 +121,15 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
   # ---------------------------------------------------------------------------
   base_fits <- list(
     poisson = tryCatch(
-      poissonGLM(formula, data, assessZeroInflation = FALSE, ...),
+      poissonGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
       error = function(e) e
     ),
     negbin = tryCatch(
-      negbinGLM(formula, data, assessZeroInflation = FALSE, ...),
+      negbinGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
       error = function(e) e
     ),
     tweedie = tryCatch(
-      tweedieGLM(formula, data, assessZeroInflation = FALSE, ...),
+      tweedieGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
       error = function(e) e
     )
   )
@@ -182,9 +190,9 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     tweedie = "zeroinfl_tweedie"
   )
   zi_fitters <- list(
-    zeroinfl_poisson = function() zeroinflPoissonGLM(formula, data, ziformula = ziformula, ...),
-    zeroinfl_negbin  = function() zeroinflNegbinGLM(formula, data, ziformula = ziformula, ...),
-    zeroinfl_tweedie = function() zeroinflTweedieGLM(formula, data, ziformula = ziformula, ...)
+    zeroinfl_poisson = function() zeroinflPoissonGLM(formula, data, ziformula = ziformula, maxit = maxit, ...),
+    zeroinfl_negbin  = function() zeroinflNegbinGLM(formula, data, ziformula = ziformula, maxit = maxit, ...),
+    zeroinfl_tweedie = function() zeroinflTweedieGLM(formula, data, ziformula = ziformula, maxit = maxit, ...)
   )
 
   # Warm-start ZI Tweedie count component from the base Tweedie fit to improve
@@ -197,6 +205,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     if (!is.null(tw_beta)) {
       zi_fitters[["zeroinfl_tweedie"]] <- function() {
         zeroinflTweedieGLM(formula, data, ziformula = ziformula,
+                           maxit = maxit,
                            start = list(beta = tw_beta), ...)
       }
     }

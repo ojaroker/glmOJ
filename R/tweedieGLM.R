@@ -14,6 +14,10 @@
 #'   significant zero-inflation is detected and adds `zi_test` to the returned
 #'   diagnostics. Set to `FALSE` when calling from [countGLM()], which performs
 #'   its own zero-inflation assessment.
+#' @param maxit Optional integer; maximum optimizer iterations passed through
+#'   as `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit,
+#'   eval.max = maxit))`. Ignored when the user supplies their own `control`
+#'   via `...`.
 #' @param ... Additional arguments passed to [glmmTMB::glmmTMB()].
 #'
 #' @return An object of class `c("tweedieGLM", "countGLMfit")`, a list with:
@@ -73,16 +77,25 @@
 #' @seealso [zeroinflTweedieGLM()], [negbinGLM()], [poissonGLM()],
 #'   [countGLM()], [glmmTMB::glmmTMB()]
 #' @export
-tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
+tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
-    "data must be a data frame"        = is.data.frame(data)
+    "data must be a data frame"        = is.data.frame(data),
+    "maxit must be a positive integer or NULL" =
+      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   check_sample_size(formula, data)
-  fit <- glmmTMB::glmmTMB(
-    formula, data = data,
-    family = glmmTMB::tweedie(link = "log"), ...
+  dots <- list(...)
+  if (!is.null(maxit) && !"control" %in% names(dots)) {
+    dots$control <- glmmTMB::glmmTMBControl(
+      optCtrl = list(iter.max = as.integer(maxit), eval.max = as.integer(maxit))
+    )
+  }
+  fit <- do.call(
+    glmmTMB::glmmTMB,
+    c(list(formula = formula, data = data,
+           family = glmmTMB::tweedie(link = "log")), dots)
   )
   conv_code <- tryCatch(fit$fit$convergence, error = function(e) 1L)
   pd_hess   <- tryCatch(isTRUE(fit$sdr$pdHess), error = function(e) FALSE)

@@ -4,7 +4,7 @@
 \alias{countGLM}
 \title{Fit and compare count regression models}
 \usage{
-countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
+countGLM(formula, data, ziformula = NULL, decide = "BIC", maxit = NULL, ...)
 }
 \arguments{
 \item{formula}{A model formula for the count component (e.g. \code{y ~ x1 + x2}).
@@ -22,6 +22,12 @@ same right-hand side as \code{formula} is used.}
 One of \code{"BIC"} (default), \code{"AIC"}, \code{"LogLik"} (log-likelihood, higher
 is better), or \code{"McFadden"} (McFadden pseudo-R², higher is better).
 Matching is case-insensitive.}
+
+\item{maxit}{Optional integer; maximum optimizer/IWLS iterations. When
+non-\code{NULL}, forwarded as the \code{maxit} argument to each underlying fitter
+(\code{\link[=poissonGLM]{poissonGLM()}}, \code{\link[=negbinGLM]{negbinGLM()}}, \code{\link[=tweedieGLM]{tweedieGLM()}}, and the ZI counterparts),
+which translate it into the appropriate backend \code{control} object. A
+single value is applied across every model family.}
 
 \item{...}{Additional arguments passed to each individual model fitter.}
 }

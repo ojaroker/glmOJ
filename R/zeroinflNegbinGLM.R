@@ -13,6 +13,9 @@
 #'   (e.g. `~ x1`). When `NULL` (default), the same right-hand side as
 #'   `formula` is used for both components. Use `~ 1` for an intercept-only
 #'   zero-inflation model.
+#' @param maxit Optional integer; maximum optimizer iterations passed through
+#'   as `control = pscl::zeroinfl.control(maxit = maxit)`. Ignored when the
+#'   user supplies their own `control` via `...`.
 #' @param ... Additional arguments passed to [pscl::zeroinfl()].
 #'
 #' @return An object of class `c("zeroinflNegbinGLM", "zeroinflGLMfit",
@@ -68,12 +71,14 @@
 #' @seealso [zeroinflPoissonGLM()], [zeroinflTweedieGLM()], [negbinGLM()],
 #'   [countGLM()], [pscl::zeroinfl()]
 #' @export
-zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, ...) {
+zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
     "ziformula must be a formula or NULL" =
-      is.null(ziformula) || inherits(ziformula, "formula")
+      is.null(ziformula) || inherits(ziformula, "formula"),
+    "maxit must be a positive integer or NULL" =
+      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   effective_zi <- if (is.null(ziformula)) {
@@ -84,7 +89,14 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, ...) {
   check_sample_size(formula, data, effective_zi)
 
   full_formula <- build_zi_formula(formula, ziformula)
-  fit <- pscl::zeroinfl(full_formula, data = data, dist = "negbin", ...)
+  dots <- list(...)
+  if (!is.null(maxit) && !"control" %in% names(dots)) {
+    dots$control <- pscl::zeroinfl.control(maxit = as.integer(maxit))
+  }
+  fit <- do.call(
+    pscl::zeroinfl,
+    c(list(formula = full_formula, data = data, dist = "negbin"), dots)
+  )
 
   coef_tables <- zi_coef_tables(fit, count_label = "exp.coef", zero_label = "exp.coef")
 

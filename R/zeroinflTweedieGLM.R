@@ -13,6 +13,10 @@
 #'   (e.g. `~ x1`). When `NULL` (default), the same right-hand side as
 #'   `formula` is used for both components. Use `~ 1` for an intercept-only
 #'   zero-inflation model.
+#' @param maxit Optional integer; maximum optimizer iterations passed through
+#'   as `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit,
+#'   eval.max = maxit))`. Ignored when the user supplies their own `control`
+#'   via `...`.
 #' @param ... Additional arguments passed to [glmmTMB::glmmTMB()].
 #'
 #' @return An object of class `c("zeroinflTweedieGLM", "zeroinflGLMfit",
@@ -77,12 +81,14 @@
 #' @seealso [tweedieGLM()], [zeroinflNegbinGLM()], [countGLM()],
 #'   [glmmTMB::glmmTMB()]
 #' @export
-zeroinflTweedieGLM <- function(formula, data, ziformula = NULL, ...) {
+zeroinflTweedieGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
     "ziformula must be a formula or NULL" =
-      is.null(ziformula) || inherits(ziformula, "formula")
+      is.null(ziformula) || inherits(ziformula, "formula"),
+    "maxit must be a positive integer or NULL" =
+      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   effective_zi <- if (is.null(ziformula)) {
@@ -92,10 +98,17 @@ zeroinflTweedieGLM <- function(formula, data, ziformula = NULL, ...) {
   }
   check_sample_size(formula, data, effective_zi)
 
-  fit <- glmmTMB::glmmTMB(
-    formula, data = data,
-    family   = glmmTMB::tweedie(link = "log"),
-    ziformula = effective_zi, ...
+  dots <- list(...)
+  if (!is.null(maxit) && !"control" %in% names(dots)) {
+    dots$control <- glmmTMB::glmmTMBControl(
+      optCtrl = list(iter.max = as.integer(maxit), eval.max = as.integer(maxit))
+    )
+  }
+  fit <- do.call(
+    glmmTMB::glmmTMB,
+    c(list(formula = formula, data = data,
+           family = glmmTMB::tweedie(link = "log"),
+           ziformula = effective_zi), dots)
   )
 
   conv_code <- tryCatch(fit$fit$convergence, error = function(e) 1L)

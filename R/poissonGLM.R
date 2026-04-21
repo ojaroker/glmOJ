@@ -12,6 +12,9 @@
 #'   significant zero-inflation is detected and adds `zi_test` to the returned
 #'   diagnostics. Set to `FALSE` when calling from [countGLM()], which performs
 #'   its own zero-inflation assessment.
+#' @param maxit Optional integer; maximum IWLS iterations passed through as
+#'   `control = stats::glm.control(maxit = maxit)`. Ignored when the user
+#'   supplies their own `control` via `...`.
 #' @param ... Additional arguments passed to [stats::glm()].
 #'
 #' @return An object of class `c("poissonGLM", "countGLMfit")`, a list with:
@@ -57,14 +60,23 @@
 #' @seealso [negbinGLM()], [tweedieGLM()], [zeroinflPoissonGLM()],
 #'   [countGLM()], [stats::glm()]
 #' @export
-poissonGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
+poissonGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
-    "data must be a data frame"        = is.data.frame(data)
+    "data must be a data frame"        = is.data.frame(data),
+    "maxit must be a positive integer or NULL" =
+      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   check_sample_size(formula, data)
-  fit <- stats::glm(formula, data = data, family = stats::poisson(), ...)
+  dots <- list(...)
+  if (!is.null(maxit) && !"control" %in% names(dots)) {
+    dots$control <- stats::glm.control(maxit = as.integer(maxit))
+  }
+  fit <- do.call(
+    stats::glm,
+    c(list(formula = formula, data = data, family = stats::poisson()), dots)
+  )
   if (!isTRUE(fit$converged)) {
     stop(
       "Poisson GLM did not converge. Check for extreme predictor values, perfect separation, or collinearity.",

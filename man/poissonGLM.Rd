@@ -4,7 +4,7 @@
 \alias{poissonGLM}
 \title{Fit a Poisson regression model}
 \usage{
-poissonGLM(formula, data, assessZeroInflation = TRUE, ...)
+poissonGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
 }
 \arguments{
 \item{formula}{A model formula (e.g. \code{y ~ x1 + x2}). The response must be
@@ -17,6 +17,10 @@ simulation-based zero-inflation test after fitting. Issues a warning if
 significant zero-inflation is detected and adds \code{zi_test} to the returned
 diagnostics. Set to \code{FALSE} when calling from \code{\link[=countGLM]{countGLM()}}, which performs
 its own zero-inflation assessment.}
+
+\item{maxit}{Optional integer; maximum IWLS iterations passed through as
+\code{control = stats::glm.control(maxit = maxit)}. Ignored when the user
+supplies their own \code{control} via \code{...}.}
 
 \item{...}{Additional arguments passed to \code{\link[stats:glm]{stats::glm()}}.}
 }
