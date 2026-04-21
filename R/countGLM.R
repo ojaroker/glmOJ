@@ -187,6 +187,21 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC", ...) {
     zeroinfl_tweedie = function() zeroinflTweedieGLM(formula, data, ziformula = ziformula, ...)
   )
 
+  # Warm-start ZI Tweedie count component from the base Tweedie fit to improve
+  # convergence when the formula has many predictors.
+  if (base_ok[["tweedie"]]) {
+    tw_beta <- tryCatch(
+      as.numeric(glmmTMB::fixef(base_fits[["tweedie"]]$model)$cond),
+      error = function(e) NULL
+    )
+    if (!is.null(tw_beta)) {
+      zi_fitters[["zeroinfl_tweedie"]] <- function() {
+        zeroinflTweedieGLM(formula, data, ziformula = ziformula,
+                           start = list(beta = tw_beta), ...)
+      }
+    }
+  }
+
   zi_fits <- list()
   for (nm in names(base_fits)[base_ok]) {
     zi_result <- base_fits[[nm]]$diagnostics$zi_test
@@ -371,7 +386,7 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     zi_res <- fits[["tweedie"]]$diagnostics$zi_test
     if (!is.null(zi_res) && !is.na(zi_res$p_value)) {
       tw_zi_note <- sprintf(
-        "Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p = %.3f; ZI test unreliable for this family).",
+        "Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p = %.3f).",
         zi_res$p_value
       )
     } else {

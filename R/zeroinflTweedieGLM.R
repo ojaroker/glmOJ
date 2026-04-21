@@ -98,6 +98,16 @@ zeroinflTweedieGLM <- function(formula, data, ziformula = NULL, ...) {
     ziformula = effective_zi, ...
   )
 
+  conv_code <- tryCatch(fit$fit$convergence, error = function(e) 1L)
+  pd_hess   <- tryCatch(isTRUE(fit$sdr$pdHess), error = function(e) FALSE)
+  if (!isTRUE(conv_code == 0L) || !pd_hess) {
+    stop(
+      "Zero-Inflated Tweedie GLM did not converge. ",
+      "Try a simpler zero-inflation formula (e.g. ziformula = ~1) or check for multicollinearity.",
+      call. = FALSE
+    )
+  }
+
   # Tweedie-specific parameters
   phi <- tryCatch(glmmTMB::sigma(fit), error = function(e) NA_real_)
   p   <- .get_tweedie_p(fit)

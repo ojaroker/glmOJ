@@ -85,7 +85,8 @@ tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, ...) {
     family = glmmTMB::tweedie(link = "log"), ...
   )
   conv_code <- tryCatch(fit$fit$convergence, error = function(e) 1L)
-  if (!isTRUE(conv_code == 0L)) {
+  pd_hess   <- tryCatch(isTRUE(fit$sdr$pdHess), error = function(e) FALSE)
+  if (!isTRUE(conv_code == 0L) || !pd_hess) {
     stop(
       "Tweedie GLM did not converge. Check for extreme predictor values or numerical issues.",
       call. = FALSE
