@@ -9,7 +9,7 @@ metric given in `decide`.
 ## Usage
 
 ``` r
-countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
+countGLM(formula, data, ziformula = NULL, decide = "BIC", maxit = NULL, ...)
 ```
 
 ## Arguments
@@ -40,6 +40,17 @@ countGLM(formula, data, ziformula = NULL, decide = "BIC", ...)
   `"BIC"` (default), `"AIC"`, `"LogLik"` (log-likelihood, higher is
   better), or `"McFadden"` (McFadden pseudo-R², higher is better).
   Matching is case-insensitive.
+
+- maxit:
+
+  Optional integer; maximum optimizer/IWLS iterations. When non-`NULL`,
+  forwarded as the `maxit` argument to each underlying fitter
+  ([`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md),
+  [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md),
+  [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md),
+  and the ZI counterparts), which translate it into the appropriate
+  backend `control` object. A single value is applied across every model
+  family.
 
 - ...:
 
@@ -164,7 +175,8 @@ summary(result)
 #> 
 #> 
 #> Call:
-#> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE)
+#> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE, 
+#>     maxit = maxit)
 #> 
 #> Model family: poissonGLM 
 #> 

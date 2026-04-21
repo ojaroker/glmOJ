@@ -11,7 +11,7 @@ non-negative count data with complex variance structures.
 ## Usage
 
 ``` r
-tweedieGLM(formula, data, assessZeroInflation = TRUE, ...)
+tweedieGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
 ```
 
 ## Arguments
@@ -33,6 +33,12 @@ tweedieGLM(formula, data, assessZeroInflation = TRUE, ...)
   diagnostics. Set to `FALSE` when calling from
   [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
   which performs its own zero-inflation assessment.
+
+- maxit:
+
+  Optional integer; maximum optimizer iterations passed through as
+  `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))`.
+  Ignored when the user supplies their own `control` via `...`.
 
 - ...:
 

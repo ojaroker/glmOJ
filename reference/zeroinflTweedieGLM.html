@@ -46,7 +46,7 @@ parameters, and diagnostic plots.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">zeroinflTweedieGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, ziformula <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">zeroinflTweedieGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, ziformula <span class="op">=</span> <span class="cn">NULL</span>, maxit <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,6 +68,12 @@ parameters, and diagnostic plots.</p>
 (e.g. <code>~ x1</code>). When <code>NULL</code> (default), the same right-hand side as
 <code>formula</code> is used for both components. Use <code>~ 1</code> for an intercept-only
 zero-inflation model.</p></dd>
+
+
+<dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
+<dd><p>Optional integer; maximum optimizer iterations passed through
+as <code>control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))</code>. Ignored when the user supplies their own <code>control</code>
+via <code>...</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

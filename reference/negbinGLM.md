@@ -9,7 +9,7 @@ diagnostic plots.
 ## Usage
 
 ``` r
-negbinGLM(formula, data, assessZeroInflation = TRUE, ...)
+negbinGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
 ```
 
 ## Arguments
@@ -31,6 +31,12 @@ negbinGLM(formula, data, assessZeroInflation = TRUE, ...)
   diagnostics. Set to `FALSE` when calling from
   [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md),
   which performs its own zero-inflation assessment.
+
+- maxit:
+
+  Optional integer; maximum IWLS iterations passed through as
+  `control = stats::glm.control(maxit = maxit)`. Ignored when the user
+  supplies their own `control` via `...`.
 
 - ...:
 

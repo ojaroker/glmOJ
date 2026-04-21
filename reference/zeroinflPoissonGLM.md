@@ -9,7 +9,7 @@ and a diagnostic plot.
 ## Usage
 
 ``` r
-zeroinflPoissonGLM(formula, data, ziformula = NULL, ...)
+zeroinflPoissonGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
 ```
 
 ## Arguments
@@ -30,6 +30,12 @@ zeroinflPoissonGLM(formula, data, ziformula = NULL, ...)
   `~ x1`). When `NULL` (default), the same right-hand side as `formula`
   is used for both components. Use `~ 1` for an intercept-only
   zero-inflation model.
+
+- maxit:
+
+  Optional integer; maximum optimizer iterations passed through as
+  `control = pscl::zeroinfl.control(maxit = maxit)`. Ignored when the
+  user supplies their own `control` via `...`.
 
 - ...:
 

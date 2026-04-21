@@ -9,7 +9,7 @@ and power (`p`) parameters, and diagnostic plots.
 ## Usage
 
 ``` r
-zeroinflTweedieGLM(formula, data, ziformula = NULL, ...)
+zeroinflTweedieGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
 ```
 
 ## Arguments
@@ -30,6 +30,12 @@ zeroinflTweedieGLM(formula, data, ziformula = NULL, ...)
   `~ x1`). When `NULL` (default), the same right-hand side as `formula`
   is used for both components. Use `~ 1` for an intercept-only
   zero-inflation model.
+
+- maxit:
+
+  Optional integer; maximum optimizer iterations passed through as
+  `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))`.
+  Ignored when the user supplies their own `control` via `...`.
 
 - ...:
 

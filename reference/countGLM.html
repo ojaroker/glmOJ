@@ -46,7 +46,7 @@ then selects the best overall model by the metric given in <code>decide</code>.<
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">countGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, ziformula <span class="op">=</span> <span class="cn">NULL</span>, decide <span class="op">=</span> <span class="st">"BIC"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">countGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, ziformula <span class="op">=</span> <span class="cn">NULL</span>, decide <span class="op">=</span> <span class="st">"BIC"</span>, maxit <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,6 +75,14 @@ same right-hand side as <code>formula</code> is used.</p></dd>
 One of <code>"BIC"</code> (default), <code>"AIC"</code>, <code>"LogLik"</code> (log-likelihood, higher
 is better), or <code>"McFadden"</code> (McFadden pseudo-R², higher is better).
 Matching is case-insensitive.</p></dd>
+
+
+<dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
+<dd><p>Optional integer; maximum optimizer/IWLS iterations. When
+non-<code>NULL</code>, forwarded as the <code>maxit</code> argument to each underlying fitter
+(<code><a href="poissonGLM.html">poissonGLM()</a></code>, <code><a href="negbinGLM.html">negbinGLM()</a></code>, <code><a href="tweedieGLM.html">tweedieGLM()</a></code>, and the ZI counterparts),
+which translate it into the appropriate backend <code>control</code> object. A
+single value is applied across every model family.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -181,7 +189,8 @@ family to compute the pseudo-R².</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     maxit = maxit)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model family: poissonGLM </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>

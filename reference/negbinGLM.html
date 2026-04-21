@@ -43,7 +43,7 @@ residuals (RQR), a Pearson dispersion ratio, and diagnostic plots.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">negbinGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, assessZeroInflation <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">negbinGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, assessZeroInflation <span class="op">=</span> <span class="cn">TRUE</span>, maxit <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -65,6 +65,12 @@ simulation-based zero-inflation test after fitting. Issues a warning if
 significant zero-inflation is detected and adds <code>zi_test</code> to the returned
 diagnostics. Set to <code>FALSE</code> when calling from <code><a href="countGLM.html">countGLM()</a></code>, which performs
 its own zero-inflation assessment.</p></dd>
+
+
+<dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
+<dd><p>Optional integer; maximum IWLS iterations passed through as
+<code>control = stats::glm.control(maxit = maxit)</code>. Ignored when the user
+supplies their own <code>control</code> via <code>...</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
