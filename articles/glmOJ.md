@@ -561,7 +561,7 @@ print(result_cam)
 #>   dispersion ratio is 2.42 (> 1.5), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
-#>   = 0.010; ZI test unreliable for this family).
+#>   = 0.010).
 ```
 
 The comparison table shows AIC and BIC for all six families, sorted by
@@ -752,7 +752,7 @@ print(result_zitw)
 #>   Poisson dispersion ratio is 8.97 (> 1.5), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted. Zero-Inflated Tweedie was fitted alongside Tweedie (DHARMa p
-#>   = 0.938; ZI test unreliable for this family).
+#>   = 0.938).
 ```
 
 The recommendation confirms that `zeroinfl_tweedie` was selected and
