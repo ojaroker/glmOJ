@@ -154,20 +154,7 @@ The dispersion ratio is now
 `r round(mod.nb$diagnostics$dispersion_ratio, 3)` — much closer to 1. The
 estimated $\theta$ is `r round(mod.nb$theta, 3)`.
 
-### 4. Comparing Models: Likelihood Ratio Test
-
-Because the Poisson model is nested within the negative binomial (Poisson is
-NB with $\theta \to \infty$), we can use a likelihood ratio test. The
-underlying `glm`/`glm.nb` fit objects are available via `$model`:
-
-```{r lrt}
-lmtest::lrtest(mod.pois$model, mod.nb$model)
-```
-
-The negative binomial model is significantly better ($p < 0.0001$), confirming
-that overdispersion is a genuine problem for the Poisson fit.
-
-### 5. Using the `countGLM` Wrapper
+### 4. Using the `countGLM` Wrapper
 
 Rather than fitting each model manually, `countGLM()` fits all six families
 at once and selects the best by the criterion specified in `decide` (default
@@ -221,7 +208,7 @@ test via `nonnest2::vuongtest(result1$fits$negbin$model, result2$fits$negbin$mod
 
 ---
 
-## 6. Coefficient Interpretation
+## 5. Coefficient Interpretation
 
 `interpret_coef()` translates any exponentiated coefficient into a
 plain-language statement, with a 95% CI and an automatic note when the
@@ -265,14 +252,13 @@ interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
 
 Dahir (2025) models the number of surveillance cameras per census tract
 across ten US cities. The response `cam_count` is a non-negative integer
-with 87.6% zeros and a variance-to-mean ratio of approximately 3.6 —
-classic signs of both excess zeros and overdispersion.
+with 87.6% zeros and a variance-to-mean ratio of approximately 3.6, a warning sign that a standard Poisson model may fit poorly.
 
 ```{r load-dahir}
 data("Dahir25.dat")
 ```
 
-### 7. Data Exploration
+### 6. Data Exploration
 
 ```{r dahir-summarize, fig.height = 5, cache = TRUE}
 summarizeCountData(
@@ -281,20 +267,18 @@ summarizeCountData(
 )
 ```
 
-The summary table makes the issue concrete: the variance-to-mean ratio far
-exceeds 1 and the frequency table is dominated by zeros. Camera placement
-varies substantially by land-use zone — mixed and industrial tracts have
+Camera placement varies substantially by land-use zone — mixed and industrial tracts have
 cameras in roughly 28–42% of cases, while residential tracts (the
 majority, n = 8913) have cameras in fewer than 10%. This mixture of
 structurally camera-free tracts alongside genuinely high-count commercial
 zones is exactly the setting where zero-inflated or overdispersed count
 models are needed.
 
-### 8. Poisson and Zero-Inflated Poisson
+### 7. Poisson and Zero-Inflated Poisson
 
-We may want to start by manually fitting a Poisson model to confirm the overdispersion and zero-inflation diagnostics. The formula includes a quadratic term for each predictor to allow for non-linear effects, and road length is included as an offset:
+We may want to start by manually fitting a Poisson model to confirm the overdispersion and zero-inflation intuition. The formula includes a quadratic term for each predictor to allow for non-linear effects, and road length is included as an offset:
 
-```{r dahir-poisson}
+```{r dahir-poisson, warning=TRUE}
 pois.cam <- poissonGLM(
   cam_count ~ pnhwht +
     pnhblk +
