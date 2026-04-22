@@ -207,32 +207,7 @@ mod.nb$diagnostics$r2_plot
 The dispersion ratio is now 1.021 — much closer to 1. The estimated
 $\theta$ is 0.649.
 
-### 4. Comparing Models: Likelihood Ratio Test
-
-Because the Poisson model is nested within the negative binomial
-(Poisson is NB with $\left. \theta\rightarrow\infty \right.$), we can
-use a likelihood ratio test. The underlying `glm`/`glm.nb` fit objects
-are available via `$model`:
-
-``` r
-lmtest::lrtest(mod.pois$model, mod.nb$model)
-#> Likelihood ratio test
-#> 
-#> Model 1: FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro + gdp2017b + 
-#>     fac_penalty_count + CIDDist + EPAregion
-#> Model 2: FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro + gdp2017b + 
-#>     fac_penalty_count + CIDDist + EPAregion
-#>   #Df  LogLik Df  Chisq Pr(>Chisq)    
-#> 1  16 -1573.7                         
-#> 2  17 -1465.2  1 217.13  < 2.2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-The negative binomial model is significantly better ($p < 0.0001$),
-confirming that overdispersion is a genuine problem for the Poisson fit.
-
-### 5. Using the `countGLM` Wrapper
+### 4. Using the `countGLM` Wrapper
 
 Rather than fitting each model manually,
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
@@ -328,7 +303,7 @@ done with a Vuong test via
 
 ------------------------------------------------------------------------
 
-## 6. Coefficient Interpretation
+## 5. Coefficient Interpretation
 
 [`interpret_coef()`](http://oscar.jaroker.com/glmOJ/reference/interpret_coef.md)
 translates any exponentiated coefficient into a plain-language
@@ -378,14 +353,14 @@ interpret_coef(zi_fit, "pctnonwhite10", component = "zero")
 
 Dahir (2025) models the number of surveillance cameras per census tract
 across ten US cities. The response `cam_count` is a non-negative integer
-with 87.6% zeros and a variance-to-mean ratio of approximately 3.6 —
-classic signs of both excess zeros and overdispersion.
+with 87.6% zeros and a variance-to-mean ratio of approximately 3.6, a
+warning sign that a standard Poisson model may fit poorly.
 
 ``` r
 data("Dahir25.dat")
 ```
 
-### 7. Data Exploration
+### 6. Data Exploration
 
 ``` r
 summarizeCountData(
@@ -428,19 +403,17 @@ summarizeCountData(
 
 ![](glmOJ_files/figure-html/dahir-summarize-2.png)
 
-The summary table makes the issue concrete: the variance-to-mean ratio
-far exceeds 1 and the frequency table is dominated by zeros. Camera
-placement varies substantially by land-use zone — mixed and industrial
-tracts have cameras in roughly 28–42% of cases, while residential tracts
-(the majority, n = 8913) have cameras in fewer than 10%. This mixture of
-structurally camera-free tracts alongside genuinely high-count
-commercial zones is exactly the setting where zero-inflated or
-overdispersed count models are needed.
+Camera placement varies substantially by land-use zone — mixed and
+industrial tracts have cameras in roughly 28–42% of cases, while
+residential tracts (the majority, n = 8913) have cameras in fewer than
+10%. This mixture of structurally camera-free tracts alongside genuinely
+high-count commercial zones is exactly the setting where zero-inflated
+or overdispersed count models are needed.
 
-### 8. Poisson and Zero-Inflated Poisson
+### 7. Poisson and Zero-Inflated Poisson
 
 We may want to start by manually fitting a Poisson model to confirm the
-overdispersion and zero-inflation diagnostics. The formula includes a
+overdispersion and zero-inflation intuition. The formula includes a
 quadratic term for each predictor to allow for non-linear effects, and
 road length is included as an offset:
 
@@ -462,6 +435,8 @@ pois.cam <- poissonGLM(
     I(entropy_rank^2),
   data = Dahir25.dat
 )
+#> Warning: Possible zero-inflation detected by DHARMa test (p = 0.000). Consider
+#> zeroinflPoissonGLM(), zeroinflNegbinGLM(), or zeroinflTweedieGLM().
 print(pois.cam)
 #> 
 #> Call:

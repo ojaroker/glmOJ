@@ -266,34 +266,7 @@ is 0.649.</p>
 </div>
 </div>
 <div class="section level3">
-<h3 id="comparing-models-likelihood-ratio-test">4. Comparing Models: Likelihood Ratio Test<a class="anchor" aria-label="anchor" href="#comparing-models-likelihood-ratio-test"></a>
-</h3>
-<p>Because the Poisson model is nested within the negative binomial
-(Poisson is NB with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\theta \to \infty</annotation></semantics></math>),
-we can use a likelihood ratio test. The underlying
-<code>glm</code>/<code>glm.nb</code> fit objects are available via
-<code>$model</code>:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">lmtest</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/lrtest.html" class="external-link">lrtest</a></span><span class="op">(</span><span class="va">mod.pois</span><span class="op">$</span><span class="va">model</span>, <span class="va">mod.nb</span><span class="op">$</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Likelihood ratio test</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model 1: FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro + gdp2017b + </span></span>
-<span><span class="co">#&gt;     fac_penalty_count + CIDDist + EPAregion</span></span>
-<span><span class="co">#&gt; Model 2: FinalEC ~ eqi_2jan2018_vc + pctnonwhite10 + metro + gdp2017b + </span></span>
-<span><span class="co">#&gt;     fac_penalty_count + CIDDist + EPAregion</span></span>
-<span><span class="co">#&gt;   #Df  LogLik Df  Chisq Pr(&gt;Chisq)    </span></span>
-<span><span class="co">#&gt; 1  16 -1573.7                         </span></span>
-<span><span class="co">#&gt; 2  17 -1465.2  1 217.13  &lt; 2.2e-16 ***</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
-<p>The negative binomial model is significantly better
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&lt;</mo><mn>0.0001</mn></mrow><annotation encoding="application/x-tex">p &lt; 0.0001</annotation></semantics></math>),
-confirming that overdispersion is a genuine problem for the Poisson
-fit.</p>
-</div>
-<div class="section level3">
-<h3 id="using-the-countglm-wrapper">5. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
+<h3 id="using-the-countglm-wrapper">4. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
 </h3>
 <p>Rather than fitting each model manually, <code><a href="../reference/countGLM.html">countGLM()</a></code> fits
 all six families at once and selects the best by the criterion specified
@@ -302,7 +275,7 @@ same conclusion automatically.</p>
 <div class="section level4">
 <h4 id="overall-eqi-formula">Overall EQI formula<a class="anchor" aria-label="anchor" href="#overall-eqi-formula"></a>
 </h4>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span></span>
 <span>    <span class="va">pctnonwhite10</span> <span class="op">+</span></span>
@@ -343,7 +316,7 @@ fits remain accessible: <code>result1$fits$negbin</code>,
 <p>The researchers also evaluated whether separate Water, Air, Land, and
 Socioeconomic indices were more informative than the composite Overall
 EQI. <code>countGLM</code> handles this in one call:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">water_eqi_2jan2018_vc</span> <span class="op">+</span></span>
 <span>    <span class="va">land_eqi_2jan2018_vc</span> <span class="op">+</span></span>
@@ -387,7 +360,7 @@ done with a Vuong test via
 </div>
 </div>
 <div class="section level2">
-<h2 id="coefficient-interpretation">6. Coefficient Interpretation<a class="anchor" aria-label="anchor" href="#coefficient-interpretation"></a>
+<h2 id="coefficient-interpretation">5. Coefficient Interpretation<a class="anchor" aria-label="anchor" href="#coefficient-interpretation"></a>
 </h2>
 <p><code><a href="../reference/interpret_coef.html">interpret_coef()</a></code> translates any exponentiated
 coefficient into a plain-language statement, with a 95% CI and an
@@ -396,14 +369,14 @@ automatic note when the predictor is not discernible from zero (p &gt;
 <div class="section level4">
 <h4 id="significant-predictor">Significant predictor<a class="anchor" aria-label="anchor" href="#significant-predictor"></a>
 </h4>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">mod.nb</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="non-significant-predictor">Non-significant predictor<a class="anchor" aria-label="anchor" href="#non-significant-predictor"></a>
 </h4>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">mod.nb</span>, <span class="st">"eqi_2jan2018_vc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in eqi_2jan2018_vc is associated with a 1.2% decrease in the expected count of FinalEC (exp(β) = 0.988, 95% CI: [0.859, 1.135]).</span></span>
 <span><span class="co">#&gt; Note: this coefficient is not discernibly different from zero (p = 0.861).</span></span></code></pre></div>
@@ -414,7 +387,7 @@ automatic note when the predictor is not discernible from zero (p &gt;
 </h4>
 <p>Pass the <code>countGLM</code> result directly — it delegates to the
 best-fitting model:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result2</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in pctnonwhite10 is associated with a 1.4% increase in the expected count of FinalEC (exp(β) = 1.014, 95% CI: [1.008, 1.020]).</span></span></code></pre></div>
 </div>
@@ -423,7 +396,7 @@ best-fitting model:</p>
 </h4>
 <p>For zero-inflated models, use <code>component = "count"</code>
 (default) or <code>component = "zero"</code>:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">zi_fit</span>, <span class="st">"pctnonwhite10"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">zi_fit</span>, <span class="st">"pctnonwhite10"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -435,14 +408,14 @@ best-fitting model:</p>
 <p>Dahir (2025) models the number of surveillance cameras per census
 tract across ten US cities. The response <code>cam_count</code> is a
 non-negative integer with 87.6% zeros and a variance-to-mean ratio of
-approximately 3.6 — classic signs of both excess zeros and
-overdispersion.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+approximately 3.6, a warning sign that a standard Poisson model may fit
+poorly.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"Dahir25.dat"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="data-exploration-1">7. Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration-1"></a>
+<h3 id="data-exploration-1">6. Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration-1"></a>
 </h3>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/summarizeCountData.html">summarizeCountData</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">total_crime_rate</span> <span class="op">+</span> <span class="va">hinc</span> <span class="op">+</span> <span class="va">modal_zone</span> <span class="op">+</span> <span class="va">pvac</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
@@ -478,9 +451,7 @@ overdispersion.</p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $pairs_plot</span></span></code></pre>
 <p><img src="glmOJ_files/figure-html/dahir-summarize-2.png" class="r-plt" alt="" width="768"></p>
-<p>The summary table makes the issue concrete: the variance-to-mean
-ratio far exceeds 1 and the frequency table is dominated by zeros.
-Camera placement varies substantially by land-use zone — mixed and
+<p>Camera placement varies substantially by land-use zone — mixed and
 industrial tracts have cameras in roughly 28–42% of cases, while
 residential tracts (the majority, n = 8913) have cameras in fewer than
 10%. This mixture of structurally camera-free tracts alongside genuinely
@@ -488,13 +459,13 @@ high-count commercial zones is exactly the setting where zero-inflated
 or overdispersed count models are needed.</p>
 </div>
 <div class="section level3">
-<h3 id="poisson-and-zero-inflated-poisson">8. Poisson and Zero-Inflated Poisson<a class="anchor" aria-label="anchor" href="#poisson-and-zero-inflated-poisson"></a>
+<h3 id="poisson-and-zero-inflated-poisson">7. Poisson and Zero-Inflated Poisson<a class="anchor" aria-label="anchor" href="#poisson-and-zero-inflated-poisson"></a>
 </h3>
 <p>We may want to start by manually fitting a Poisson model to confirm
-the overdispersion and zero-inflation diagnostics. The formula includes
-a quadratic term for each predictor to allow for non-linear effects, and
+the overdispersion and zero-inflation intuition. The formula includes a
+quadratic term for each predictor to allow for non-linear effects, and
 road length is included as an offset:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pois.cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhwht</span> <span class="op">+</span></span>
 <span>    <span class="va">pnhblk</span> <span class="op">+</span></span>
@@ -512,6 +483,8 @@ road length is included as an offset:</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">entropy_rank</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Possible zero-inflation detected by DHARMa test (p = 0.000). Consider</span></span>
+<span><span class="co">#&gt; zeroinflPoissonGLM(), zeroinflNegbinGLM(), or zeroinflTweedieGLM().</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">pois.cam</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -554,7 +527,7 @@ road length is included as an offset:</p>
 <span><span class="co">#&gt; Dispersion ratio: 1.8401</span></span>
 <span><span class="co">#&gt; AIC: 11299.96</span></span></code></pre></div>
 <p>The DHARMa zero-inflation test result:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zi</span> <span class="op">&lt;-</span> <span class="va">pois.cam</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">zi_test</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
 <span>  <span class="st">"DHARMa zero-inflation test: p = %.4f  |  Detected: %s\n"</span>,</span>
@@ -575,7 +548,7 @@ included as an offset in the count component; because
 <code>ziformula = NULL</code>, it is automatically applied to the
 zero-inflation component as well — <code>countGLM</code> prints a note
 confirming this:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhblk</span> <span class="op">+</span></span>
 <span>    <span class="va">pnhwht</span> <span class="op">+</span></span>
@@ -622,7 +595,7 @@ avoid false positives from <em>structural</em> collinearity — which is
 expected whenever interaction or polynomial terms are present — VIF is
 computed on an OLS model that retains only the order-1 (main-effect)
 terms from the formula. Offset terms are excluded as well.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span><span class="op">$</span><span class="va">vif</span></span>
 <span><span class="co">#&gt;                pnhblk                pnhwht      total_crime_rate </span></span>
 <span><span class="co">#&gt;              1.696259              2.292616              1.152382 </span></span>
@@ -639,7 +612,7 @@ multicollinearity is not a concern for this model.</p>
 <p>To illustrate the interaction-term handling, fitting the Poisson
 model with a quadratic term does <strong>not</strong> inflate the VIF
 for the underlying predictors:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_quad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">cam_count</span> <span class="op">~</span> <span class="va">pnhblk</span> <span class="op">+</span></span>
 <span>    <span class="va">pnhwht</span> <span class="op">+</span></span>
@@ -659,10 +632,10 @@ for the underlying predictors:</p>
 </h3>
 <p><code><a href="../reference/interpret_coef.html">interpret_coef()</a></code> delegates to the best-fitting model
 automatically:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in total_crime_rate is associated with a 39.2% increase in the expected rate of cam_count per unit of exposure (exp(β) = 1.392, 95% CI: [1.333, 1.455]).</span></span></code></pre></div>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"hinc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in hinc is associated with a 19.5% decrease in the expected rate of cam_count per unit of exposure (exp(β) = 0.805, 95% CI: [0.744, 0.871]).</span></span></code></pre></div>
 <p>For zero-inflated models, the count and zero components can be
@@ -670,7 +643,7 @@ interpreted separately. The count component describes the expected
 camera count among tracts that are in the counting process; the zero
 component describes the odds of being a structural zero (a tract that
 never receives a camera):</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">result_cam</span>, <span class="st">"total_crime_rate"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -688,12 +661,12 @@ Poisson-Gamma (Tweedie,
 with structural zeros added on top. The true model has two independent
 predictors: <code>x1</code> drives the count mean and <code>x2</code>
 drives zero-inflation.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ZITweedie.dat"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="data-exploration-2">11. Data Exploration<a class="anchor" aria-label="anchor" href="#data-exploration-2"></a>
 </h3>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/summarizeCountData.html">summarizeCountData</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $summary</span></span>
 <span><span class="co">#&gt;   mean      var var_mean_ratio n_zero n_total</span></span>
@@ -752,7 +725,7 @@ binomial model will fit poorly.</p>
 each zero-inflated counterpart only when the DHARMa zero-inflation test
 flags its base model (p &lt; 0.05). AIC/BIC then arbitrates among
 whichever models were fit.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_zitw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/countGLM.html">countGLM</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -782,7 +755,7 @@ whichever models were fit.</p>
 is useful when the ZI predictor differs from the count predictor. Here
 the true ZI predictor is <code>x2</code>, so we supply it via
 <code>ziformula</code>:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_zitw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span>, ziformula <span class="op">=</span> <span class="op">~</span><span class="va">x2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -814,10 +787,10 @@ the true ZI predictor is <code>x2</code>, so we supply it via
 <p>The count component describes the expected count among observations
 that are not structural zeros; the zero component describes the odds of
 being a structural zero.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">fit_zitw</span>, <span class="st">"x1"</span>, component <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in x1 is associated with a 144.2% increase in the expected value of y (among non-structural zeros) (exp(β) = 2.442, 95% CI: [2.179, 2.737]).</span></span></code></pre></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/interpret_coef.html">interpret_coef</a></span><span class="op">(</span><span class="va">fit_zitw</span>, <span class="st">"x2"</span>, component <span class="op">=</span> <span class="st">"zero"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Holding all other predictors constant, a one-unit increase in x2 is associated with a 91.0% decrease in the odds of being a structural zero (exp(β) = 0.090, 95% CI: [0.049, 0.168]).</span></span></code></pre></div>
 <p>The estimated
@@ -853,7 +826,7 @@ illustrate the three cases.</p>
 </h3>
 <p>Does the metro/non-metro contrast look the same across EPA
 regions?</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_cc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">metro</span> <span class="op">*</span> <span class="va">EPAregion</span> <span class="op">+</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span> <span class="va">pctnonwhite10</span> <span class="op">+</span> <span class="va">gdp2017b</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
@@ -884,7 +857,7 @@ are 95% confidence bounds. Comparing <code>Mean</code> across
 metro effect varies by region. The companion plot shows every cell-mean
 with its 95% error bar (and is faceted by any categorical predictor left
 unaveraged — here there are none, so a single panel is drawn):</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_cc</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
 <p><img src="glmOJ_files/figure-html/untangle-cat-cat-plot-1.png" class="r-plt" alt="" width="768"></p>
 </div>
@@ -909,7 +882,7 @@ the interaction.</li>
 <p>First, leave every other categorical predictor in the model
 unaveraged. <code>EPAregion</code> has 10 levels, which would exceed the
 8-facet limit, so the plot is suppressed with a warning:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_xc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">metro</span> <span class="op">*</span> <span class="va">pctnonwhite10</span> <span class="op">+</span> <span class="va">eqi_2jan2018_vc</span> <span class="op">+</span> <span class="va">gdp2017b</span> <span class="op">+</span> <span class="va">EPAregion</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
@@ -967,7 +940,7 @@ unaveraged. <code>EPAregion</code> has 10 levels, which would exceed the
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>Averaging over <code>EPAregion</code> removes the facets and the plot
 is built normally:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_xc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span></span>
 <span>  <span class="va">fit_xc</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
@@ -986,7 +959,7 @@ is built normally:</p>
 <p><img src="glmOJ_files/figure-html/untangle-cat-cont-1.png" class="r-plt" alt="" width="768"></p>
 <p>If we want every region retained despite exceeding the facet limit,
 we can set <code>overridePlot = TRUE</code>:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/untangle_interaction.html">untangle_interaction</a></span><span class="op">(</span></span>
 <span>  <span class="va">fit_xc</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"metro"</span>, <span class="st">"pctnonwhite10"</span><span class="op">)</span>,</span>
@@ -1008,7 +981,7 @@ moderator over which the focal slope is statistically discernible,
 computed via <code>interactions::johnson_neyman()</code> with FDR
 control.</li>
 </ol>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/poissonGLM.html">poissonGLM</a></span><span class="op">(</span></span>
 <span>  <span class="va">FinalEC</span> <span class="op">~</span> <span class="va">pctnonwhite10</span> <span class="op">*</span> <span class="va">gdp2017b</span> <span class="op">+</span> <span class="va">metro</span> <span class="op">+</span> <span class="va">EPAregion</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
@@ -1058,7 +1031,7 @@ which the focal slope is statistically discernible. Printing an object
 gives the numerical summary and renders the shaded-region plot; each
 object also carries a <code>$plot</code> element you can extract
 separately:</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_nn</span><span class="op">$</span><span class="va">johnson_neyman_pctnonwhite10_by_gdp2017b</span></span>
 <span><span class="co">#&gt; <span style="font-weight: bold; text-decoration: underline;">JOHNSON-NEYMAN INTERVAL</span></span></span>
 <span><span class="co">#&gt; </span></span>
