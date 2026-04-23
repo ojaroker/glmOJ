@@ -28,7 +28,7 @@ analyst through four steps:
 | Family | Function | Use when |
 |----|----|----|
 | Poisson | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.html) | Counts with mean ≈ variance |
-| Quasi-Poisson | [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.html) | Constant overdispersion: Var(Y) = phi · mu with phi \> 1 roughly flat across fitted values |
+| Quasi-Poisson | [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.html) | Constant overdispersion: $\text{Var}(Y) = \phi \cdot \mu$ with $\phi > 1$, $r^2$ roughly flat across fitted values |
 | Negative binomial | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.html) | Counts with variance \> mean (overdispersion) |
 | Tweedie | [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.html) | Non-negative semi-continuous data; power parameter estimated freely |
 | Zero-inflated Poisson | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.html) | Excess zeros + equidispersed non-zero counts |
