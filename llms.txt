@@ -25,15 +25,15 @@ analyst through four steps:
 
 ## Supported model families
 
-| Family                          | Function                                                                                 | Use when                                                                                   |
-|---------------------------------|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| Poisson                         | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md)                 | Counts with mean ≈ variance                                                                |
-| Quasi-Poisson                   | [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.md)       | Constant overdispersion: Var(Y) = phi · mu with phi \> 1 roughly flat across fitted values |
-| Negative binomial               | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md)                   | Counts with variance \> mean (overdispersion)                                              |
-| Tweedie                         | [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)                 | Non-negative semi-continuous data; power parameter estimated freely                        |
-| Zero-inflated Poisson           | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md) | Excess zeros + equidispersed non-zero counts                                               |
-| Zero-inflated negative binomial | [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)   | Excess zeros + overdispersed non-zero counts                                               |
-| Zero-inflated Tweedie           | [`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md) | Excess zeros + semi-continuous non-zero values                                             |
+| Family                          | Function                                                                                 | Use when                                                                                                             |
+|---------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| Poisson                         | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md)                 | Counts with mean ≈ variance                                                                                          |
+| Quasi-Poisson                   | [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.md)       | Constant overdispersion: $\text{Var}(Y) = \phi \cdot \mu$ with $\phi > 1$, $r^{2}$ roughly flat across fitted values |
+| Negative binomial               | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md)                   | Counts with variance \> mean (overdispersion)                                                                        |
+| Tweedie                         | [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)                 | Non-negative semi-continuous data; power parameter estimated freely                                                  |
+| Zero-inflated Poisson           | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md) | Excess zeros + equidispersed non-zero counts                                                                         |
+| Zero-inflated negative binomial | [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)   | Excess zeros + overdispersed non-zero counts                                                                         |
+| Zero-inflated Tweedie           | [`zeroinflTweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.md) | Excess zeros + semi-continuous non-zero values                                                                       |
 
 The general-purpose
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
