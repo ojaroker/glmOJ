@@ -303,7 +303,7 @@ same conclusion automatically.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson</span></span>
-<span><span class="co">#&gt;   dispersion ratio is 1.62 (&gt; 1.5), indicating overdispersion.</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 1.62 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
 <span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
 <p>The wrapper selects the same winner as the manual LRT. Individual
@@ -348,7 +348,7 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson</span></span>
-<span><span class="co">#&gt;   dispersion ratio is 1.49, consistent with equidispersion.</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 1.49 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
 <span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
 <p>Again the negative binomial is selected. The non-nested comparison
@@ -576,7 +576,7 @@ confirming this:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson</span></span>
-<span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.5), indicating overdispersion.</span></span>
+<span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson and Tweedie; corresponding ZI</span></span>
 <span><span class="co">#&gt;   model(s) were fitted.</span></span></code></pre></div>
 <p>The comparison table shows AIC and BIC for all six families, sorted
@@ -745,7 +745,7 @@ whichever models were fit.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Recommendation:</span></span>
 <span><span class="co">#&gt;   Tweedie was selected by BIC (BIC = 1453.66). The Poisson dispersion</span></span>
-<span><span class="co">#&gt;   ratio is 8.97 (&gt; 1.5), indicating overdispersion. Zero-inflation</span></span>
+<span><span class="co">#&gt;   ratio is 8.97 (&gt; 1.2), indicating overdispersion. Zero-inflation</span></span>
 <span><span class="co">#&gt;   detected for Poisson; corresponding ZI model(s) were fitted.</span></span></code></pre></div>
 </div>
 <div class="section level3">

@@ -147,8 +147,8 @@ print(fit)
 #> 
 #> Coefficients (on response scale):
 #>         term exp.coef lower.95 upper.95 p.value stars
-#>  (Intercept)   1.7989   1.0248   3.1575  0.0750     .
-#>           x1   1.3396   0.8272   2.1695  0.2687      
+#>  (Intercept)   1.7989   0.9279   3.4873  0.0750     .
+#>           x1   1.3396   0.7597   2.3622  0.2687      
 #> 
 #> Dispersion (phi): 1.1658
 #> Dispersion ratio: 1.1658

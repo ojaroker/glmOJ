@@ -245,7 +245,7 @@ print(result1)
 #> 
 #> Recommendation:
 #>   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson
-#>   dispersion ratio is 1.62 (> 1.5), indicating overdispersion.
+#>   dispersion ratio is 1.62 (> 1.2), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted.
 ```
@@ -291,7 +291,7 @@ print(result2)
 #> 
 #> Recommendation:
 #>   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson
-#>   dispersion ratio is 1.49, consistent with equidispersion.
+#>   dispersion ratio is 1.49 (> 1.2), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted.
 ```
@@ -532,7 +532,7 @@ print(result_cam)
 #> 
 #> Recommendation:
 #>   Negative Binomial was selected by BIC (BIC = 11394.49). The Poisson
-#>   dispersion ratio is 2.42 (> 1.5), indicating overdispersion.
+#>   dispersion ratio is 2.42 (> 1.2), indicating overdispersion.
 #>   Zero-inflation detected for Poisson and Tweedie; corresponding ZI
 #>   model(s) were fitted.
 ```
@@ -719,7 +719,7 @@ print(result_zitw)
 #> 
 #> Recommendation:
 #>   Tweedie was selected by BIC (BIC = 1453.66). The Poisson dispersion
-#>   ratio is 8.97 (> 1.5), indicating overdispersion. Zero-inflation
+#>   ratio is 8.97 (> 1.2), indicating overdispersion. Zero-inflation
 #>   detected for Poisson; corresponding ZI model(s) were fitted.
 ```
 
