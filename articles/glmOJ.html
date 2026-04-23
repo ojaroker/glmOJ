@@ -62,8 +62,8 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p><code>glmOJ</code> provides a streamlined workflow for fitting,
-diagnosing, and interpreting count regression models. The six supported
-families are:</p>
+diagnosing, and interpreting count regression models. The seven
+supported families are:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Function</th>
@@ -75,33 +75,41 @@ families are:</p>
 <td>Poisson GLM</td>
 </tr>
 <tr class="even">
+<td><code><a href="../reference/quasiPoissonGLM.html">quasiPoissonGLM()</a></code></td>
+<td>Quasi-Poisson GLM</td>
+</tr>
+<tr class="odd">
 <td><code><a href="../reference/negbinGLM.html">negbinGLM()</a></code></td>
 <td>Negative Binomial GLM</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code><a href="../reference/tweedieGLM.html">tweedieGLM()</a></code></td>
 <td>Tweedie GLM</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code><a href="../reference/zeroinflPoissonGLM.html">zeroinflPoissonGLM()</a></code></td>
 <td>Zero-Inflated Poisson</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code><a href="../reference/zeroinflNegbinGLM.html">zeroinflNegbinGLM()</a></code></td>
 <td>Zero-Inflated Negative Binomial</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code><a href="../reference/zeroinflTweedieGLM.html">zeroinflTweedieGLM()</a></code></td>
 <td>Zero-Inflated Tweedie</td>
 </tr>
 </tbody>
 </table>
-<p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six and
-selects the best by a user-chosen criterion (<code>decide</code>):
-<code>"BIC"</code> (default), <code>"AIC"</code>, <code>"LogLik"</code>,
-or <code>"McFadden"</code> (McFadden pseudo-R²). Each zero-inflated
-counterpart (Poisson, Negative Binomial, Tweedie) is fitted only when
-the DHARMa zero-inflation test flags its base model (p &lt; 0.05).</p>
+<p>A general-purpose wrapper <code><a href="../reference/countGLM.html">countGLM()</a></code> fits the
+likelihood-based families and selects the best by a user-chosen
+criterion (<code>decide</code>): <code>"BIC"</code> (default),
+<code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>
+(McFadden pseudo-R²). Each zero-inflated counterpart (Poisson, Negative
+Binomial, Tweedie) is fitted only when the DHARMa zero-inflation test
+flags its base model (p &lt; 0.05). A quasi-Poisson fit is additionally
+produced when the Poisson fit shows a constant-overdispersion signature;
+because quasi-likelihood has no proper likelihood, it is reported
+alongside but excluded from the AIC/BIC/McFadden comparison.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -131,8 +139,8 @@ predictor.</p>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; $summary</span></span>
-<span><span class="co">#&gt;        mean       var var_mean_ratio n_zero n_total</span></span>
-<span><span class="co">#&gt; 1 0.2356564 0.6490525       2.754232   2654    3085</span></span>
+<span><span class="co">#&gt;        mean       var var_mean_ratio n_zero prop_zero n_total</span></span>
+<span><span class="co">#&gt; 1 0.2356564 0.6490525       2.754232   2654 0.8602917    3085</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $counts</span></span>
 <span><span class="co">#&gt;    count freq</span></span>
@@ -269,9 +277,9 @@ is 0.649.</p>
 <h3 id="using-the-countglm-wrapper">4. Using the <code>countGLM</code> Wrapper<a class="anchor" aria-label="anchor" href="#using-the-countglm-wrapper"></a>
 </h3>
 <p>Rather than fitting each model manually, <code><a href="../reference/countGLM.html">countGLM()</a></code> fits
-all six families at once and selects the best by the criterion specified
-in <code>decide</code> (default <code>"BIC"</code>) — arriving at the
-same conclusion automatically.</p>
+the full family of count models at once and selects the best by the
+criterion specified in <code>decide</code> (default <code>"BIC"</code>)
+— arriving at the same conclusion automatically.</p>
 <div class="section level4">
 <h4 id="overall-eqi-formula">Overall EQI formula<a class="anchor" aria-label="anchor" href="#overall-eqi-formula"></a>
 </h4>
@@ -294,10 +302,9 @@ same conclusion automatically.</p>
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;             model     AIC     BIC</span></span>
-<span><span class="co">#&gt;            negbin 2964.32 3066.90</span></span>
-<span><span class="co">#&gt;  zeroinfl_poisson 2920.58 3113.67</span></span>
-<span><span class="co">#&gt;           poisson 3179.45 3276.00</span></span>
+<span><span class="co">#&gt;    model     AIC    BIC</span></span>
+<span><span class="co">#&gt;   negbin 2964.32 3066.9</span></span>
+<span><span class="co">#&gt;  poisson 3179.45 3276.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -339,10 +346,9 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;             model     AIC     BIC</span></span>
-<span><span class="co">#&gt;            negbin 2953.72 3074.41</span></span>
-<span><span class="co">#&gt;  zeroinfl_poisson 2933.58 3162.89</span></span>
-<span><span class="co">#&gt;           poisson 3144.98 3259.64</span></span>
+<span><span class="co">#&gt;    model     AIC     BIC</span></span>
+<span><span class="co">#&gt;   negbin 2953.72 3074.41</span></span>
+<span><span class="co">#&gt;  poisson 3144.98 3259.64</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -421,8 +427,8 @@ poorly.</p>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; $summary</span></span>
-<span><span class="co">#&gt;        mean       var var_mean_ratio n_zero n_total</span></span>
-<span><span class="co">#&gt; 1 0.2172117 0.7840397       3.609565  10177   11620</span></span>
+<span><span class="co">#&gt;        mean       var var_mean_ratio n_zero prop_zero n_total</span></span>
+<span><span class="co">#&gt; 1 0.2172117 0.7840397       3.609565  10177 0.8758176   11620</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $counts</span></span>
 <span><span class="co">#&gt;    count  freq</span></span>
@@ -541,8 +547,8 @@ road length is included as an offset:</p>
 <div class="section level3">
 <h3 id="automatic-model-selection-with-countglm">8. Automatic Model Selection with <code>countGLM</code><a class="anchor" aria-label="anchor" href="#automatic-model-selection-with-countglm"></a>
 </h3>
-<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits all six count families and selects the
-best by the criterion in <code>decide</code> (default
+<p><code><a href="../reference/countGLM.html">countGLM()</a></code> fits the full family of count models and
+selects the best by the criterion in <code>decide</code> (default
 <code>"BIC"</code>). Road length (<code>log_road_length</code>) is
 included as an offset in the count component; because
 <code>ziformula = NULL</code>, it is automatically applied to the
@@ -566,11 +572,10 @@ confirming this:</p>
 <span><span class="co">#&gt;     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;             model      AIC      BIC</span></span>
-<span><span class="co">#&gt;            negbin 11306.16 11394.49</span></span>
-<span><span class="co">#&gt;           tweedie 11493.07 11588.75</span></span>
-<span><span class="co">#&gt;  zeroinfl_poisson 11791.50 11953.43</span></span>
-<span><span class="co">#&gt;           poisson 13201.10 13282.07</span></span>
+<span><span class="co">#&gt;    model      AIC      BIC</span></span>
+<span><span class="co">#&gt;   negbin 11306.16 11394.49</span></span>
+<span><span class="co">#&gt;  tweedie 11493.07 11588.75</span></span>
+<span><span class="co">#&gt;  poisson 13201.10 13282.07</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -579,7 +584,7 @@ confirming this:</p>
 <span><span class="co">#&gt;   dispersion ratio is 2.42 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson and Tweedie; corresponding ZI</span></span>
 <span><span class="co">#&gt;   model(s) were fitted.</span></span></code></pre></div>
-<p>The comparison table shows AIC and BIC for all six families, sorted
+<p>The comparison table shows AIC and BIC for each fitted family, sorted
 by the selection criterion. The selected model is
 <strong>negbin</strong>. The recommendation captures the relevant
 dispersion and zero-inflation diagnostics automatically, explaining why
@@ -597,14 +602,13 @@ computed on an OLS model that retains only the order-1 (main-effect)
 terms from the formula. Offset terms are excluded as well.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span><span class="op">$</span><span class="va">vif</span></span>
-<span><span class="co">#&gt;                pnhblk                pnhwht      total_crime_rate </span></span>
-<span><span class="co">#&gt;              1.696259              2.292616              1.152382 </span></span>
-<span><span class="co">#&gt;                  hinc                  pvac  modal_zoneindustrial </span></span>
-<span><span class="co">#&gt;              1.592488              1.093179              1.115794 </span></span>
-<span><span class="co">#&gt;       modal_zonemixed      modal_zonepublic modal_zoneresidential </span></span>
-<span><span class="co">#&gt;              1.101121              1.151036              1.495288 </span></span>
-<span><span class="co">#&gt;       modal_zoneroads </span></span>
-<span><span class="co">#&gt;              1.145420</span></span></code></pre></div>
+<span><span class="co">#&gt;                              term     GVIF Df GVIF^(1/(2*Df))</span></span>
+<span><span class="co">#&gt; pnhblk                     pnhblk 1.696259  1        1.302405</span></span>
+<span><span class="co">#&gt; pnhwht                     pnhwht 2.292616  1        1.514139</span></span>
+<span><span class="co">#&gt; total_crime_rate total_crime_rate 1.152382  1        1.073490</span></span>
+<span><span class="co">#&gt; hinc                         hinc 1.592488  1        1.261938</span></span>
+<span><span class="co">#&gt; pvac                         pvac 1.093179  1        1.045552</span></span>
+<span><span class="co">#&gt; modal_zone             modal_zone 1.040710  5        1.003998</span></span></code></pre></div>
 <p>VIF = 1 means a predictor is uncorrelated with all others; values up
 to ~5 are generally acceptable. Any VIF &gt; 5 triggers a warning. Here
 all predictors are well below that threshold, confirming that
@@ -622,10 +626,11 @@ for the underlying predictors:</p>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">result_quad</span><span class="op">$</span><span class="va">vif</span> <span class="co"># only main-effect terms: pnhblk, pnhwht, total_crime_rate</span></span>
-<span><span class="co">#&gt;                pnhblk                pnhwht      total_crime_rate </span></span>
-<span><span class="co">#&gt;              1.683595              1.637775              1.726555 </span></span>
-<span><span class="co">#&gt; I(total_crime_rate^2) </span></span>
-<span><span class="co">#&gt;              1.648745</span></span></code></pre></div>
+<span><span class="co">#&gt;                                        term     GVIF Df GVIF^(1/(2*Df))</span></span>
+<span><span class="co">#&gt; pnhblk                               pnhblk 1.683595  1        1.297534</span></span>
+<span><span class="co">#&gt; pnhwht                               pnhwht 1.637775  1        1.279756</span></span>
+<span><span class="co">#&gt; total_crime_rate           total_crime_rate 1.726555  1        1.313984</span></span>
+<span><span class="co">#&gt; I(total_crime_rate^2) I(total_crime_rate^2) 1.648745  1        1.284035</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="interpreting-the-winning-model">10. Interpreting the Winning Model<a class="anchor" aria-label="anchor" href="#interpreting-the-winning-model"></a>
@@ -669,8 +674,8 @@ drives zero-inflation.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/summarizeCountData.html">summarizeCountData</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">ZITweedie.dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $summary</span></span>
-<span><span class="co">#&gt;   mean      var var_mean_ratio n_zero n_total</span></span>
-<span><span class="co">#&gt; 1 4.13 105.2011       25.47242    244     400</span></span>
+<span><span class="co">#&gt;   mean      var var_mean_ratio n_zero prop_zero n_total</span></span>
+<span><span class="co">#&gt; 1 4.13 105.2011       25.47242    244      0.61     400</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $counts</span></span>
 <span><span class="co">#&gt;    count freq</span></span>
@@ -735,11 +740,10 @@ whichever models were fit.</p>
 <span><span class="co">#&gt; countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;             model     AIC     BIC</span></span>
-<span><span class="co">#&gt;           tweedie 1433.70 1453.66</span></span>
-<span><span class="co">#&gt;            negbin 1462.02 1477.98</span></span>
-<span><span class="co">#&gt;  zeroinfl_poisson 1649.58 1673.53</span></span>
-<span><span class="co">#&gt;           poisson 3393.04 3405.02</span></span>
+<span><span class="co">#&gt;    model     AIC     BIC</span></span>
+<span><span class="co">#&gt;  tweedie 1433.70 1453.66</span></span>
+<span><span class="co">#&gt;   negbin 1462.02 1477.98</span></span>
+<span><span class="co">#&gt;  poisson 3393.04 3405.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: tweedie</span></span>
 <span><span class="co">#&gt; </span></span>

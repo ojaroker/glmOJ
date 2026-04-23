@@ -7,11 +7,12 @@ library(glmOJ)
 ## Overview
 
 `glmOJ` provides a streamlined workflow for fitting, diagnosing, and
-interpreting count regression models. The six supported families are:
+interpreting count regression models. The seven supported families are:
 
 | Function                                                                                 | Model                           |
 |------------------------------------------------------------------------------------------|---------------------------------|
 | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.md)                 | Poisson GLM                     |
+| [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.md)       | Quasi-Poisson GLM               |
 | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.md)                   | Negative Binomial GLM           |
 | [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)                 | Tweedie GLM                     |
 | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.md) | Zero-Inflated Poisson           |
@@ -20,11 +21,15 @@ interpreting count regression models. The six supported families are:
 
 A general-purpose wrapper
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all six and selects the best by a user-chosen criterion (`decide`):
-`"BIC"` (default), `"AIC"`, `"LogLik"`, or `"McFadden"` (McFadden
-pseudo-R²). Each zero-inflated counterpart (Poisson, Negative Binomial,
-Tweedie) is fitted only when the DHARMa zero-inflation test flags its
-base model (p \< 0.05).
+fits the likelihood-based families and selects the best by a user-chosen
+criterion (`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`, or
+`"McFadden"` (McFadden pseudo-R²). Each zero-inflated counterpart
+(Poisson, Negative Binomial, Tweedie) is fitted only when the DHARMa
+zero-inflation test flags its base model (p \< 0.05). A quasi-Poisson
+fit is additionally produced when the Poisson fit shows a
+constant-overdispersion signature; because quasi-likelihood has no
+proper likelihood, it is reported alongside but excluded from the
+AIC/BIC/McFadden comparison.
 
 ------------------------------------------------------------------------
 
@@ -58,8 +63,8 @@ summarizeCountData(
   data = Greenberg26.dat
 )
 #> $summary
-#>        mean       var var_mean_ratio n_zero n_total
-#> 1 0.2356564 0.6490525       2.754232   2654    3085
+#>        mean       var var_mean_ratio n_zero prop_zero n_total
+#> 1 0.2356564 0.6490525       2.754232   2654 0.8602917    3085
 #> 
 #> $counts
 #>    count freq
@@ -211,8 +216,8 @@ $\theta$ is 0.649.
 
 Rather than fitting each model manually,
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all six families at once and selects the best by the criterion
-specified in `decide` (default `"BIC"`) — arriving at the same
+fits the full family of count models at once and selects the best by the
+criterion specified in `decide` (default `"BIC"`) — arriving at the same
 conclusion automatically.
 
 #### Overall EQI formula
@@ -236,10 +241,9 @@ print(result1)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>             model     AIC     BIC
-#>            negbin 2964.32 3066.90
-#>  zeroinfl_poisson 2920.58 3113.67
-#>           poisson 3179.45 3276.00
+#>    model     AIC    BIC
+#>   negbin 2964.32 3066.9
+#>  poisson 3179.45 3276.0
 #> 
 #> Selected model: negbin
 #> 
@@ -282,10 +286,9 @@ print(result2)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>             model     AIC     BIC
-#>            negbin 2953.72 3074.41
-#>  zeroinfl_poisson 2933.58 3162.89
-#>           poisson 3144.98 3259.64
+#>    model     AIC     BIC
+#>   negbin 2953.72 3074.41
+#>  poisson 3144.98 3259.64
 #> 
 #> Selected model: negbin
 #> 
@@ -368,8 +371,8 @@ summarizeCountData(
   data = Dahir25.dat
 )
 #> $summary
-#>        mean       var var_mean_ratio n_zero n_total
-#> 1 0.2172117 0.7840397       3.609565  10177   11620
+#>        mean       var var_mean_ratio n_zero prop_zero n_total
+#> 1 0.2172117 0.7840397       3.609565  10177 0.8758176   11620
 #> 
 #> $counts
 #>    count  freq
@@ -498,11 +501,11 @@ zi$plot
 ### 8. Automatic Model Selection with `countGLM`
 
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md)
-fits all six count families and selects the best by the criterion in
-`decide` (default `"BIC"`). Road length (`log_road_length`) is included
-as an offset in the count component; because `ziformula = NULL`, it is
-automatically applied to the zero-inflation component as well —
-`countGLM` prints a note confirming this:
+fits the full family of count models and selects the best by the
+criterion in `decide` (default `"BIC"`). Road length (`log_road_length`)
+is included as an offset in the count component; because
+`ziformula = NULL`, it is automatically applied to the zero-inflation
+component as well — `countGLM` prints a note confirming this:
 
 ``` r
 result_cam <- countGLM(
@@ -522,11 +525,10 @@ print(result_cam)
 #>     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>             model      AIC      BIC
-#>            negbin 11306.16 11394.49
-#>           tweedie 11493.07 11588.75
-#>  zeroinfl_poisson 11791.50 11953.43
-#>           poisson 13201.10 13282.07
+#>    model      AIC      BIC
+#>   negbin 11306.16 11394.49
+#>  tweedie 11493.07 11588.75
+#>  poisson 13201.10 13282.07
 #> 
 #> Selected model: negbin
 #> 
@@ -537,7 +539,7 @@ print(result_cam)
 #>   model(s) were fitted.
 ```
 
-The comparison table shows AIC and BIC for all six families, sorted by
+The comparison table shows AIC and BIC for each fitted family, sorted by
 the selection criterion. The selected model is **negbin**. The
 recommendation captures the relevant dispersion and zero-inflation
 diagnostics automatically, explaining why this family was preferred.
@@ -555,14 +557,13 @@ terms from the formula. Offset terms are excluded as well.
 
 ``` r
 result_cam$vif
-#>                pnhblk                pnhwht      total_crime_rate 
-#>              1.696259              2.292616              1.152382 
-#>                  hinc                  pvac  modal_zoneindustrial 
-#>              1.592488              1.093179              1.115794 
-#>       modal_zonemixed      modal_zonepublic modal_zoneresidential 
-#>              1.101121              1.151036              1.495288 
-#>       modal_zoneroads 
-#>              1.145420
+#>                              term     GVIF Df GVIF^(1/(2*Df))
+#> pnhblk                     pnhblk 1.696259  1        1.302405
+#> pnhwht                     pnhwht 2.292616  1        1.514139
+#> total_crime_rate total_crime_rate 1.152382  1        1.073490
+#> hinc                         hinc 1.592488  1        1.261938
+#> pvac                         pvac 1.093179  1        1.045552
+#> modal_zone             modal_zone 1.040710  5        1.003998
 ```
 
 VIF = 1 means a predictor is uncorrelated with all others; values up to
@@ -584,10 +585,11 @@ result_quad <- suppressWarnings(countGLM(
   data = Dahir25.dat
 ))
 result_quad$vif # only main-effect terms: pnhblk, pnhwht, total_crime_rate
-#>                pnhblk                pnhwht      total_crime_rate 
-#>              1.683595              1.637775              1.726555 
-#> I(total_crime_rate^2) 
-#>              1.648745
+#>                                        term     GVIF Df GVIF^(1/(2*Df))
+#> pnhblk                               pnhblk 1.683595  1        1.297534
+#> pnhwht                               pnhwht 1.637775  1        1.279756
+#> total_crime_rate           total_crime_rate 1.726555  1        1.313984
+#> I(total_crime_rate^2) I(total_crime_rate^2) 1.648745  1        1.284035
 ```
 
 ### 10. Interpreting the Winning Model
@@ -637,8 +639,8 @@ data("ZITweedie.dat")
 ``` r
 summarizeCountData(y ~ x1 + x2, data = ZITweedie.dat)
 #> $summary
-#>   mean      var var_mean_ratio n_zero n_total
-#> 1 4.13 105.2011       25.47242    244     400
+#>   mean      var var_mean_ratio n_zero prop_zero n_total
+#> 1 4.13 105.2011       25.47242    244      0.61     400
 #> 
 #> $counts
 #>    count freq
@@ -709,11 +711,10 @@ print(result_zitw)
 #> countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>             model     AIC     BIC
-#>           tweedie 1433.70 1453.66
-#>            negbin 1462.02 1477.98
-#>  zeroinfl_poisson 1649.58 1673.53
-#>           poisson 3393.04 3405.02
+#>    model     AIC     BIC
+#>  tweedie 1433.70 1453.66
+#>   negbin 1462.02 1477.98
+#>  poisson 3393.04 3405.02
 #> 
 #> Selected model: tweedie
 #> 

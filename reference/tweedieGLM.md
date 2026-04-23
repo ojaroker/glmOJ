@@ -11,7 +11,14 @@ non-negative count data with complex variance structures.
 ## Usage
 
 ``` r
-tweedieGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
+tweedieGLM(
+  formula,
+  data,
+  assessZeroInflation = TRUE,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+)
 ```
 
 ## Arguments
@@ -39,6 +46,11 @@ tweedieGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
   Optional integer; maximum optimizer iterations passed through as
   `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))`.
   Ignored when the user supplies their own `control` via `...`.
+
+- dispersion_threshold:
+
+  Numeric; dispersion ratios above this value are flagged as
+  overdispersed in the diagnostic plot. Default 1.2.
 
 - ...:
 

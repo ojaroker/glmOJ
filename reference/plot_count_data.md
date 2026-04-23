@@ -8,7 +8,7 @@ predictors supplied.
 ## Usage
 
 ``` r
-plot_count_data(y, mf, pred_vars, pred_types)
+plot_count_data(y, mf, pred_vars, pred_types, bins = 20)
 ```
 
 ## Arguments
@@ -32,6 +32,11 @@ plot_count_data(y, mf, pred_vars, pred_types)
 
   Named character vector classifying each element of `pred_vars` as
   either `"continuous"` or `"categorical"`.
+
+- bins:
+
+  Integer; number of bins on each axis for the two-continuous predictor
+  2D bin plot. Default 20.
 
 ## Value
 

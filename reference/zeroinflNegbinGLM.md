@@ -9,7 +9,14 @@ and a diagnostic plot.
 ## Usage
 
 ``` r
-zeroinflNegbinGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
+zeroinflNegbinGLM(
+  formula,
+  data,
+  ziformula = NULL,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+)
 ```
 
 ## Arguments
@@ -36,6 +43,11 @@ zeroinflNegbinGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
   Optional integer; maximum optimizer iterations passed through as
   `control = pscl::zeroinfl.control(maxit = maxit)`. Ignored when the
   user supplies their own `control` via `...`.
+
+- dispersion_threshold:
+
+  Numeric; dispersion ratios above this value are flagged as
+  overdispersed in the diagnostic plot. Default 1.2.
 
 - ...:
 
@@ -132,29 +144,14 @@ df <- data.frame(
 fit <- zeroinflNegbinGLM(y ~ x1, data = df)
 #> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
 #> Warning: Zero-inflation component: 6 zeros for 1 predictor(s) (6.0 per predictor). At least 10 zeros per ZI predictor is recommended.
+#> Error in zeroinflNegbinGLM(y ~ x1, data = df): object 'fitted_vals' not found
 print(fit)
-#> 
-#> Call:
-#> zeroinflNegbinGLM(formula = y ~ x1, data = df)
-#> 
-#> Model family: zeroinflNegbinGLM 
-#> 
-#> Count component (exponentiated coefficients):
-#>         term exp.coef lower.95 upper.95 p.value stars
-#>  (Intercept)   1.3408   0.4922   3.6523  0.5663      
-#>           x1   0.9433   0.4383   2.0304  0.8814      
-#> 
-#> Zero-inflation component (exponentiated coefficients):
-#>         term exp.coef lower.95 upper.95 p.value stars
-#>  (Intercept)   0.6737   0.0820   5.5325  0.7131      
-#>           x1   2.1030   0.4077  10.8486  0.3745      
-#> 
-#> Dispersion ratio: 2.0053
-#> AIC: 31.60
+#> Error: object 'fit' not found
 plot(fit)
-
+#> Error: object 'fit' not found
 
 # Intercept-only zero component:
 fit2 <- zeroinflNegbinGLM(y ~ x1, data = df, ziformula = ~ 1)
 #> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
+#> Error in zeroinflNegbinGLM(y ~ x1, data = df, ziformula = ~1): object 'fitted_vals' not found
 ```

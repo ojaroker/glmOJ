@@ -46,7 +46,15 @@ then selects the best overall model by the metric given in <code>decide</code>.<
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">countGLM</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span>, ziformula <span class="op">=</span> <span class="cn">NULL</span>, decide <span class="op">=</span> <span class="st">"BIC"</span>, maxit <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">countGLM</span><span class="op">(</span></span>
+<span>  <span class="va">formula</span>,</span>
+<span>  <span class="va">data</span>,</span>
+<span>  ziformula <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  decide <span class="op">=</span> <span class="st">"BIC"</span>,</span>
+<span>  maxit <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  families <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"poisson"</span>, <span class="st">"negbin"</span>, <span class="st">"tweedie"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -83,6 +91,17 @@ non-<code>NULL</code>, forwarded as the <code>maxit</code> argument to each unde
 (<code><a href="poissonGLM.html">poissonGLM()</a></code>, <code><a href="negbinGLM.html">negbinGLM()</a></code>, <code><a href="tweedieGLM.html">tweedieGLM()</a></code>, and the ZI counterparts),
 which translate it into the appropriate backend <code>control</code> object. A
 single value is applied across every model family.</p></dd>
+
+
+<dt id="arg-families">families<a class="anchor" aria-label="anchor" href="#arg-families"></a></dt>
+<dd><p>Character vector naming which base families to fit. Must
+be a subset of <code>c("poisson", "negbin", "tweedie")</code>. Defaults to all
+three. Each family's zero-inflated counterpart is fitted conditionally
+on its base model passing zero-inflation detection (as before). Use
+this to skip slow Tweedie / glmmTMB fits or to restrict comparison to a
+specific subset. The quasi-Poisson fit (produced when the Poisson fit
+shows a constant-overdispersion signature) requires <code>"poisson"</code> to be
+included.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -126,10 +145,15 @@ the selection, including the criterion value, dispersion context, and
 zero-inflation test results.</p></dd>
 
 <dt><code>vif</code></dt>
-<dd><p>Named numeric vector of Variance Inflation Factors for the
-main-effect predictors in <code>formula</code> (interaction and polynomial terms
-are excluded). <code>NULL</code> when fewer than two main-effect predictors are
-present. A warning is issued for any VIF &gt; 5.</p></dd>
+<dd><p>A data frame of generalized variance inflation factors
+(GVIF; Fox &amp; Monette 1992) for the main-effect predictors in
+<code>formula</code> (interaction and polynomial terms are excluded). Columns
+are <code>GVIF</code>, <code>Df</code>, and <code>GVIF^(1/(2*Df))</code> (the degrees-of-freedom
+adjusted scalar comparable to a conventional VIF). For single-df
+terms (continuous predictors and two-level factors), <code>GVIF</code> equals
+the usual VIF. <code>NULL</code> when fewer than two main-effect terms are
+present. A warning is issued when any term's <code>GVIF^(1/(2*Df))</code>
+exceeds <code>sqrt(5)</code> (the GVIF analogue of the <code>VIF &gt; 5</code> rule of thumb).</p></dd>
 
 
 </dl></div>

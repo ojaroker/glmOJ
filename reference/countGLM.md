@@ -9,7 +9,15 @@ metric given in `decide`.
 ## Usage
 
 ``` r
-countGLM(formula, data, ziformula = NULL, decide = "BIC", maxit = NULL, ...)
+countGLM(
+  formula,
+  data,
+  ziformula = NULL,
+  decide = "BIC",
+  maxit = NULL,
+  families = c("poisson", "negbin", "tweedie"),
+  ...
+)
 ```
 
 ## Arguments
@@ -51,6 +59,17 @@ countGLM(formula, data, ziformula = NULL, decide = "BIC", maxit = NULL, ...)
   and the ZI counterparts), which translate it into the appropriate
   backend `control` object. A single value is applied across every model
   family.
+
+- families:
+
+  Character vector naming which base families to fit. Must be a subset
+  of `c("poisson", "negbin", "tweedie")`. Defaults to all three. Each
+  family's zero-inflated counterpart is fitted conditionally on its base
+  model passing zero-inflation detection (as before). Use this to skip
+  slow Tweedie / glmmTMB fits or to restrict comparison to a specific
+  subset. The quasi-Poisson fit (produced when the Poisson fit shows a
+  constant-overdispersion signature) requires `"poisson"` to be
+  included.
 
 - ...:
 
@@ -103,10 +122,15 @@ An object of class `"countGLM"`, a list with:
 
 - `vif`:
 
-  Named numeric vector of Variance Inflation Factors for the main-effect
-  predictors in `formula` (interaction and polynomial terms are
-  excluded). `NULL` when fewer than two main-effect predictors are
-  present. A warning is issued for any VIF \> 5.
+  A data frame of generalized variance inflation factors (GVIF; Fox &
+  Monette 1992) for the main-effect predictors in `formula` (interaction
+  and polynomial terms are excluded). Columns are `GVIF`, `Df`, and
+  `GVIF^(1/(2*Df))` (the degrees-of-freedom adjusted scalar comparable
+  to a conventional VIF). For single-df terms (continuous predictors and
+  two-level factors), `GVIF` equals the usual VIF. `NULL` when fewer
+  than two main-effect terms are present. A warning is issued when any
+  term's `GVIF^(1/(2*Df))` exceeds `sqrt(5)` (the GVIF analogue of the
+  `VIF > 5` rule of thumb).
 
 ## Details
 

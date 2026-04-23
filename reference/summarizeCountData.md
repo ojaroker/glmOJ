@@ -8,7 +8,7 @@ main plot.
 ## Usage
 
 ``` r
-summarizeCountData(formula, data)
+summarizeCountData(formula, data, bins = 20)
 ```
 
 ## Arguments
@@ -23,6 +23,11 @@ summarizeCountData(formula, data)
 
   A data frame containing the variables in `formula`.
 
+- bins:
+
+  Integer; number of bins on each axis for the two-continuous predictor
+  2D bin plot. Default 20.
+
 ## Value
 
 A named list with four elements:
@@ -30,7 +35,7 @@ A named list with four elements:
 - summary:
 
   A one-row `data.frame` containing: `mean`, `var`, `var_mean_ratio`,
-  `n_zero`, and `n_total`.
+  `n_zero`, `prop_zero`, and `n_total`.
 
 - counts:
 
@@ -86,10 +91,6 @@ The `var_mean_ratio` in the summary table is the variance-to-mean ratio.
 A value close to 1 is consistent with a Poisson distribution; values
 substantially greater than 1 suggest overdispersion.
 
-## See also
-
-[`plot_count_data`](http://oscar.jaroker.com/glmOJ/reference/plot_count_data.md)
-
 ## Examples
 
 ``` r
@@ -103,8 +104,8 @@ df <- data.frame(
 # No predictors
 summarizeCountData(y ~ 1, data = df)
 #> $summary
-#>   mean     var var_mean_ratio n_zero n_total
-#> 1 3.05 2.14899      0.7045869      2     100
+#>   mean     var var_mean_ratio n_zero prop_zero n_total
+#> 1 3.05 2.14899      0.7045869      2      0.02     100
 #> 
 #> $counts
 #>   count freq
@@ -127,8 +128,8 @@ summarizeCountData(y ~ 1, data = df)
 # One continuous predictor
 summarizeCountData(y ~ x1, data = df)
 #> $summary
-#>   mean     var var_mean_ratio n_zero n_total
-#> 1 3.05 2.14899      0.7045869      2     100
+#>   mean     var var_mean_ratio n_zero prop_zero n_total
+#> 1 3.05 2.14899      0.7045869      2      0.02     100
 #> 
 #> $counts
 #>   count freq
@@ -153,8 +154,8 @@ summarizeCountData(y ~ x1, data = df)
 # One categorical predictor
 summarizeCountData(y ~ x2, data = df)
 #> $summary
-#>   mean     var var_mean_ratio n_zero n_total
-#> 1 3.05 2.14899      0.7045869      2     100
+#>   mean     var var_mean_ratio n_zero prop_zero n_total
+#> 1 3.05 2.14899      0.7045869      2      0.02     100
 #> 
 #> $counts
 #>   count freq
@@ -177,8 +178,8 @@ summarizeCountData(y ~ x2, data = df)
 # Mixed predictors
 summarizeCountData(y ~ x1 + x2, data = df)
 #> $summary
-#>   mean     var var_mean_ratio n_zero n_total
-#> 1 3.05 2.14899      0.7045869      2     100
+#>   mean     var var_mean_ratio n_zero prop_zero n_total
+#> 1 3.05 2.14899      0.7045869      2      0.02     100
 #> 
 #> $counts
 #>   count freq
