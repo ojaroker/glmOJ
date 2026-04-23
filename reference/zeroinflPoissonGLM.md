@@ -140,14 +140,29 @@ df <- data.frame(
 fit <- zeroinflPoissonGLM(y ~ x1, data = df)
 #> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
 #> Warning: Zero-inflation component: 6 zeros for 1 predictor(s) (6.0 per predictor). At least 10 zeros per ZI predictor is recommended.
-#> Error in zeroinflPoissonGLM(y ~ x1, data = df): object 'fitted_vals' not found
 print(fit)
-#> Error: object 'fit' not found
+#> 
+#> Call:
+#> zeroinflPoissonGLM(formula = y ~ x1, data = df)
+#> 
+#> Model family: zeroinflPoissonGLM 
+#> 
+#> Count component (exponentiated coefficients):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.3408   0.4923   3.6521  0.5662      
+#>           x1   0.9433   0.4383   2.0303  0.8814      
+#> 
+#> Zero-inflation component (exponentiated coefficients):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   0.6737   0.0821   5.5318  0.7132      
+#>           x1   2.1030   0.4077  10.8484  0.3745      
+#> 
+#> Dispersion ratio: 1.6711
+#> AIC: 29.60
 plot(fit)
-#> Error: object 'fit' not found
+
 
 # Intercept-only zero component:
 fit2 <- zeroinflPoissonGLM(y ~ x1, data = df, ziformula = ~ 1)
 #> Warning: Count component: 4 events (y > 0) for 1 predictor(s) (4.0 per predictor). At least 10 events per predictor is recommended.
-#> Error in zeroinflPoissonGLM(y ~ x1, data = df, ziformula = ~1): object 'fitted_vals' not found
 ```

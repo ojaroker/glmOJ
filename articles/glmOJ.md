@@ -241,9 +241,10 @@ print(result1)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model     AIC    BIC
-#>   negbin 2964.32 3066.9
-#>  poisson 3179.45 3276.0
+#>             model     AIC     BIC
+#>            negbin 2964.32 3066.90
+#>  zeroinfl_poisson 2920.58 3113.67
+#>           poisson 3179.45 3276.00
 #> 
 #> Selected model: negbin
 #> 
@@ -286,9 +287,10 @@ print(result2)
 #>     data = Greenberg26.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model     AIC     BIC
-#>   negbin 2953.72 3074.41
-#>  poisson 3144.98 3259.64
+#>             model     AIC     BIC
+#>            negbin 2953.72 3074.41
+#>  zeroinfl_poisson 2933.58 3162.89
+#>           poisson 3144.98 3259.64
 #> 
 #> Selected model: negbin
 #> 
@@ -525,10 +527,11 @@ print(result_cam)
 #>     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model      AIC      BIC
-#>   negbin 11306.16 11394.49
-#>  tweedie 11493.07 11588.75
-#>  poisson 13201.10 13282.07
+#>             model      AIC      BIC
+#>            negbin 11306.16 11394.49
+#>           tweedie 11493.07 11588.75
+#>  zeroinfl_poisson 11791.50 11953.43
+#>           poisson 13201.10 13282.07
 #> 
 #> Selected model: negbin
 #> 
@@ -711,10 +714,11 @@ print(result_zitw)
 #> countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)
 #> 
 #> Model comparison (sorted by BIC (ascending)):
-#>    model     AIC     BIC
-#>  tweedie 1433.70 1453.66
-#>   negbin 1462.02 1477.98
-#>  poisson 3393.04 3405.02
+#>             model     AIC     BIC
+#>           tweedie 1433.70 1453.66
+#>            negbin 1462.02 1477.98
+#>  zeroinfl_poisson 1649.58 1673.53
+#>           poisson 3393.04 3405.02
 #> 
 #> Selected model: tweedie
 #> 

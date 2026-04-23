@@ -302,9 +302,10 @@ criterion specified in <code>decide</code> (default <code>"BIC"</code>)
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;    model     AIC    BIC</span></span>
-<span><span class="co">#&gt;   negbin 2964.32 3066.9</span></span>
-<span><span class="co">#&gt;  poisson 3179.45 3276.0</span></span>
+<span><span class="co">#&gt;             model     AIC     BIC</span></span>
+<span><span class="co">#&gt;            negbin 2964.32 3066.90</span></span>
+<span><span class="co">#&gt;  zeroinfl_poisson 2920.58 3113.67</span></span>
+<span><span class="co">#&gt;           poisson 3179.45 3276.00</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -346,9 +347,10 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt;     data = Greenberg26.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;    model     AIC     BIC</span></span>
-<span><span class="co">#&gt;   negbin 2953.72 3074.41</span></span>
-<span><span class="co">#&gt;  poisson 3144.98 3259.64</span></span>
+<span><span class="co">#&gt;             model     AIC     BIC</span></span>
+<span><span class="co">#&gt;            negbin 2953.72 3074.41</span></span>
+<span><span class="co">#&gt;  zeroinfl_poisson 2933.58 3162.89</span></span>
+<span><span class="co">#&gt;           poisson 3144.98 3259.64</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -572,10 +574,11 @@ confirming this:</p>
 <span><span class="co">#&gt;     hinc + pvac + modal_zone + offset(log_road_length), data = Dahir25.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;    model      AIC      BIC</span></span>
-<span><span class="co">#&gt;   negbin 11306.16 11394.49</span></span>
-<span><span class="co">#&gt;  tweedie 11493.07 11588.75</span></span>
-<span><span class="co">#&gt;  poisson 13201.10 13282.07</span></span>
+<span><span class="co">#&gt;             model      AIC      BIC</span></span>
+<span><span class="co">#&gt;            negbin 11306.16 11394.49</span></span>
+<span><span class="co">#&gt;           tweedie 11493.07 11588.75</span></span>
+<span><span class="co">#&gt;  zeroinfl_poisson 11791.50 11953.43</span></span>
+<span><span class="co">#&gt;           poisson 13201.10 13282.07</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: negbin</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -740,10 +743,11 @@ whichever models were fit.</p>
 <span><span class="co">#&gt; countGLM(formula = y ~ x1 + x2, data = ZITweedie.dat)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model comparison (sorted by BIC (ascending)):</span></span>
-<span><span class="co">#&gt;    model     AIC     BIC</span></span>
-<span><span class="co">#&gt;  tweedie 1433.70 1453.66</span></span>
-<span><span class="co">#&gt;   negbin 1462.02 1477.98</span></span>
-<span><span class="co">#&gt;  poisson 3393.04 3405.02</span></span>
+<span><span class="co">#&gt;             model     AIC     BIC</span></span>
+<span><span class="co">#&gt;           tweedie 1433.70 1453.66</span></span>
+<span><span class="co">#&gt;            negbin 1462.02 1477.98</span></span>
+<span><span class="co">#&gt;  zeroinfl_poisson 1649.58 1673.53</span></span>
+<span><span class="co">#&gt;           poisson 3393.04 3405.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Selected model: tweedie</span></span>
 <span><span class="co">#&gt; </span></span>
