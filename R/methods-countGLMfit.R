@@ -130,6 +130,110 @@ print.summary.countGLMfit <- function(x, digits = 4, ...) {
 }
 
 #' @export
+summary.tweedieGLM <- function(object, ...) {
+  out <- list(
+    call             = object$call,
+    family           = class(object)[1L],
+    coefficients     = object$coefficients,
+    phi              = object$phi,
+    p                = object$p,
+    dispersion_ratio = object$diagnostics$dispersion_ratio,
+    aic              = object$aic,
+    rqr              = object$diagnostics$rqr,
+    plot             = object$diagnostics$plot
+  )
+  class(out) <- c("summary.tweedieGLM", "summary.countGLMfit")
+  out
+}
+
+#' @export
+summary.quasiPoissonGLM <- function(object, ...) {
+  out <- list(
+    call             = object$call,
+    family           = class(object)[1L],
+    coefficients     = object$coefficients,
+    phi              = object$phi,
+    dispersion_ratio = object$diagnostics$dispersion_ratio,
+    aic              = object$aic,
+    rqr              = object$diagnostics$rqr,
+    plot             = object$diagnostics$plot
+  )
+  class(out) <- c("summary.quasiPoissonGLM", "summary.countGLMfit")
+  out
+}
+
+#' @export
+summary.zeroinflTweedieGLM <- function(object, ...) {
+  out <- list(
+    call             = object$call,
+    family           = class(object)[1L],
+    coefficients     = object$coefficients,
+    phi              = object$phi,
+    p                = object$p,
+    dispersion_ratio = object$diagnostics$dispersion_ratio,
+    aic              = object$aic,
+    rqr              = object$diagnostics$rqr,
+    plot             = object$diagnostics$plot
+  )
+  class(out) <- c("summary.zeroinflTweedieGLM", "summary.zeroinflGLMfit",
+                  "summary.countGLMfit")
+  out
+}
+
+#' @export
+print.summary.tweedieGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family:", x$family, "\n")
+  cat("\nCoefficients (on response scale):\n")
+  print(.fmt_coef_table(x$coefficients, digits), row.names = FALSE)
+  if (!is.null(x$phi) && !is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  if (!is.null(x$p)   && !is.na(x$p))   cat(sprintf("Power (p): %.4f\n", x$p))
+  cat(sprintf("Dispersion ratio: %.4f", x$dispersion_ratio))
+  disp <- x$dispersion_ratio
+  if (!is.na(disp)) {
+    if (disp > 1.5) cat("  [suggests overdispersion]")
+    else if (disp < 0.5) cat("  [suggests underdispersion]")
+  }
+  cat(sprintf("\nAIC: %.2f\n", x$aic))
+  invisible(x)
+}
+
+#' @export
+print.summary.quasiPoissonGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family:", x$family, "\n")
+  cat("\nCoefficients (on response scale):\n")
+  print(.fmt_coef_table(x$coefficients, digits), row.names = FALSE)
+  if (!is.null(x$phi) && !is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  cat(sprintf("Dispersion ratio: %.4f\n", x$dispersion_ratio))
+  cat("AIC: NA (quasi-likelihood)\n")
+  invisible(x)
+}
+
+#' @export
+print.summary.zeroinflTweedieGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family:", x$family, "\n")
+  cat("\nCount component (exponentiated coefficients):\n")
+  print(.fmt_coef_table(x$coefficients$count, digits), row.names = FALSE)
+  cat("\nZero-inflation component (exponentiated coefficients):\n")
+  print(.fmt_coef_table(x$coefficients$zero, digits), row.names = FALSE)
+  if (!is.null(x$phi) && !is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  if (!is.null(x$p)   && !is.na(x$p))   cat(sprintf("Power (p): %.4f\n", x$p))
+  cat(sprintf("Dispersion ratio: %.4f", x$dispersion_ratio))
+  disp <- x$dispersion_ratio
+  if (!is.na(disp)) {
+    if (disp > 1.5) cat("  [suggests overdispersion]")
+    else if (disp < 0.5) cat("  [suggests underdispersion]")
+  }
+  cat(sprintf("\nAIC: %.2f\n", x$aic))
+  invisible(x)
+}
+
+#' @export
 print.summary.zeroinflGLMfit <- function(x, digits = 4, ...) {
   cat("\nCall:\n")
   print(x$call)
@@ -148,11 +252,17 @@ print.summary.zeroinflGLMfit <- function(x, digits = 4, ...) {
   invisible(x)
 }
 
-# ---- plot method -------------------------------------------------------
+# ---- plot methods ------------------------------------------------------
 
 #' @export
 plot.countGLMfit <- function(x, ...) {
   print(x$diagnostics$plot)
+  invisible(x)
+}
+
+#' @export
+plot.countGLM <- function(x, ...) {
+  plot(x$fits[[x$best_model]], ...)
   invisible(x)
 }
 
@@ -236,5 +346,5 @@ print.countGLM <- function(x, digits = 4, ...) {
 #' @export
 summary.countGLM <- function(object, ...) {
   cat("Summary of selected model (", object$best_model, "):\n\n", sep = "")
-  summary(object$fits[[object$best_model]], ...)
+  invisible(summary(object$fits[[object$best_model]], ...))
 }

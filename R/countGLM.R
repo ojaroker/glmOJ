@@ -375,9 +375,9 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
   if (!is.null(pois_fit)) {
     disp_ratio <- pois_fit$diagnostics$dispersion_ratio
     if (!is.na(disp_ratio)) {
-      disp_msg <- if (disp_ratio > 1.5) {
+      disp_msg <- if (disp_ratio > 1.2) {
         sprintf(
-          "The Poisson dispersion ratio is %.2f (> 1.5), indicating overdispersion.",
+          "The Poisson dispersion ratio is %.2f (> 1.2), indicating overdispersion.",
           disp_ratio
         )
       } else {

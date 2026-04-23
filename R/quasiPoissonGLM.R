@@ -108,12 +108,12 @@ quasiPoissonGLM <- function(formula, data, maxit = NULL, ...) {
   est     <- sm_coef[, "Estimate"]
   se      <- sm_coef[, "Std. Error"]
   pvals   <- sm_coef[, "Pr(>|t|)"]
-  z_crit  <- stats::qnorm(0.975)
+  t_crit  <- stats::qt(0.975, df = fit$df.residual)
   coef_table <- data.frame(
     term      = rownames(sm_coef),
     exp.coef  = exp(est),
-    lower.95  = exp(est - z_crit * se),
-    upper.95  = exp(est + z_crit * se),
+    lower.95  = exp(est - t_crit * se),
+    upper.95  = exp(est + t_crit * se),
     p.value   = pvals,
     stars     = as.character(sig_stars(pvals)),
     row.names = NULL,

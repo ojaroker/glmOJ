@@ -64,8 +64,6 @@
 #' # Mixed predictors
 #' summarizeCountData(y ~ x1 + x2, data = df)
 #'
-#' @seealso \code{\link{plot_count_data}}
-#'
 #' @importFrom rlang .data
 #' @export
 summarizeCountData = function(formula, data) {
