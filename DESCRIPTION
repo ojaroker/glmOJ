@@ -14,8 +14,7 @@ Description: Provides a workflow for fitting, diagnosing, and interpreting
     additionally fits a quasi-Poisson model when the Poisson fit shows a
     constant-overdispersion signature, and selects the best likelihood-based
     model by AIC, BIC, log-likelihood, or McFadden pseudo-R-squared.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
