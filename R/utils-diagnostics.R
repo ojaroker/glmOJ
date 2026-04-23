@@ -341,6 +341,77 @@ plot_diagnostics <- function(
   )
 }
 
+#' Randomized quantile residuals for a quasi-Poisson fit.
+#'
+#' Uses the Poisson CDF with the fitted means. Quasi-Poisson shares the Poisson
+#' mean structure, so these RQRs are the appropriate diagnostic for checking
+#' the conditional mean — they match the RQRs of a Poisson fit with the same
+#' coefficients. `statmod::qres.pois()` refuses to run on a quasi family, so
+#' we inline the same computation here.
+#' @noRd
+compute_rqr_quasipoisson <- function(fit) {
+  mu <- fit$fitted.values
+  y  <- fit$y
+  if (is.null(y)) y <- stats::model.response(stats::model.frame(fit))
+  n  <- length(y)
+  a  <- stats::ppois(pmax(y - 1L, 0L), mu)
+  a[y == 0L] <- 0
+  b  <- stats::ppois(y, mu)
+  a  <- pmin(a, b)
+  u  <- stats::runif(n, min = a, max = b)
+  u  <- pmin(pmax(u, 1e-10), 1 - 1e-10)
+  rqr <- stats::qnorm(u)
+  .warn_nonfinite_rqr(rqr)
+  rqr
+}
+
+#' Detect whether a quasi-Poisson model is appropriate given a Poisson fit.
+#'
+#' Returns `TRUE` when (a) the Pearson dispersion ratio exceeds 1.2 and (b)
+#' the squared Pearson residuals form a roughly flat cloud across the range
+#' of fitted values whose central level is not 1 (i.e. approximately
+#' constant `Var(Y)/mu = phi > 1`, the quasi-Poisson signature, rather than
+#' a fan pattern that would motivate negative binomial).
+#'
+#' Flatness is assessed by regressing squared Pearson residuals on fitted
+#' values and requiring the absolute slope to be small relative to the mean
+#' r^2 (|slope * range(fitted)| < 0.5 * mean(r^2)).
+#' @noRd
+is_quasipoisson_appropriate <- function(pois_fit) {
+  disp <- tryCatch(pois_fit$diagnostics$dispersion_ratio, error = function(e) NA_real_)
+  if (is.null(disp) || is.na(disp) || disp <= 1.2) return(FALSE)
+
+  fitted_vals <- tryCatch(pois_fit$model$fitted.values, error = function(e) NULL)
+  pearson     <- tryCatch(residuals(pois_fit$model, type = "pearson"),
+                          error = function(e) NULL)
+  if (is.null(fitted_vals) || is.null(pearson) || length(fitted_vals) < 3L) {
+    return(FALSE)
+  }
+
+  r2 <- pearson^2
+  ok <- is.finite(fitted_vals) & is.finite(r2)
+  if (sum(ok) < 3L) return(FALSE)
+  fv <- fitted_vals[ok]
+  r2 <- r2[ok]
+
+  fv_range <- diff(range(fv))
+  mean_r2  <- mean(r2)
+  if (fv_range <= 0 || mean_r2 <= 0) return(FALSE)
+
+  slope <- tryCatch(
+    stats::coef(stats::lm(r2 ~ fv))[2L],
+    error = function(e) NA_real_
+  )
+  if (is.na(slope)) return(FALSE)
+
+  # Flat: total change across fitted range < half the mean r^2
+  flat <- abs(slope * fv_range) < 0.5 * mean_r2
+  # Not at 1: mean level substantially above 1 (we already know disp > 1.2)
+  not_at_one <- mean_r2 > 1.2
+
+  isTRUE(flat && not_at_one)
+}
+
 #' Compute VIF on main-effect terms only, avoiding false positives from
 #' structural collinearity (interaction terms, polynomial terms, etc.)
 #'

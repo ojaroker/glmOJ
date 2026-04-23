@@ -42,6 +42,19 @@ print.zeroinflTweedieGLM <- function(x, digits = 4, ...) {
 }
 
 #' @export
+print.quasiPoissonGLM <- function(x, digits = 4, ...) {
+  cat("\nCall:\n")
+  print(x$call)
+  cat("\nModel family: quasiPoissonGLM\n")
+  cat("\nCoefficients (on response scale):\n")
+  print(.fmt_coef_table(x$coefficients, digits), row.names = FALSE)
+  if (!is.na(x$phi)) cat(sprintf("\nDispersion (phi): %.4f\n", x$phi))
+  cat(sprintf("Dispersion ratio: %.4f\n", x$diagnostics$dispersion_ratio))
+  cat("AIC: NA (quasi-likelihood)\n")
+  invisible(x)
+}
+
+#' @export
 print.countGLMfit <- function(x, digits = 4, ...) {
   cat("\nCall:\n")
   print(x$call)
@@ -165,6 +178,10 @@ print.countGLM <- function(x, digits = 4, ...) {
 
   # Rows ordered best-first by the chosen metric (metric_table is pre-sorted)
   all_models <- names(x$metric_table)
+  # Quasi-Poisson (if fitted) is excluded from metric_table; append it at the
+  # end so it appears in the comparison table with NA criterion values.
+  extra_models <- setdiff(names(x$fits), all_models)
+  all_models <- c(all_models, extra_models)
 
   decide <- x$decide
   metric_label <- switch(decide,
@@ -178,16 +195,32 @@ print.countGLM <- function(x, digits = 4, ...) {
 
   ic_df <- data.frame(
     model = all_models,
-    AIC   = round(x$aic_table[all_models], 2),
-    BIC   = round(x$bic_table[all_models], 2),
+    AIC   = round(unname(vapply(all_models,
+                                 function(m) {
+                                   if (m %in% names(x$aic_table)) x$aic_table[[m]]
+                                   else NA_real_
+                                 }, numeric(1L))), 2),
+    BIC   = round(unname(vapply(all_models,
+                                 function(m) {
+                                   if (m %in% names(x$bic_table)) x$bic_table[[m]]
+                                   else NA_real_
+                                 }, numeric(1L))), 2),
     row.names = NULL
   )
 
   # Add the selection metric column when it is not already AIC or BIC
   if (decide == "loglik") {
-    ic_df$LogLik <- round(x$metric_table[all_models], 2)
+    ic_df$LogLik <- round(unname(vapply(all_models,
+                                         function(m) {
+                                           if (m %in% names(x$metric_table)) x$metric_table[[m]]
+                                           else NA_real_
+                                         }, numeric(1L))), 2)
   } else if (decide == "mcfadden") {
-    ic_df[["McFadden R2"]] <- round(x$metric_table[all_models], 4)
+    ic_df[["McFadden R2"]] <- round(unname(vapply(all_models,
+                                                    function(m) {
+                                                      if (m %in% names(x$metric_table)) x$metric_table[[m]]
+                                                      else NA_real_
+                                                    }, numeric(1L))), 4)
   }
 
   cat(sprintf("\nModel comparison (%s):\n", sort_note))

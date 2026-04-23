@@ -332,3 +332,73 @@ test_that("countGLM warns and excludes degenerate Tweedie on integer data", {
                                     "zeroinfl_poisson", "zeroinfl_negbin"))
   }
 })
+
+test_that("is_quasipoisson_appropriate detects flat overdispersed r^2 above 1", {
+  # Fabricate a Poisson-GLM-like object with a flat cloud of r^2 around ~ 3:
+  # fitted values span a wide range but r^2 has near-zero slope on fitted.
+  set.seed(20250101)
+  n <- 400
+  fv <- runif(n, 2, 20)
+  # r^2 roughly constant around 3 (flat, not-at-1): quasi-Poisson signature
+  pearson <- stats::rnorm(n, mean = 0, sd = sqrt(3))
+  fake_model <- list(fitted.values = fv)
+  class(fake_model) <- "fake"
+  # residuals.fake returns pearson regardless of `type`
+  residuals.fake <- function(object, type, ...) pearson
+  # Register the method in the test environment
+  assign("residuals.fake", residuals.fake, envir = .GlobalEnv)
+  on.exit(rm("residuals.fake", envir = .GlobalEnv), add = TRUE)
+
+  fake_fit <- list(
+    model = fake_model,
+    diagnostics = list(dispersion_ratio = mean(pearson^2))
+  )
+  expect_true(glmOJ:::is_quasipoisson_appropriate(fake_fit))
+})
+
+test_that("is_quasipoisson_appropriate returns FALSE for well-calibrated Poisson", {
+  set.seed(20250102)
+  n <- 400
+  x <- rnorm(n)
+  y <- stats::rpois(n, lambda = exp(1 + 0.3 * x))
+  dfp <- data.frame(y = y, x = x)
+  p_fit <- suppressWarnings(poissonGLM(y ~ x, data = dfp,
+                                       assessZeroInflation = FALSE))
+  expect_false(glmOJ:::is_quasipoisson_appropriate(p_fit))
+})
+
+test_that("countGLM attaches quasi-Poisson fit when the helper flags it", {
+  # Use a real Poisson fit and verify the integration path: once the helper
+  # fires, countGLM must attach the quasipoisson fit without polluting the
+  # AIC/BIC tables or best_model.
+  set.seed(20250103)
+  n <- 400
+  x <- rnorm(n)
+  # rnbinom with moderate size keeps overdispersion but not an extreme fan
+  y <- stats::rnbinom(n, size = 4, mu = exp(1.5 + 0.3 * x))
+  dfq <- data.frame(y = y, x = x)
+
+  # Skip if helper doesn't fire on this draw (not the integration path being tested)
+  p_fit <- suppressWarnings(poissonGLM(y ~ x, data = dfq,
+                                       assessZeroInflation = FALSE))
+  skip_if_not(glmOJ:::is_quasipoisson_appropriate(p_fit),
+              "helper did not flag quasi-Poisson for this random draw")
+
+  r <- suppressWarnings(countGLM(y ~ x, data = dfq))
+  expect_true("quasipoisson" %in% names(r$fits))
+  expect_false(identical(r$best_model, "quasipoisson"))
+  expect_false("quasipoisson" %in% names(r$aic_table))
+  expect_false("quasipoisson" %in% names(r$bic_table))
+  expect_match(r$recommendation, "[Qq]uasi-?Poisson")
+})
+
+test_that("countGLM does not fit quasi-Poisson when Poisson is well-calibrated", {
+  set.seed(20250102)
+  n <- 400
+  x <- rnorm(n)
+  y <- stats::rpois(n, lambda = exp(1 + 0.3 * x))
+  dfp <- data.frame(y = y, x = x)
+
+  r <- suppressWarnings(countGLM(y ~ x, data = dfp))
+  expect_false("quasipoisson" %in% names(r$fits))
+})

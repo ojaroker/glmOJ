@@ -55,7 +55,12 @@
 #' base models. It then runs a DHARMa simulation test for zero-inflation on
 #' each successful base model. For every family, the zero-inflated counterpart
 #' is fitted only when zero-inflation is detected (p < 0.05) on its base
-#' model. All surviving models are compared by `decide`.
+#' model. A [quasiPoissonGLM()] fit is additionally produced when the Poisson
+#' fit shows a dispersion ratio > 1.2 combined with a roughly flat squared
+#' Pearson residual cloud that sits above 1 (the quasi-Poisson signature).
+#' Because quasi-Poisson has no proper likelihood, it is excluded from the
+#' `decide` comparison and reported alongside it with `NA` AIC/BIC.
+#' All surviving likelihood-based models are compared by `decide`.
 #'
 #' **Model selection:** The model with the best value of `decide` is chosen.
 #' For `"AIC"` and `"BIC"` the model with the *lowest* value wins; for
@@ -220,18 +225,39 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     }
   }
 
-  # Combine base and ZI fits; preserve canonical ordering
-  all_fits_raw <- c(base_fits[base_ok], zi_fits)
-  ordered_names <- c("poisson", "negbin", "tweedie",
+  # ---------------------------------------------------------------------------
+  # Step 3b: Conditionally fit quasi-Poisson when Poisson shows constant
+  # overdispersion (dispersion_ratio > 1.2 and flat r^2 vs fitted above 1).
+  # Quasi-Poisson has no proper likelihood, so it does NOT participate in the
+  # AIC/BIC/logLik/McFadden comparison; it is reported alongside.
+  # ---------------------------------------------------------------------------
+  quasi_fits <- list()
+  if (base_ok[["poisson"]] &&
+      is_quasipoisson_appropriate(base_fits[["poisson"]])) {
+    qp <- tryCatch(
+      quasiPoissonGLM(formula, data, maxit = maxit, ...),
+      error = function(e) e
+    )
+    if (!inherits(qp, "error")) {
+      quasi_fits$quasipoisson <- qp
+    }
+  }
+
+  # Combine base, ZI, and quasi fits; preserve canonical ordering
+  all_fits_raw <- c(base_fits[base_ok], zi_fits, quasi_fits)
+  ordered_names <- c("poisson", "quasipoisson", "negbin", "tweedie",
                      "zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
   fits <- all_fits_raw[intersect(ordered_names, names(all_fits_raw))]
 
-  if (length(fits) == 0L) {
+  # Quasi-Poisson is excluded from likelihood-based comparison
+  fits_for_compare <- fits[setdiff(names(fits), "quasipoisson")]
+
+  if (length(fits_for_compare) == 0L) {
     stop("All model fits failed. Check your formula and data.")
   }
 
-  aics      <- vapply(fits, `[[`, numeric(1L), "aic")
-  bics      <- vapply(fits, `[[`, numeric(1L), "bic")
+  aics      <- vapply(fits_for_compare, `[[`, numeric(1L), "aic")
+  bics      <- vapply(fits_for_compare, `[[`, numeric(1L), "bic")
   aic_table <- sort(aics)
   bic_table <- sort(bics)
 
@@ -245,12 +271,14 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     best_name    <- names(which.min(raw_metrics))
     metric_table <- sort(raw_metrics)
   } else if (decide_norm == "loglik") {
-    raw_metrics  <- vapply(fits, function(f) as.numeric(stats::logLik(f$model)), numeric(1L))
+    raw_metrics  <- vapply(fits_for_compare,
+                           function(f) as.numeric(stats::logLik(f$model)),
+                           numeric(1L))
     best_name    <- names(which.max(raw_metrics))
     metric_table <- sort(raw_metrics, decreasing = TRUE)
   } else {
     # McFadden pseudo-R²: 1 - logLik(full) / logLik(null)
-    raw_metrics  <- .compute_mcfadden(fits, data, deparse(formula[[2L]]))
+    raw_metrics  <- .compute_mcfadden(fits_for_compare, data, deparse(formula[[2L]]))
     valid        <- !is.na(raw_metrics)
     best_name    <- names(which.max(raw_metrics[valid]))
     metric_table <- sort(raw_metrics, decreasing = TRUE)
@@ -328,6 +356,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
 .model_label <- function(name) {
   switch(name,
     poisson          = "Poisson",
+    quasipoisson     = "Quasi-Poisson",
     negbin           = "Negative Binomial",
     tweedie          = "Tweedie",
     zeroinfl_poisson = "Zero-Inflated Poisson",
@@ -404,7 +433,22 @@ build_recommendation <- function(fits, best_name, aic_table, bic_table,
     .model_label(best_name), metric_label, metric_label, val_str
   )
 
-  parts <- c(selection_msg, disp_msg, zi_msg)
+  # --- Quasi-Poisson note ---
+  qp_msg <- ""
+  qp_fit <- fits[["quasipoisson"]]
+  if (!is.null(qp_fit)) {
+    qp_phi <- tryCatch(qp_fit$phi, error = function(e) NA_real_)
+    qp_msg <- if (is.null(qp_phi) || is.na(qp_phi)) {
+      "A quasi-Poisson fit was produced (constant overdispersion signature on the Poisson fit); it is reported alongside but excluded from AIC/BIC comparison because quasi-likelihood has no proper likelihood."
+    } else {
+      sprintf(
+        "A quasi-Poisson fit was produced (phi = %.2f; constant overdispersion signature on the Poisson fit); it is reported alongside but excluded from AIC/BIC comparison because quasi-likelihood has no proper likelihood.",
+        qp_phi
+      )
+    }
+  }
+
+  parts <- c(selection_msg, disp_msg, zi_msg, qp_msg)
   parts <- parts[nchar(parts) > 0L]
   paste(parts, collapse = " ")
 }

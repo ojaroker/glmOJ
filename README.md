@@ -28,6 +28,7 @@ analyst through four steps:
 | Family | Function | Use when |
 |----|----|----|
 | Poisson | [`poissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/poissonGLM.html) | Counts with mean ≈ variance |
+| Quasi-Poisson | [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.html) | Constant overdispersion: Var(Y) = phi · mu with phi \> 1 roughly flat across fitted values |
 | Negative binomial | [`negbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/negbinGLM.html) | Counts with variance \> mean (overdispersion) |
 | Tweedie | [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.html) | Non-negative semi-continuous data; power parameter estimated freely |
 | Zero-inflated Poisson | [`zeroinflPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.html) | Excess zeros + equidispersed non-zero counts |
@@ -36,9 +37,15 @@ analyst through four steps:
 
 The general-purpose
 [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.html)
-fits all six families and selects the best by a user-chosen criterion
-(`decide = "BIC"` by default; also accepts `"AIC"`, `"LogLik"`, or
-`"McFadden"`), annotated with dispersion and zero-inflation diagnostics.
+fits all six likelihood-based families and selects the best by a
+user-chosen criterion (`decide = "BIC"` by default; also accepts
+`"AIC"`, `"LogLik"`, or `"McFadden"`), annotated with dispersion and
+zero-inflation diagnostics. When the Poisson fit shows dispersion ratio
+\> 1.2 combined with a roughly flat squared-Pearson-residual cloud
+sitting above 1 (the quasi-Poisson signature), `quasiPoissonGLM()` is
+also fitted and reported alongside — but excluded from the AIC/BIC/
+log-likelihood comparison, since quasi-likelihood has no proper
+likelihood.
 
 ## Package functions
 
@@ -59,6 +66,11 @@ dispersion ratio, and a two-panel diagnostic plot (fitted values vs. RQR
 
 - **`poissonGLM(formula, data)`** — Poisson regression via
   [`stats::glm`](https://rdrr.io/r/stats/glm.html).
+- **`quasiPoissonGLM(formula, data)`** — Quasi-Poisson regression via
+  [`stats::glm`](https://rdrr.io/r/stats/glm.html) with
+  `family = quasipoisson()`. Same point estimates as Poisson, but
+  standard errors (and hence CIs and p-values) are scaled by the
+  estimated dispersion `phi`. AIC/BIC are `NA` (no proper likelihood).
 - **`negbinGLM(formula, data)`** — Negative binomial regression via
   [`MASS::glm.nb`](https://rdrr.io/pkg/MASS/man/glm.nb.html).
 - **`zeroinflPoissonGLM(formula, data, ziformula)`** — Zero-inflated

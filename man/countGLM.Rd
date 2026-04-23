@@ -69,7 +69,12 @@ then selects the best overall model by the metric given in \code{decide}.
 base models. It then runs a DHARMa simulation test for zero-inflation on
 each successful base model. For every family, the zero-inflated counterpart
 is fitted only when zero-inflation is detected (p < 0.05) on its base
-model. All surviving models are compared by \code{decide}.
+model. A \code{\link[=quasiPoissonGLM]{quasiPoissonGLM()}} fit is additionally produced when the Poisson
+fit shows a dispersion ratio > 1.2 combined with a roughly flat squared
+Pearson residual cloud that sits above 1 (the quasi-Poisson signature).
+Because quasi-Poisson has no proper likelihood, it is excluded from the
+\code{decide} comparison and reported alongside it with \code{NA} AIC/BIC.
+All surviving likelihood-based models are compared by \code{decide}.
 
 \strong{Model selection:} The model with the best value of \code{decide} is chosen.
 For \code{"AIC"} and \code{"BIC"} the model with the \emph{lowest} value wins; for

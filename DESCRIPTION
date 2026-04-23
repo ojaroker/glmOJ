@@ -4,14 +4,16 @@ Version: 0.0.0.9000
 Authors@R:
     person("Oscar", "Jaroker", , "ojaroker@colgate.edu", role = c("aut", "cre"))
 Description: Provides a workflow for fitting, diagnosing, and interpreting
-    count and semi-continuous regression models. Supports Poisson, negative
-    binomial, Tweedie, zero-inflated Poisson, zero-inflated negative binomial,
-    and zero-inflated Tweedie models. Includes data summarization tools,
-    randomized quantile residual diagnostics, and a general-purpose wrapper
-    that fits Poisson, negative binomial, and Tweedie base models, runs
-    zero-inflation tests on each, conditionally fits the corresponding
-    zero-inflated counterpart, and selects the best model by AIC, BIC,
-    log-likelihood, or McFadden pseudo-R-squared.
+    count and semi-continuous regression models. Supports Poisson,
+    quasi-Poisson, negative binomial, Tweedie, zero-inflated Poisson,
+    zero-inflated negative binomial, and zero-inflated Tweedie models.
+    Includes data summarization tools, randomized quantile residual
+    diagnostics, and a general-purpose wrapper that fits Poisson, negative
+    binomial, and Tweedie base models, runs zero-inflation tests on each,
+    conditionally fits the corresponding zero-inflated counterpart,
+    additionally fits a quasi-Poisson model when the Poisson fit shows a
+    constant-overdispersion signature, and selects the best likelihood-based
+    model by AIC, BIC, log-likelihood, or McFadden pseudo-R-squared.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8

@@ -34,6 +34,12 @@ interpret_coef.negbinGLM <- function(model, predictor, component = "count") {
 }
 
 #' @export
+interpret_coef.quasiPoissonGLM <- function(model, predictor,
+                                            component = "count") {
+  .interp_standard(model, predictor)
+}
+
+#' @export
 interpret_coef.tweedieGLM <- function(model, predictor, component = "count") {
   .interp_glmmtmb_standard(model, predictor)
 }
