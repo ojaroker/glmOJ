@@ -12,6 +12,8 @@
 #' @param maxit Optional integer; maximum IWLS iterations passed through as
 #'   `control = stats::glm.control(maxit = maxit)`. Ignored when the user
 #'   supplies their own `control` via `...`.
+#' @param dispersion_threshold Numeric; dispersion ratios above this value
+#'   are flagged as overdispersed in the diagnostic plot. Default 1.2.
 #' @param ... Additional arguments passed to [stats::glm()].
 #'
 #' @return An object of class `c("quasiPoissonGLM", "countGLMfit")`, a list
@@ -75,7 +77,8 @@
 #' @seealso [poissonGLM()], [negbinGLM()], [tweedieGLM()], [countGLM()],
 #'   [stats::glm()]
 #' @export
-quasiPoissonGLM <- function(formula, data, maxit = NULL, ...) {
+quasiPoissonGLM <- function(formula, data, maxit = NULL,
+                            dispersion_threshold = 1.2, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
     "data must be a data frame"        = is.data.frame(data),
@@ -126,7 +129,8 @@ quasiPoissonGLM <- function(formula, data, maxit = NULL, ...) {
   # the same fitted means, so this is the same RQR as the Poisson fit — the
   # appropriate diagnostic for checking the mean structure.
   rqr           <- compute_rqr_quasipoisson(fit)
-  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp,
+                                    dispersion_threshold = dispersion_threshold)
 
   structure(
     list(

@@ -75,7 +75,7 @@ test_that("summary table has correct columns", {
   result <- summarizeCountData(y ~ x1, df_small)
   expect_named(
     result$summary,
-    c("mean", "var", "var_mean_ratio", "n_zero", "n_total")
+    c("mean", "var", "var_mean_ratio", "n_zero", "prop_zero", "n_total")
   )
 })
 
@@ -85,6 +85,7 @@ test_that("summary table values are correct", {
   expect_equal(result$summary$var,            var(df_small$y))
   expect_equal(result$summary$var_mean_ratio, var(df_small$y) / mean(df_small$y))
   expect_equal(result$summary$n_zero,         sum(df_small$y == 0))
+  expect_equal(result$summary$prop_zero,      sum(df_small$y == 0) / nrow(df_small))
   expect_equal(result$summary$n_total,        nrow(df_small))
 })
 

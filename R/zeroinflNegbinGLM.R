@@ -106,8 +106,9 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL,
   rqr           <- compute_rqr(fit, "zeroinfl_negbin")
   pearson_resid <- residuals(fit, type = "pearson")
   disp          <- check_dispersion(fit)
+  fitted_vals   <- fit$fitted.values
   diag_plots    <- plot_diagnostics(rqr, pearson_resid, fitted_vals, disp,
-                                  dispersion_threshold = dispersion_threshold)
+                                    dispersion_threshold = dispersion_threshold)
 
   structure(
     list(

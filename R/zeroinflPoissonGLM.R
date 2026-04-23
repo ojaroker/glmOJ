@@ -112,16 +112,12 @@ zeroinflPoissonGLM <- function(
     zero_label = "exp.coef"
   )
 
-  rqr <- compute_rqr(fit, "zeroinfl_poisson")
+  rqr           <- compute_rqr(fit, "zeroinfl_poisson")
   pearson_resid <- residuals(fit, type = "pearson")
-  disp <- check_dispersion(fit)
-  diag_plots <- plot_diagnostics(
-    rqr,
-    pearson_resid,
-    fitted_vals,
-    disp,
-    dispersion_threshold = dispersion_threshold
-  )
+  disp          <- check_dispersion(fit)
+  fitted_vals   <- fit$fitted.values
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fitted_vals, disp,
+                                    dispersion_threshold = dispersion_threshold)
   structure(
     list(
       call = match.call(),
