@@ -40,6 +40,11 @@ dispersion ratio, and a two-panel diagnostic plot.
 - [`zeroinflNegbinGLM()`](http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.md)
   : Fit a zero-inflated negative binomial regression model
 
+### Quasi-Poisson
+
+- [`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.md)
+  : Fit a quasi-Poisson regression model
+
 ### Tweedie
 
 - [`tweedieGLM()`](http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.md)

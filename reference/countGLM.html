@@ -139,7 +139,12 @@ present. A warning is issued for any VIF &gt; 5.</p></dd>
 base models. It then runs a DHARMa simulation test for zero-inflation on
 each successful base model. For every family, the zero-inflated counterpart
 is fitted only when zero-inflation is detected (p &lt; 0.05) on its base
-model. All surviving models are compared by <code>decide</code>.</p>
+model. A <code><a href="quasiPoissonGLM.html">quasiPoissonGLM()</a></code> fit is additionally produced when the Poisson
+fit shows a dispersion ratio &gt; 1.2 combined with a roughly flat squared
+Pearson residual cloud that sits above 1 (the quasi-Poisson signature).
+Because quasi-Poisson has no proper likelihood, it is excluded from the
+<code>decide</code> comparison and reported alongside it with <code>NA</code> AIC/BIC.
+All surviving likelihood-based models are compared by <code>decide</code>.</p>
 <p><strong>Model selection:</strong> The model with the best value of <code>decide</code> is chosen.
 For <code>"AIC"</code> and <code>"BIC"</code> the model with the <em>lowest</em> value wins; for
 <code>"LogLik"</code> and <code>"McFadden"</code> the model with the <em>highest</em> value wins.

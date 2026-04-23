@@ -85,33 +85,38 @@
 <td>Counts with mean ≈ variance</td>
 </tr>
 <tr class="even">
+<td>Quasi-Poisson</td>
+<td><a href="http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.html"><code>quasiPoissonGLM()</code></a></td>
+<td>Constant overdispersion: Var(Y) = phi · mu with phi &gt; 1 roughly flat across fitted values</td>
+</tr>
+<tr class="odd">
 <td>Negative binomial</td>
 <td><a href="http://oscar.jaroker.com/glmOJ/reference/negbinGLM.html"><code>negbinGLM()</code></a></td>
 <td>Counts with variance &gt; mean (overdispersion)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Tweedie</td>
 <td><a href="http://oscar.jaroker.com/glmOJ/reference/tweedieGLM.html"><code>tweedieGLM()</code></a></td>
 <td>Non-negative semi-continuous data; power parameter estimated freely</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Zero-inflated Poisson</td>
 <td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflPoissonGLM.html"><code>zeroinflPoissonGLM()</code></a></td>
 <td>Excess zeros + equidispersed non-zero counts</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Zero-inflated negative binomial</td>
 <td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflNegbinGLM.html"><code>zeroinflNegbinGLM()</code></a></td>
 <td>Excess zeros + overdispersed non-zero counts</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Zero-inflated Tweedie</td>
 <td><a href="http://oscar.jaroker.com/glmOJ/reference/zeroinflTweedieGLM.html"><code>zeroinflTweedieGLM()</code></a></td>
 <td>Excess zeros + semi-continuous non-zero values</td>
 </tr>
 </tbody>
 </table>
-<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.html"><code>countGLM()</code></a> fits all six families and selects the best by a user-chosen criterion (<code>decide = "BIC"</code> by default; also accepts <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), annotated with dispersion and zero-inflation diagnostics.</p>
+<p>The general-purpose <a href="http://oscar.jaroker.com/glmOJ/reference/countGLM.html"><code>countGLM()</code></a> fits all six likelihood-based families and selects the best by a user-chosen criterion (<code>decide = "BIC"</code> by default; also accepts <code>"AIC"</code>, <code>"LogLik"</code>, or <code>"McFadden"</code>), annotated with dispersion and zero-inflation diagnostics. When the Poisson fit shows dispersion ratio &gt; 1.2 combined with a roughly flat squared-Pearson-residual cloud sitting above 1 (the quasi-Poisson signature), <code><a href="reference/quasiPoissonGLM.html">quasiPoissonGLM()</a></code> is also fitted and reported alongside — but excluded from the AIC/BIC/ log-likelihood comparison, since quasi-likelihood has no proper likelihood.</p>
 </div>
 <div class="section level2">
 <h2 id="package-functions">Package functions<a class="anchor" aria-label="anchor" href="#package-functions"></a>
@@ -131,6 +136,8 @@
 <ul>
 <li>
 <strong><code>poissonGLM(formula, data)</code></strong> — Poisson regression via <a href="https://rdrr.io/r/stats/glm.html" class="external-link"><code>stats::glm</code></a>.</li>
+<li>
+<strong><code>quasiPoissonGLM(formula, data)</code></strong> — Quasi-Poisson regression via <a href="https://rdrr.io/r/stats/glm.html" class="external-link"><code>stats::glm</code></a> with <code>family = quasipoisson()</code>. Same point estimates as Poisson, but standard errors (and hence CIs and p-values) are scaled by the estimated dispersion <code>phi</code>. AIC/BIC are <code>NA</code> (no proper likelihood).</li>
 <li>
 <strong><code>negbinGLM(formula, data)</code></strong> — Negative binomial regression via <a href="https://rdrr.io/pkg/MASS/man/glm.nb.html" class="external-link"><code>MASS::glm.nb</code></a>.</li>
 <li>

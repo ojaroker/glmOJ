@@ -114,7 +114,14 @@ An object of class `"countGLM"`, a list with:
 base models. It then runs a DHARMa simulation test for zero-inflation on
 each successful base model. For every family, the zero-inflated
 counterpart is fitted only when zero-inflation is detected (p \< 0.05)
-on its base model. All surviving models are compared by `decide`.
+on its base model. A
+[`quasiPoissonGLM()`](http://oscar.jaroker.com/glmOJ/reference/quasiPoissonGLM.md)
+fit is additionally produced when the Poisson fit shows a dispersion
+ratio \> 1.2 combined with a roughly flat squared Pearson residual cloud
+that sits above 1 (the quasi-Poisson signature). Because quasi-Poisson
+has no proper likelihood, it is excluded from the `decide` comparison
+and reported alongside it with `NA` AIC/BIC. All surviving
+likelihood-based models are compared by `decide`.
 
 **Model selection:** The model with the best value of `decide` is
 chosen. For `"AIC"` and `"BIC"` the model with the *lowest* value wins;
