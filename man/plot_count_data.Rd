@@ -4,7 +4,7 @@
 \alias{plot_count_data}
 \title{Plot count data against predictors}
 \usage{
-plot_count_data(y, mf, pred_vars, pred_types)
+plot_count_data(y, mf, pred_vars, pred_types, bins = 20)
 }
 \arguments{
 \item{y}{Numeric vector of non-negative integer counts (the response).}
@@ -17,6 +17,9 @@ a warning is issued.}
 
 \item{pred_types}{Named character vector classifying each element of
 \code{pred_vars} as either \code{"continuous"} or \code{"categorical"}.}
+
+\item{bins}{Integer; number of bins on each axis for the two-continuous
+predictor 2D bin plot. Default 20.}
 }
 \value{
 A \code{ggplot} object.

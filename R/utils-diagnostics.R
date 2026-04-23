@@ -114,8 +114,12 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
   })
 
   # Place label left of line when observed is in the upper half of the range
-  # to avoid clipping at the right plot edge
-  label_hjust <- if (obs_count > stats::median(sim_counts)) 1.15 else -0.15
+  # to avoid clipping at the right plot edge. Guard against NA obs_count and
+  # simulated vectors containing NA.
+  sim_median <- tryCatch(stats::median(sim_counts, na.rm = TRUE),
+                         error = function(e) NA_real_)
+  label_hjust <- if (isTRUE(!is.na(obs_count) && !is.na(sim_median) &&
+                            obs_count > sim_median)) 1.15 else -0.15
 
   subtitle_text <- if (detected) {
     "Significant zero-inflation detected (p < 0.05) \u2014 consider a ZI model"
@@ -141,7 +145,7 @@ run_dharma_zi_test <- function(fit, model_type = "Model", n_sim = 1000L) {
       "text",
       x = obs_count,
       y = Inf,
-      label = sprintf("observed\n%d", obs_count),
+      label = if (is.na(obs_count)) "observed\nNA" else sprintf("observed\n%d", obs_count),
       hjust = label_hjust,
       vjust = 1.4,
       color = "firebrick",
@@ -270,16 +274,20 @@ compute_rqr <- function(
 }
 
 #' Build the two-panel RQR diagnostic plot and the squared Pearson residual plot
+#' @param dispersion_threshold Numeric; dispersion ratios above this value are
+#'   flagged as overdispersed (title/subtitle rendered in red). Default 1.2.
 #' @noRd
 plot_diagnostics <- function(
   rqr,
   pearson_resid,
   fitted_vals,
-  dispersion_ratio
+  dispersion_ratio,
+  dispersion_threshold = 1.2
 ) {
   df_diag <- data.frame(fitted = fitted_vals, rqr = rqr)
 
-  overdispersed <- !is.na(dispersion_ratio) && dispersion_ratio > 1.2
+  overdispersed <- !is.na(dispersion_ratio) &&
+    dispersion_ratio > dispersion_threshold
 
   disp_label <- if (is.na(dispersion_ratio)) {
     "Dispersion ratio: NA"
@@ -288,7 +296,7 @@ plot_diagnostics <- function(
   }
 
   disp_subtitle <- if (overdispersed) {
-    "Possible overdispersion (ratio > 1.2)"
+    sprintf("Possible overdispersion (ratio > %g)", dispersion_threshold)
   } else {
     NULL
   }
@@ -412,17 +420,26 @@ is_quasipoisson_appropriate <- function(pois_fit) {
   isTRUE(flat && not_at_one)
 }
 
-#' Compute VIF on main-effect terms only, avoiding false positives from
-#' structural collinearity (interaction terms, polynomial terms, etc.)
+#' Compute (generalized) VIF on main-effect terms only, avoiding false
+#' positives from structural collinearity (interaction terms, polynomial
+#' terms, etc.)
 #'
 #' Extracts terms of order 1 from `formula`, fits an OLS model on those
-#' predictors, and returns VIF values computed from the correlation matrix
-#' of the design matrix. Warns if any VIF exceeds 5.
+#' predictors, and returns generalized VIF values (Fox & Monette 1992) for
+#' each term. For single-column (continuous, or two-level factor) terms this
+#' reduces to the usual VIF. For multi-column terms (factors with >2 levels)
+#' it reports GVIF along with its degrees of freedom and the comparable
+#' scalar GVIF^{1/(2*df)}. Warns when any term's GVIF^{1/(2*df)} exceeds
+#' sqrt(5) (the GVIF analogue of the VIF > 5 rule of thumb).
 #'
 #' @param formula The count-component formula.
 #' @param data The data frame.
-#' @return Named numeric vector of VIF values, or `NULL` if fewer than two
-#'   main-effect predictors are present.
+#' @return A data frame with one row per main-effect term, columns
+#'   `GVIF`, `Df`, and `GVIF^(1/(2*Df))`; or `NULL` if fewer than two
+#'   main-effect terms are present. For backwards compatibility the returned
+#'   object also carries an attribute `"vif"` giving the single-df GVIF values
+#'   as a named numeric vector (equal to ordinary VIFs when each term has one
+#'   column).
 #' @noRd
 check_vif <- function(formula, data) {
   tt           <- stats::terms(formula, data = data)
@@ -450,22 +467,68 @@ check_vif <- function(formula, data) {
   X <- stats::model.matrix(fit_ols)[, -1L, drop = FALSE]
   if (ncol(X) < 2L) return(NULL)
 
-  R    <- stats::cor(X)
-  vifs <- tryCatch(diag(solve(R)), error = function(e) NULL)
-  if (is.null(vifs)) return(NULL)
+  # Map each column of X back to its originating main-effect term via the
+  # assign attribute (0 = intercept, 1..k = term index in term.labels).
+  assign_idx <- attr(stats::model.matrix(fit_ols), "assign")
+  assign_idx <- assign_idx[assign_idx > 0L]
+  all_terms  <- attr(stats::terms(fit_ols), "term.labels")
+  col_term   <- all_terms[assign_idx]
 
-  high <- names(vifs)[vifs > 5]
+  R <- tryCatch(stats::cor(X), error = function(e) NULL)
+  if (is.null(R)) return(NULL)
+
+  detR <- tryCatch(det(R), error = function(e) NA_real_)
+  if (!is.finite(detR) || detR <= 0) return(NULL)
+
+  unique_terms <- unique(col_term)
+  gvif_rows <- lapply(unique_terms, function(tm) {
+    in_term <- col_term == tm
+    df_tm   <- sum(in_term)
+    if (df_tm == ncol(X)) {
+      # Degenerate: only this term in the design; GVIF is 1 by definition.
+      return(data.frame(term = tm, GVIF = 1, Df = df_tm,
+                        `GVIF^(1/(2*Df))` = 1,
+                        check.names = FALSE, stringsAsFactors = FALSE))
+    }
+    R11 <- R[in_term, in_term, drop = FALSE]
+    R22 <- R[!in_term, !in_term, drop = FALSE]
+    d11 <- tryCatch(det(R11), error = function(e) NA_real_)
+    d22 <- tryCatch(det(R22), error = function(e) NA_real_)
+    if (!is.finite(d11) || !is.finite(d22) || d11 <= 0 || d22 <= 0) {
+      return(data.frame(term = tm, GVIF = NA_real_, Df = df_tm,
+                        `GVIF^(1/(2*Df))` = NA_real_,
+                        check.names = FALSE, stringsAsFactors = FALSE))
+    }
+    gvif <- (d11 * d22) / detR
+    data.frame(
+      term              = tm,
+      GVIF              = gvif,
+      Df                = df_tm,
+      `GVIF^(1/(2*Df))` = gvif^(1 / (2 * df_tm)),
+      check.names       = FALSE,
+      stringsAsFactors  = FALSE
+    )
+  })
+  out <- do.call(rbind, gvif_rows)
+  rownames(out) <- out$term
+
+  # VIF analogue threshold: GVIF^(1/(2*Df)) > sqrt(5).
+  scaled <- out[["GVIF^(1/(2*Df))"]]
+  high   <- out$term[is.finite(scaled) & scaled > sqrt(5)]
   if (length(high) > 0L) {
     warning(
       sprintf(
-        "High VIF detected (> 5) for predictor(s): %s. Multicollinearity may affect estimates.",
+        "High (G)VIF detected (GVIF^(1/(2*Df)) > sqrt(5)) for term(s): %s. Multicollinearity may affect estimates.",
         paste(high, collapse = ", ")
       ),
       call. = FALSE
     )
   }
 
-  vifs
+  # Backwards-compatible scalar vector: names match term labels.
+  vif_compat <- stats::setNames(out$GVIF, out$term)
+  attr(out, "vif") <- vif_compat
+  out
 }
 
 #' Convert p-values to significance stars

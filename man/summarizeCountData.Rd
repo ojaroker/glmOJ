@@ -4,7 +4,7 @@
 \alias{summarizeCountData}
 \title{Summarize count data}
 \usage{
-summarizeCountData(formula, data)
+summarizeCountData(formula, data, bins = 20)
 }
 \arguments{
 \item{formula}{A formula of the form \code{y ~ x1 + x2 + ...} where \code{y}
@@ -12,13 +12,16 @@ is a non-negative integer count response. Offsets via \code{offset()} are
 supported.}
 
 \item{data}{A data frame containing the variables in \code{formula}.}
+
+\item{bins}{Integer; number of bins on each axis for the two-continuous
+predictor 2D bin plot. Default 20.}
 }
 \value{
 A named list with four elements:
 \describe{
 \item{summary}{A one-row \code{data.frame} containing:
 \code{mean}, \code{var}, \code{var_mean_ratio}, \code{n_zero},
-and \code{n_total}.}
+\code{prop_zero}, and \code{n_total}.}
 \item{counts}{A \code{data.frame} with columns \code{count} and \code{freq}
 giving the frequency of each observed count value.}
 \item{plot}{A \code{ggplot} object. The plot type depends on the number
@@ -74,7 +77,4 @@ summarizeCountData(y ~ x2, data = df)
 # Mixed predictors
 summarizeCountData(y ~ x1 + x2, data = df)
 
-}
-\seealso{
-\code{\link{plot_count_data}}
 }

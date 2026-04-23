@@ -69,20 +69,49 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+# Detect an offset in a fitted model by inspecting the formula for offset()
+# terms. `fit$offset` is populated by stats::glm and MASS::glm.nb but is NULL
+# for glmmTMB objects, so we also check the formula.
 .has_offset <- function(fit) {
+  # 1. Numeric offset vector stored on the fit (glm, glm.nb, zeroinfl)
   off <- tryCatch(fit$offset, error = function(e) NULL)
-  if (is.null(off) || length(off) == 0L) return(FALSE)
-  # zeroinfl stores offsets as a named list (count/zero); flatten if needed
   if (is.list(off)) off <- unlist(off, use.names = FALSE)
-  tryCatch(any(off != 0, na.rm = TRUE), error = function(e) FALSE)
+  if (!is.null(off) && length(off) > 0L) {
+    has_num <- tryCatch(any(off != 0, na.rm = TRUE), error = function(e) FALSE)
+    if (isTRUE(has_num)) return(TRUE)
+  }
+
+  # 2. offset() term inside the formula (covers glmmTMB where $offset is NULL)
+  fm <- tryCatch(stats::formula(fit), error = function(e) NULL)
+  if (!is.null(fm)) {
+    if (any(grepl("offset\\(", deparse(fm)))) return(TRUE)
+  }
+
+  # 3. zeroinfl stores count/zero terms as a named list
+  tms <- tryCatch(fit$terms, error = function(e) NULL)
+  if (is.list(tms) && !inherits(tms, "terms")) {
+    for (tm in tms) {
+      if (!is.null(tm) && length(attr(tm, "offset")) > 0L) return(TRUE)
+    }
+  } else if (!is.null(tms) && length(attr(tms, "offset")) > 0L) {
+    return(TRUE)
+  }
+
+  FALSE
 }
 
+# Extract the response name. `fit$terms` is a named list (count/zero/full) for
+# pscl::zeroinfl objects, so [[2L]] would return a terms object instead of the
+# response symbol. Prefer formula()-based extraction.
 .response_name <- function(fit) {
+  fm <- tryCatch(stats::formula(fit), error = function(e) NULL)
+  if (!is.null(fm) && length(fm) >= 2L) {
+    nm <- tryCatch(deparse(fm[[2L]]), error = function(e) NULL)
+    if (!is.null(nm) && length(nm) > 0L) return(paste(nm, collapse = ""))
+  }
   tryCatch(
-    deparse(fit$terms[[2L]]),
-    error = function(e)
-      tryCatch(deparse(fit$formula[[2L]]),
-               error = function(e) "the response")
+    deparse(fit$formula[[2L]]),
+    error = function(e) "the response"
   )
 }
 
@@ -125,6 +154,20 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
   msg
 }
 
+.is_interaction_term <- function(term) {
+  grepl(":", term, fixed = TRUE)
+}
+
+.interaction_note <- function() {
+  paste0(
+    "Note: this is an interaction term. The above interpretation is the ",
+    "multiplicative effect conditional on the other interacting predictor(s) ",
+    "being at 0 (or at their reference level). See untangle_interaction() ",
+    "for a marginal-effects-based interpretation across the interacting ",
+    "predictor's range."
+  )
+}
+
 .interp_standard <- function(model, predictor) {
   coef_df <- model$coefficients
   row <- coef_df[coef_df$term == predictor, ]
@@ -138,6 +181,7 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
   pval    <- .pval_standard(model, predictor)
   resp    <- .response_name(model$model)
   has_off <- .has_offset(model$model)
+  is_int  <- .is_interaction_term(predictor)
 
   outcome_phrase <- if (has_off) {
     sprintf("the expected rate of %s per unit of exposure", resp)
@@ -147,18 +191,13 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 
   msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
                      outcome_phrase, pval)
+  if (is_int) msg <- paste0(msg, "\n", .interaction_note())
   cat(msg, "\n")
   invisible(msg)
 }
 
 # glmmTMB stores summary$coefficients as a list ($cond, $zi, …), not a plain
 # matrix, so we pull p-values from the already-built coefficient table instead.
-.response_name_glmmtmb <- function(fit) {
-  tryCatch(
-    deparse(formula(fit$model)[[2L]]),
-    error = function(e) "the response"
-  )
-}
 
 .interp_glmmtmb_standard <- function(model, predictor) {
   coef_df <- model$coefficients
@@ -171,8 +210,9 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
   }
 
   pval    <- row$p.value
-  resp    <- .response_name_glmmtmb(model)
+  resp    <- .response_name(model$model)
   has_off <- .has_offset(model$model)
+  is_int  <- .is_interaction_term(predictor)
 
   outcome_phrase <- if (has_off) {
     sprintf("the expected rate of %s per unit of exposure", resp)
@@ -182,6 +222,7 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 
   msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
                      outcome_phrase, pval)
+  if (is_int) msg <- paste0(msg, "\n", .interaction_note())
   cat(msg, "\n")
   invisible(msg)
 }
@@ -197,8 +238,9 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
   }
 
   pval    <- row$p.value
-  resp    <- .response_name_glmmtmb(model)
+  resp    <- .response_name(model$model)
   has_off <- .has_offset(model$model)
+  is_int  <- .is_interaction_term(predictor)
 
   if (component == "count") {
     outcome_phrase <- if (has_off) {
@@ -212,6 +254,7 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 
   msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
                      outcome_phrase, pval)
+  if (is_int) msg <- paste0(msg, "\n", .interaction_note())
   cat(msg, "\n")
   invisible(msg)
 }
@@ -229,6 +272,7 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
   pval    <- .pval_zeroinfl(model, predictor, component)
   resp    <- .response_name(model$model)
   has_off <- .has_offset(model$model)
+  is_int  <- .is_interaction_term(predictor)
 
   if (component == "count") {
     outcome_phrase <- if (has_off) {
@@ -242,6 +286,7 @@ interpret_coef.countGLM <- function(model, predictor, component = "count") {
 
   msg <- .format_msg(predictor, row$exp.coef, row$lower.95, row$upper.95,
                      outcome_phrase, pval)
+  if (is_int) msg <- paste0(msg, "\n", .interaction_note())
   cat(msg, "\n")
   invisible(msg)
 }

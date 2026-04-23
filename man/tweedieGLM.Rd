@@ -4,7 +4,14 @@
 \alias{tweedieGLM}
 \title{Fit a Tweedie regression model}
 \usage{
-tweedieGLM(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...)
+tweedieGLM(
+  formula,
+  data,
+  assessZeroInflation = TRUE,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+)
 }
 \arguments{
 \item{formula}{A model formula (e.g. \code{y ~ x1 + x2}). The response must be
@@ -21,6 +28,9 @@ its own zero-inflation assessment.}
 \item{maxit}{Optional integer; maximum optimizer iterations passed through
 as \code{control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))}. Ignored when the user supplies their own \code{control}
 via \code{...}.}
+
+\item{dispersion_threshold}{Numeric; dispersion ratios above this value
+are flagged as overdispersed in the diagnostic plot. Default 1.2.}
 
 \item{...}{Additional arguments passed to \code{\link[glmmTMB:glmmTMB]{glmmTMB::glmmTMB()}}.}
 }

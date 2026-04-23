@@ -18,6 +18,8 @@
 #'   as `control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit,
 #'   eval.max = maxit))`. Ignored when the user supplies their own `control`
 #'   via `...`.
+#' @param dispersion_threshold Numeric; dispersion ratios above this value
+#'   are flagged as overdispersed in the diagnostic plot. Default 1.2.
 #' @param ... Additional arguments passed to [glmmTMB::glmmTMB()].
 #'
 #' @return An object of class `c("tweedieGLM", "countGLMfit")`, a list with:
@@ -77,7 +79,8 @@
 #' @seealso [zeroinflTweedieGLM()], [negbinGLM()], [poissonGLM()],
 #'   [countGLM()], [glmmTMB::glmmTMB()]
 #' @export
-tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL, ...) {
+tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL,
+                       dispersion_threshold = 1.2, ...) {
   stopifnot(
     "formula must be a formula object" = inherits(formula, "formula"),
     "data must be a data frame"        = is.data.frame(data),
@@ -160,7 +163,8 @@ tweedieGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL, 
   )
   disp        <- check_dispersion(fit)
   fitted_vals <- as.numeric(fitted(fit))
-  diag_plots  <- plot_diagnostics(rqr, pearson_resid, fitted_vals, disp)
+  diag_plots  <- plot_diagnostics(rqr, pearson_resid, fitted_vals, disp,
+                                  dispersion_threshold = dispersion_threshold)
 
   structure(
     list(

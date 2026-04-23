@@ -22,6 +22,14 @@
 #'   ([poissonGLM()], [negbinGLM()], [tweedieGLM()], and the ZI counterparts),
 #'   which translate it into the appropriate backend `control` object. A
 #'   single value is applied across every model family.
+#' @param families Character vector naming which base families to fit. Must
+#'   be a subset of `c("poisson", "negbin", "tweedie")`. Defaults to all
+#'   three. Each family's zero-inflated counterpart is fitted conditionally
+#'   on its base model passing zero-inflation detection (as before). Use
+#'   this to skip slow Tweedie / glmmTMB fits or to restrict comparison to a
+#'   specific subset. The quasi-Poisson fit (produced when the Poisson fit
+#'   shows a constant-overdispersion signature) requires `"poisson"` to be
+#'   included.
 #' @param ... Additional arguments passed to each individual model fitter.
 #'
 #' @return An object of class `"countGLM"`, a list with:
@@ -44,10 +52,15 @@
 #'     \item{`recommendation`}{A plain-language character string explaining
 #'       the selection, including the criterion value, dispersion context, and
 #'       zero-inflation test results.}
-#'     \item{`vif`}{Named numeric vector of Variance Inflation Factors for the
-#'       main-effect predictors in `formula` (interaction and polynomial terms
-#'       are excluded). `NULL` when fewer than two main-effect predictors are
-#'       present. A warning is issued for any VIF > 5.}
+#'     \item{`vif`}{A data frame of generalized variance inflation factors
+#'       (GVIF; Fox & Monette 1992) for the main-effect predictors in
+#'       `formula` (interaction and polynomial terms are excluded). Columns
+#'       are `GVIF`, `Df`, and `GVIF^(1/(2*Df))` (the degrees-of-freedom
+#'       adjusted scalar comparable to a conventional VIF). For single-df
+#'       terms (continuous predictors and two-level factors), `GVIF` equals
+#'       the usual VIF. `NULL` when fewer than two main-effect terms are
+#'       present. A warning is issued when any term's `GVIF^(1/(2*Df))`
+#'       exceeds `sqrt(5)` (the GVIF analogue of the `VIF > 5` rule of thumb).}
 #'   }
 #'
 #' @details
@@ -86,7 +99,8 @@
 #'   [zeroinflPoissonGLM()], [zeroinflNegbinGLM()], [zeroinflTweedieGLM()]
 #' @export
 countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
-                     maxit = NULL, ...) {
+                     maxit = NULL,
+                     families = c("poisson", "negbin", "tweedie"), ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
@@ -95,6 +109,16 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     "maxit must be a positive integer or NULL" =
       is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
+
+  families <- tolower(trimws(as.character(families)))
+  valid_families <- c("poisson", "negbin", "tweedie")
+  if (length(families) == 0L || !all(families %in% valid_families)) {
+    stop(sprintf(
+      '`families` must be a non-empty subset of c("poisson", "negbin", "tweedie") (got %s).',
+      paste(shQuote(families), collapse = ", ")
+    ))
+  }
+  families <- unique(families)
 
   decide_norm <- tolower(trimws(decide))
   if (!decide_norm %in% c("aic", "bic", "loglik", "mcfadden")) {
@@ -118,24 +142,27 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   vif <- check_vif(formula, data)
 
   # ---------------------------------------------------------------------------
-  # Step 1: Fit the three base models (ZI assessment handled below)
+  # Step 1: Fit the requested base models (ZI assessment handled below)
   # ---------------------------------------------------------------------------
-  base_fits <- list(
-    poisson = tryCatch(
-      poissonGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
-      error = function(e) e
-    ),
-    negbin = tryCatch(
-      negbinGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
-      error = function(e) e
-    ),
-    tweedie = tryCatch(
-      tweedieGLM(formula, data, assessZeroInflation = FALSE, maxit = maxit, ...),
-      error = function(e) e
-    )
+  base_fitters <- list(
+    poisson = function() poissonGLM(formula, data, assessZeroInflation = FALSE,
+                                    maxit = maxit, ...),
+    negbin  = function() negbinGLM(formula, data, assessZeroInflation = FALSE,
+                                   maxit = maxit, ...),
+    tweedie = function() tweedieGLM(formula, data, assessZeroInflation = FALSE,
+                                    maxit = maxit, ...)
+  )
+  base_fits <- stats::setNames(
+    lapply(families, function(nm) tryCatch(base_fitters[[nm]](),
+                                           error = function(e) e)),
+    families
   )
 
-  base_ok <- !vapply(base_fits, inherits, logical(1L), "error")
+  # Pad base_ok to always carry poisson/negbin/tweedie slots so downstream
+  # checks like base_ok[["tweedie"]] are safe even when a family was skipped.
+  base_ok_fit <- !vapply(base_fits, inherits, logical(1L), "error")
+  base_ok     <- stats::setNames(rep(FALSE, length(valid_families)), valid_families)
+  base_ok[names(base_ok_fit)] <- base_ok_fit
 
   # Exclude degenerate Tweedie fits on integer count data.
   # glmmTMB pushes the power parameter p toward the Poisson boundary (p = 1)
@@ -160,7 +187,10 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   }
 
   if (!any(base_ok)) {
-    stop("All base model fits (Poisson, Negative Binomial, Tweedie) failed. Check your formula and data.")
+    stop(sprintf(
+      "All requested base model fits (%s) failed. Check your formula and data.",
+      paste(families, collapse = ", ")
+    ))
   }
 
   # ---------------------------------------------------------------------------
@@ -171,7 +201,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     negbin  = "Negative Binomial",
     tweedie = "Tweedie"
   )
-  for (nm in names(base_fits)[base_ok]) {
+  for (nm in intersect(names(base_fits), names(base_ok)[base_ok])) {
     zi <- tryCatch(
       run_dharma_zi_test(
         base_fits[[nm]]$model,
@@ -197,8 +227,11 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   )
 
   # Warm-start ZI Tweedie count component from the base Tweedie fit to improve
-  # convergence when the formula has many predictors.
-  if (base_ok[["tweedie"]]) {
+  # convergence when the formula has many predictors. Skip when the caller
+  # supplied their own `start`, to avoid silently overwriting it.
+  dots_names <- names(match.call(expand.dots = FALSE)$`...`)
+  user_supplied_start <- "start" %in% dots_names
+  if (base_ok[["tweedie"]] && !user_supplied_start) {
     tw_beta <- tryCatch(
       as.numeric(glmmTMB::fixef(base_fits[["tweedie"]]$model)$cond),
       error = function(e) NULL
@@ -213,7 +246,7 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   }
 
   zi_fits <- list()
-  for (nm in names(base_fits)[base_ok]) {
+  for (nm in intersect(names(base_fits), names(base_ok)[base_ok])) {
     zi_result <- base_fits[[nm]]$diagnostics$zi_test
 
     if (isTRUE(zi_result$detected)) {
@@ -243,8 +276,10 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     }
   }
 
-  # Combine base, ZI, and quasi fits; preserve canonical ordering
-  all_fits_raw <- c(base_fits[base_ok], zi_fits, quasi_fits)
+  # Combine base, ZI, and quasi fits; preserve canonical ordering. Only keep
+  # base fits that actually succeeded (base_ok names intersect base_fits).
+  kept_base    <- intersect(names(base_fits), names(base_ok)[base_ok])
+  all_fits_raw <- c(base_fits[kept_base], zi_fits, quasi_fits)
   ordered_names <- c("poisson", "quasipoisson", "negbin", "tweedie",
                      "zeroinfl_poisson", "zeroinfl_negbin", "zeroinfl_tweedie")
   fits <- all_fits_raw[intersect(ordered_names, names(all_fits_raw))]
@@ -278,7 +313,9 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     metric_table <- sort(raw_metrics, decreasing = TRUE)
   } else {
     # McFadden pseudo-R²: 1 - logLik(full) / logLik(null)
-    raw_metrics  <- .compute_mcfadden(fits_for_compare, data, deparse(formula[[2L]]))
+    raw_metrics  <- .compute_mcfadden(fits_for_compare, data,
+                                      deparse(formula[[2L]]),
+                                      formula)
     valid        <- !is.na(raw_metrics)
     best_name    <- names(which.max(raw_metrics[valid]))
     metric_table <- sort(raw_metrics, decreasing = TRUE)
@@ -307,8 +344,23 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
 # Internal: compute McFadden pseudo-R² for each surviving fit
 # ---------------------------------------------------------------------------
 
-.compute_mcfadden <- function(fits, data, y_var) {
-  null_str <- paste(y_var, "~ 1")
+.compute_mcfadden <- function(fits, data, y_var, formula) {
+  # Extract offset terms from the original formula so the null model preserves
+  # them; otherwise pseudo-R² is inflated for rate models.
+  tt        <- stats::terms(formula, data = data)
+  off_idx   <- attr(tt, "offset")
+  vars      <- as.character(attr(tt, "variables"))[-1L]
+  off_terms <- if (length(off_idx) > 0L) vars[off_idx] else character(0L)
+  off_rhs   <- if (length(off_terms) > 0L) {
+    paste(off_terms, collapse = " + ")
+  } else {
+    NULL
+  }
+
+  null_rhs      <- if (is.null(off_rhs)) "1" else paste("1", off_rhs, sep = " + ")
+  null_str      <- paste(y_var, "~", null_rhs)
+  null_str_zi   <- paste(y_var, "~", null_rhs, "| 1")
+
   vapply(names(fits), function(nm) {
     f       <- fits[[nm]]
     ll_full <- tryCatch(as.numeric(stats::logLik(f$model)), error = function(e) NA_real_)
@@ -328,10 +380,10 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
           family = glmmTMB::tweedie(link = "log")
         ),
         zeroinflPoissonGLM = pscl::zeroinfl(
-          stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "poisson"
+          stats::as.formula(null_str_zi), data = data, dist = "poisson"
         ),
         zeroinflNegbinGLM = pscl::zeroinfl(
-          stats::as.formula(paste(y_var, "~ 1 | 1")), data = data, dist = "negbin"
+          stats::as.formula(null_str_zi), data = data, dist = "negbin"
         ),
         zeroinflTweedieGLM = glmmTMB::glmmTMB(
           stats::as.formula(null_str), data = data,

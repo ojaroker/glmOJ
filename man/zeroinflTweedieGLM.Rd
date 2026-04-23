@@ -4,7 +4,14 @@
 \alias{zeroinflTweedieGLM}
 \title{Fit a zero-inflated Tweedie regression model}
 \usage{
-zeroinflTweedieGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
+zeroinflTweedieGLM(
+  formula,
+  data,
+  ziformula = NULL,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+)
 }
 \arguments{
 \item{formula}{A model formula for the \strong{count} component (e.g.
@@ -21,6 +28,9 @@ zero-inflation model.}
 \item{maxit}{Optional integer; maximum optimizer iterations passed through
 as \code{control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = maxit, eval.max = maxit))}. Ignored when the user supplies their own \code{control}
 via \code{...}.}
+
+\item{dispersion_threshold}{Numeric; dispersion ratios above this value
+are flagged as overdispersed in the diagnostic plot. Default 1.2.}
 
 \item{...}{Additional arguments passed to \code{\link[glmmTMB:glmmTMB]{glmmTMB::glmmTMB()}}.}
 }

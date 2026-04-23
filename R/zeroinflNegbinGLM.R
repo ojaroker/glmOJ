@@ -16,6 +16,8 @@
 #' @param maxit Optional integer; maximum optimizer iterations passed through
 #'   as `control = pscl::zeroinfl.control(maxit = maxit)`. Ignored when the
 #'   user supplies their own `control` via `...`.
+#' @param dispersion_threshold Numeric; dispersion ratios above this value
+#'   are flagged as overdispersed in the diagnostic plot. Default 1.2.
 #' @param ... Additional arguments passed to [pscl::zeroinfl()].
 #'
 #' @return An object of class `c("zeroinflNegbinGLM", "zeroinflGLMfit",
@@ -71,7 +73,8 @@
 #' @seealso [zeroinflPoissonGLM()], [zeroinflTweedieGLM()], [negbinGLM()],
 #'   [countGLM()], [pscl::zeroinfl()]
 #' @export
-zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ...) {
+zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL,
+                               dispersion_threshold = 1.2, ...) {
   stopifnot(
     "formula must be a formula object"    = inherits(formula, "formula"),
     "data must be a data frame"           = is.data.frame(data),
@@ -103,7 +106,8 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ...
   rqr           <- compute_rqr(fit, "zeroinfl_negbin")
   pearson_resid <- residuals(fit, type = "pearson")
   disp          <- check_dispersion(fit)
-  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
+  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fitted_vals, disp,
+                                  dispersion_threshold = dispersion_threshold)
 
   structure(
     list(

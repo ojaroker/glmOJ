@@ -4,7 +4,14 @@
 \alias{zeroinflPoissonGLM}
 \title{Fit a zero-inflated Poisson regression model}
 \usage{
-zeroinflPoissonGLM(formula, data, ziformula = NULL, maxit = NULL, ...)
+zeroinflPoissonGLM(
+  formula,
+  data,
+  ziformula = NULL,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+)
 }
 \arguments{
 \item{formula}{A model formula for the \strong{count} component (e.g.
@@ -21,6 +28,9 @@ zero-inflation model.}
 \item{maxit}{Optional integer; maximum optimizer iterations passed through
 as \code{control = pscl::zeroinfl.control(maxit = maxit)}. Ignored when the
 user supplies their own \code{control} via \code{...}.}
+
+\item{dispersion_threshold}{Numeric; dispersion ratios above this value
+are flagged as overdispersed in the diagnostic plot. Default 1.2.}
 
 \item{...}{Additional arguments passed to \code{\link[pscl:zeroinfl]{pscl::zeroinfl()}}.}
 }

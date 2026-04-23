@@ -4,7 +4,15 @@
 \alias{countGLM}
 \title{Fit and compare count regression models}
 \usage{
-countGLM(formula, data, ziformula = NULL, decide = "BIC", maxit = NULL, ...)
+countGLM(
+  formula,
+  data,
+  ziformula = NULL,
+  decide = "BIC",
+  maxit = NULL,
+  families = c("poisson", "negbin", "tweedie"),
+  ...
+)
 }
 \arguments{
 \item{formula}{A model formula for the count component (e.g. \code{y ~ x1 + x2}).
@@ -29,6 +37,15 @@ non-\code{NULL}, forwarded as the \code{maxit} argument to each underlying fitte
 which translate it into the appropriate backend \code{control} object. A
 single value is applied across every model family.}
 
+\item{families}{Character vector naming which base families to fit. Must
+be a subset of \code{c("poisson", "negbin", "tweedie")}. Defaults to all
+three. Each family's zero-inflated counterpart is fitted conditionally
+on its base model passing zero-inflation detection (as before). Use
+this to skip slow Tweedie / glmmTMB fits or to restrict comparison to a
+specific subset. The quasi-Poisson fit (produced when the Poisson fit
+shows a constant-overdispersion signature) requires \code{"poisson"} to be
+included.}
+
 \item{...}{Additional arguments passed to each individual model fitter.}
 }
 \value{
@@ -52,10 +69,15 @@ criterion actually used.}
 \item{\code{recommendation}}{A plain-language character string explaining
 the selection, including the criterion value, dispersion context, and
 zero-inflation test results.}
-\item{\code{vif}}{Named numeric vector of Variance Inflation Factors for the
-main-effect predictors in \code{formula} (interaction and polynomial terms
-are excluded). \code{NULL} when fewer than two main-effect predictors are
-present. A warning is issued for any VIF > 5.}
+\item{\code{vif}}{A data frame of generalized variance inflation factors
+(GVIF; Fox & Monette 1992) for the main-effect predictors in
+\code{formula} (interaction and polynomial terms are excluded). Columns
+are \code{GVIF}, \code{Df}, and \code{GVIF^(1/(2*Df))} (the degrees-of-freedom
+adjusted scalar comparable to a conventional VIF). For single-df
+terms (continuous predictors and two-level factors), \code{GVIF} equals
+the usual VIF. \code{NULL} when fewer than two main-effect terms are
+present. A warning is issued when any term's \code{GVIF^(1/(2*Df))}
+exceeds \code{sqrt(5)} (the GVIF analogue of the \code{VIF > 5} rule of thumb).}
 }
 }
 \description{

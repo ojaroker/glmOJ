@@ -25,22 +25,27 @@ library(glmOJ)
 ## Overview
 
 `glmOJ` provides a streamlined workflow for fitting, diagnosing, and
-interpreting count regression models. The six supported families are:
+interpreting count regression models. The seven supported families are:
 
 | Function | Model |
 |---|---|
 | `poissonGLM()` | Poisson GLM |
+| `quasiPoissonGLM()` | Quasi-Poisson GLM |
 | `negbinGLM()` | Negative Binomial GLM |
 | `tweedieGLM()` | Tweedie GLM |
 | `zeroinflPoissonGLM()` | Zero-Inflated Poisson |
 | `zeroinflNegbinGLM()` | Zero-Inflated Negative Binomial |
 | `zeroinflTweedieGLM()` | Zero-Inflated Tweedie |
 
-A general-purpose wrapper `countGLM()` fits all six and selects the best by
-a user-chosen criterion (`decide`): `"BIC"` (default), `"AIC"`, `"LogLik"`,
-or `"McFadden"` (McFadden pseudo-R²). Each zero-inflated counterpart
-(Poisson, Negative Binomial, Tweedie) is fitted only when the DHARMa
-zero-inflation test flags its base model (p < 0.05).
+A general-purpose wrapper `countGLM()` fits the likelihood-based families
+and selects the best by a user-chosen criterion (`decide`): `"BIC"`
+(default), `"AIC"`, `"LogLik"`, or `"McFadden"` (McFadden pseudo-R²). Each
+zero-inflated counterpart (Poisson, Negative Binomial, Tweedie) is fitted
+only when the DHARMa zero-inflation test flags its base model (p < 0.05).
+A quasi-Poisson fit is additionally produced when the Poisson fit shows a
+constant-overdispersion signature; because quasi-likelihood has no proper
+likelihood, it is reported alongside but excluded from the AIC/BIC/McFadden
+comparison.
 
 ---
 
@@ -156,9 +161,9 @@ estimated $\theta$ is `r round(mod.nb$theta, 3)`.
 
 ### 4. Using the `countGLM` Wrapper
 
-Rather than fitting each model manually, `countGLM()` fits all six families
-at once and selects the best by the criterion specified in `decide` (default
-`"BIC"`) — arriving at the same conclusion automatically.
+Rather than fitting each model manually, `countGLM()` fits the full family
+of count models at once and selects the best by the criterion specified in
+`decide` (default `"BIC"`) — arriving at the same conclusion automatically.
 
 #### Overall EQI formula
 
@@ -313,8 +318,8 @@ zi$plot
 
 ### 8. Automatic Model Selection with `countGLM`
 
-`countGLM()` fits all six count families and selects the best by the
-criterion in `decide` (default `"BIC"`). Road length (`log_road_length`) is
+`countGLM()` fits the full family of count models and selects the best by
+the criterion in `decide` (default `"BIC"`). Road length (`log_road_length`) is
 included as an offset in the count component; because `ziformula = NULL`, it
 is automatically applied to the zero-inflation component as well — `countGLM`
 prints a note confirming this:
@@ -333,7 +338,7 @@ result_cam <- countGLM(
 print(result_cam)
 ```
 
-The comparison table shows AIC and BIC for all six families, sorted by the
+The comparison table shows AIC and BIC for each fitted family, sorted by the
 selection criterion. The selected model is **`r result_cam$best_model`**. The
 recommendation captures the relevant dispersion and zero-inflation diagnostics
 automatically, explaining why this family was preferred.

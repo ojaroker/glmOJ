@@ -223,17 +223,17 @@ test_that("countGLM vif is NULL with a single predictor", {
   expect_null(r$vif)
 })
 
-test_that("countGLM vif is a named numeric vector with two predictors", {
+test_that("countGLM vif is a GVIF data frame with two predictors", {
   df2 <- data.frame(
     y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
     x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7),
     x2 = c(0.1,  0.9, 0.4,  0.7, 0.2, 0.8,  0.5, 0.3,  0.6, 0.0)
   )
   r <- suppressWarnings(countGLM(y ~ x1 + x2, data = df2))
-  expect_type(r$vif, "double")
-  expect_named(r$vif)
-  expect_length(r$vif, 2L)
-  expect_true(all(r$vif >= 1))
+  expect_s3_class(r$vif, "data.frame")
+  expect_true(all(c("GVIF", "Df", "GVIF^(1/(2*Df))") %in% names(r$vif)))
+  expect_equal(nrow(r$vif), 2L)
+  expect_true(all(r$vif$GVIF >= 1))
 })
 
 test_that("countGLM vif excludes interaction terms from computation", {
@@ -244,11 +244,11 @@ test_that("countGLM vif excludes interaction terms from computation", {
   )
   # VIF on x1 * x2 should still yield 2 entries (one per main effect), not 3
   r <- suppressWarnings(countGLM(y ~ x1 * x2, data = df2))
-  expect_length(r$vif, 2L)
-  expect_true(all(c("x1", "x2") %in% names(r$vif)))
+  expect_equal(nrow(r$vif), 2L)
+  expect_true(all(c("x1", "x2") %in% rownames(r$vif)))
 })
 
-test_that("countGLM vif warns when a predictor exceeds threshold of 5", {
+test_that("countGLM vif warns when a predictor exceeds threshold", {
   set.seed(42)
   n  <- 40L
   x1 <- rnorm(n)
@@ -260,7 +260,7 @@ test_that("countGLM vif warns when a predictor exceeds threshold of 5", {
   )
   expect_warning(
     countGLM(y ~ x1 + x2, data = df_mc),
-    "High VIF detected"
+    "High \\(G\\)VIF detected"
   )
 })
 
@@ -307,8 +307,8 @@ test_that("countGLM vif handles backtick-quoted column names", {
     check.names = FALSE
   )
   r <- suppressWarnings(countGLM(y ~ `my var` + `x (2)`, data = df_bt))
-  expect_type(r$vif, "double")
-  expect_length(r$vif, 2L)
+  expect_s3_class(r$vif, "data.frame")
+  expect_equal(nrow(r$vif), 2L)
 })
 
 # --- Degenerate Tweedie exclusion test ---

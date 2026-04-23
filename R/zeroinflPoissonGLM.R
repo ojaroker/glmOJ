@@ -16,6 +16,8 @@
 #' @param maxit Optional integer; maximum optimizer iterations passed through
 #'   as `control = pscl::zeroinfl.control(maxit = maxit)`. Ignored when the
 #'   user supplies their own `control` via `...`.
+#' @param dispersion_threshold Numeric; dispersion ratios above this value
+#'   are flagged as overdispersed in the diagnostic plot. Default 1.2.
 #' @param ... Additional arguments passed to [pscl::zeroinfl()].
 #'
 #' @return An object of class `c("zeroinflPoissonGLM", "zeroinflGLMfit",
@@ -70,14 +72,21 @@
 #' @seealso [zeroinflNegbinGLM()], [zeroinflTweedieGLM()], [poissonGLM()],
 #'   [countGLM()], [pscl::zeroinfl()]
 #' @export
-zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ...) {
+zeroinflPoissonGLM <- function(
+  formula,
+  data,
+  ziformula = NULL,
+  maxit = NULL,
+  dispersion_threshold = 1.2,
+  ...
+) {
   stopifnot(
-    "formula must be a formula object"    = inherits(formula, "formula"),
-    "data must be a data frame"           = is.data.frame(data),
-    "ziformula must be a formula or NULL" =
-      is.null(ziformula) || inherits(ziformula, "formula"),
-    "maxit must be a positive integer or NULL" =
-      is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
+    "formula must be a formula object" = inherits(formula, "formula"),
+    "data must be a data frame" = is.data.frame(data),
+    "ziformula must be a formula or NULL" = is.null(ziformula) ||
+      inherits(ziformula, "formula"),
+    "maxit must be a positive integer or NULL" = is.null(maxit) ||
+      (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
   effective_zi <- if (is.null(ziformula)) {
@@ -97,24 +106,33 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ..
     c(list(formula = full_formula, data = data, dist = "poisson"), dots)
   )
 
-  coef_tables <- zi_coef_tables(fit, count_label = "exp.coef", zero_label = "exp.coef")
+  coef_tables <- zi_coef_tables(
+    fit,
+    count_label = "exp.coef",
+    zero_label = "exp.coef"
+  )
 
-  rqr           <- compute_rqr(fit, "zeroinfl_poisson")
+  rqr <- compute_rqr(fit, "zeroinfl_poisson")
   pearson_resid <- residuals(fit, type = "pearson")
-  disp          <- check_dispersion(fit)
-  diag_plots    <- plot_diagnostics(rqr, pearson_resid, fit$fitted.values, disp)
-
+  disp <- check_dispersion(fit)
+  diag_plots <- plot_diagnostics(
+    rqr,
+    pearson_resid,
+    fitted_vals,
+    disp,
+    dispersion_threshold = dispersion_threshold
+  )
   structure(
     list(
-      call         = match.call(),
-      model        = fit,
-      summary      = summary(fit),
+      call = match.call(),
+      model = fit,
+      summary = summary(fit),
       coefficients = coef_tables,
-      diagnostics  = list(
-        rqr              = rqr,
+      diagnostics = list(
+        rqr = rqr,
         dispersion_ratio = disp,
-        plot             = diag_plots$rqr_plot,
-        r2_plot          = diag_plots$r2_plot
+        plot = diag_plots$rqr_plot,
+        r2_plot = diag_plots$r2_plot
       ),
       aic = stats::AIC(fit),
       bic = stats::BIC(fit)
@@ -131,7 +149,7 @@ zeroinflPoissonGLM <- function(formula, data, ziformula = NULL, maxit = NULL, ..
 #' @noRd
 build_zi_formula <- function(formula, ziformula) {
   count_rhs <- paste(deparse(formula[[3L]]), collapse = "")
-  lhs       <- paste(deparse(formula[[2L]]), collapse = "")
+  lhs <- paste(deparse(formula[[2L]]), collapse = "")
 
   if (is.null(ziformula)) {
     zero_rhs <- count_rhs
@@ -147,42 +165,46 @@ build_zi_formula <- function(formula, ziformula) {
 
 #' Build count and zero coefficient tables for a zeroinfl fit
 #' @noRd
-zi_coef_tables <- function(fit, count_label = "exp.coef", zero_label = "exp.coef") {
+zi_coef_tables <- function(
+  fit,
+  count_label = "exp.coef",
+  zero_label = "exp.coef"
+) {
   count_coefs <- stats::coef(fit, model = "count")
-  zero_coefs  <- stats::coef(fit, model = "zero")
-  p_count     <- length(count_coefs)
+  zero_coefs <- stats::coef(fit, model = "zero")
+  p_count <- length(count_coefs)
 
-  ci_all   <- stats::confint.default(fit)
+  ci_all <- stats::confint.default(fit)
   ci_count <- ci_all[seq_len(p_count), , drop = FALSE]
-  ci_zero  <- ci_all[seq_len(nrow(ci_all)) > p_count, , drop = FALSE]
+  ci_zero <- ci_all[seq_len(nrow(ci_all)) > p_count, , drop = FALSE]
 
   # p-values from the summary coefficient matrix.
   # For ZINB, sm$count includes a "Log(theta)" row not in coef() — match by name.
-  sm          <- summary(fit)$coefficients
+  sm <- summary(fit)$coefficients
   pvals_count <- sm$count[names(count_coefs), "Pr(>|z|)"]
-  pvals_zero  <- sm$zero[names(zero_coefs),  "Pr(>|z|)"]
+  pvals_zero <- sm$zero[names(zero_coefs), "Pr(>|z|)"]
 
   count_df <- data.frame(
-    term             = names(count_coefs),
-    setNames(data.frame(exp(count_coefs),
-                        exp(ci_count[, 1L]),
-                        exp(ci_count[, 2L])),
-             c(count_label, "lower.95", "upper.95")),
-    p.value          = pvals_count,
-    stars            = as.character(sig_stars(pvals_count)),
-    row.names        = NULL,
+    term = names(count_coefs),
+    setNames(
+      data.frame(exp(count_coefs), exp(ci_count[, 1L]), exp(ci_count[, 2L])),
+      c(count_label, "lower.95", "upper.95")
+    ),
+    p.value = pvals_count,
+    stars = as.character(sig_stars(pvals_count)),
+    row.names = NULL,
     stringsAsFactors = FALSE
   )
 
   zero_df <- data.frame(
-    term             = names(zero_coefs),
-    setNames(data.frame(exp(zero_coefs),
-                        exp(ci_zero[, 1L]),
-                        exp(ci_zero[, 2L])),
-             c(zero_label, "lower.95", "upper.95")),
-    p.value          = pvals_zero,
-    stars            = as.character(sig_stars(pvals_zero)),
-    row.names        = NULL,
+    term = names(zero_coefs),
+    setNames(
+      data.frame(exp(zero_coefs), exp(ci_zero[, 1L]), exp(ci_zero[, 2L])),
+      c(zero_label, "lower.95", "upper.95")
+    ),
+    p.value = pvals_zero,
+    stars = as.character(sig_stars(pvals_zero)),
+    row.names = NULL,
     stringsAsFactors = FALSE
   )
 

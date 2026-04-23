@@ -9,11 +9,14 @@
 #'   supported.
 #' @param data A data frame containing the variables in \code{formula}.
 #'
+#' @param bins Integer; number of bins on each axis for the two-continuous
+#'   predictor 2D bin plot. Default 20.
+#'
 #' @return A named list with four elements:
 #' \describe{
 #'   \item{summary}{A one-row \code{data.frame} containing:
 #'     \code{mean}, \code{var}, \code{var_mean_ratio}, \code{n_zero},
-#'     and \code{n_total}.}
+#'     \code{prop_zero}, and \code{n_total}.}
 #'   \item{counts}{A \code{data.frame} with columns \code{count} and \code{freq}
 #'     giving the frequency of each observed count value.}
 #'   \item{plot}{A \code{ggplot} object. The plot type depends on the number
@@ -66,7 +69,7 @@
 #'
 #' @importFrom rlang .data
 #' @export
-summarizeCountData = function(formula, data) {
+summarizeCountData = function(formula, data, bins = 20) {
   mf = model.frame(formula, data)
   Terms = terms(formula, data = data)
   y = model.response(mf)
@@ -88,6 +91,7 @@ summarizeCountData = function(formula, data) {
 
   X = model.matrix(Terms, mf)
   n = length(y)
+  n_zero = sum(y == 0)
 
   count_table = as.data.frame(table(y), stringsAsFactors = FALSE)
   names(count_table) = c("count", "freq")
@@ -97,19 +101,24 @@ summarizeCountData = function(formula, data) {
     mean = mean(y),
     var = var(y),
     var_mean_ratio = var(y) / mean(y),
-    n_zero = sum(y == 0),
+    n_zero = n_zero,
+    prop_zero = n_zero / n,
     n_total = n
   )
 
-  # Extract predictors
-  resp_name = as.character(formula[[2]])
-  pred_vars = setdiff(names(mf), resp_name)
-  pred_vars = pred_vars[!grepl("offset\\(", pred_vars)]
+  # Extract predictors. The LHS may be a compound call (e.g., log(y), cbind),
+  # so take all variable names and use the first. The response column in the
+  # model frame is always the first column; everything else is a candidate
+  # predictor (offset columns are filtered out by name below).
+  resp_name  = all.vars(formula[[2L]])
+  resp_name  = if (length(resp_name) > 0L) resp_name[1L] else names(mf)[1L]
+  pred_vars  = names(mf)[-1L]
+  pred_vars  = pred_vars[!grepl("offset\\(", pred_vars)]
   pred_types = sapply(mf[pred_vars], function(v) {
     if (is.numeric(v)) "continuous" else "categorical"
   })
 
-  p = plot_count_data(y, mf, pred_vars, pred_types)
+  p = plot_count_data(y, mf, pred_vars, pred_types, bins = bins)
 
   # Pairs plot: treat response as continuous if >10 unique values, else factor
   n_unique_y <- length(unique(y))
@@ -139,6 +148,8 @@ summarizeCountData = function(formula, data) {
 #'   a warning is issued.
 #' @param pred_types Named character vector classifying each element of
 #'   \code{pred_vars} as either \code{"continuous"} or \code{"categorical"}.
+#' @param bins Integer; number of bins on each axis for the two-continuous
+#'   predictor 2D bin plot. Default 20.
 #'
 #' @return A \code{ggplot} object.
 #'
@@ -150,7 +161,7 @@ summarizeCountData = function(formula, data) {
 #'
 #' @importFrom rlang .data
 #' @keywords internal
-plot_count_data = function(y, mf, pred_vars, pred_types) {
+plot_count_data = function(y, mf, pred_vars, pred_types, bins = 20) {
   df = data.frame(y = y, mf[pred_vars])
   n_pred = length(pred_vars)
 
@@ -184,7 +195,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
 
     if (all(types == "continuous")) {
       p = ggplot2::ggplot(df, ggplot2::aes(x = .data[[x1]], y = .data[[x2]])) +
-        ggplot2::geom_bin2d(bins = c(4, 4)) +
+        ggplot2::geom_bin2d(bins = c(bins, bins)) +
         ggplot2::scale_fill_steps() +
         ggplot2::labs(fill = "Count")
     } else if (all(types == "categorical")) {
@@ -212,7 +223,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types) {
   } else {
     # >3 predictors - use first two and warn
     warning("More than 2 predictors - plotting first two only (see pairs_plot for all)")
-    return(plot_count_data(y, mf, pred_vars[1:2], pred_types[1:2]))
+    return(plot_count_data(y, mf, pred_vars[1:2], pred_types[1:2], bins = bins))
   }
 
   p + ggplot2::theme_minimal()
