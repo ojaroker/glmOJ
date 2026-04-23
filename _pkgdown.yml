@@ -57,6 +57,10 @@ reference:
     contents:
       - zeroinflNegbinGLM
 
+  - subtitle: "Quasi-Poisson"
+    contents:
+      - quasiPoissonGLM
+
   - subtitle: "Tweedie"
     contents:
       - tweedieGLM
