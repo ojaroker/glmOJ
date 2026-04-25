@@ -313,7 +313,10 @@ criterion specified in <code>decide</code> (default <code>"BIC"</code>)
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3066.90). The Poisson</span></span>
 <span><span class="co">#&gt;   dispersion ratio is 1.62 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
-<span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
+<span><span class="co">#&gt;   fitted.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Selected-model warnings:</span></span>
+<span><span class="co">#&gt;   alternation limit reached</span></span></code></pre></div>
 <p>The wrapper selects the same winner as the manual LRT. Individual
 fits remain accessible: <code>result1$fits$negbin</code>,
 <code>result1$fits$poisson</code>, etc.</p>
@@ -358,7 +361,10 @@ EQI. <code>countGLM</code> handles this in one call:</p>
 <span><span class="co">#&gt;   Negative Binomial was selected by BIC (BIC = 3074.41). The Poisson</span></span>
 <span><span class="co">#&gt;   dispersion ratio is 1.49 (&gt; 1.2), indicating overdispersion.</span></span>
 <span><span class="co">#&gt;   Zero-inflation detected for Poisson; corresponding ZI model(s) were</span></span>
-<span><span class="co">#&gt;   fitted.</span></span></code></pre></div>
+<span><span class="co">#&gt;   fitted.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Selected-model warnings:</span></span>
+<span><span class="co">#&gt;   alternation limit reached</span></span></code></pre></div>
 <p>Again the negative binomial is selected. The non-nested comparison
 between these two winning models (overall EQI vs sub-indices) can be
 done with a Vuong test via

@@ -195,7 +195,25 @@ print(result)
 #>   Poisson dispersion ratio is 1.17, consistent with equidispersion. No
 #>   significant zero-inflation detected.
 #> 
+#> Selected-model warnings:
+#>   Count component: 8 events (y > 0) for 1 predictor(s) (8.0 per
+#>   predictor). At least 10 events per predictor is recommended.
+#> 
 summary(result)
 #> Summary of selected model (poisson):
 #> 
+#> 
+#> Call:
+#> poissonGLM(formula = formula, data = data, assessZeroInflation = FALSE, 
+#>     maxit = maxit)
+#> 
+#> Model family: poissonGLM 
+#> 
+#> Coefficients (on response scale):
+#>         term exp.coef lower.95 upper.95 p.value stars
+#>  (Intercept)   1.7989   1.0683   3.0290  0.0272     *
+#>           x1   1.3396   0.8572   2.0936  0.1993      
+#> 
+#> Dispersion ratio: 1.1658
+#> AIC: 39.02
 ```

@@ -253,6 +253,9 @@ print(result1)
 #>   dispersion ratio is 1.62 (> 1.2), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted.
+#> 
+#> Selected-model warnings:
+#>   alternation limit reached
 ```
 
 The wrapper selects the same winner as the manual LRT. Individual fits
@@ -299,6 +302,9 @@ print(result2)
 #>   dispersion ratio is 1.49 (> 1.2), indicating overdispersion.
 #>   Zero-inflation detected for Poisson; corresponding ZI model(s) were
 #>   fitted.
+#> 
+#> Selected-model warnings:
+#>   alternation limit reached
 ```
 
 Again the negative binomial is selected. The non-nested comparison
