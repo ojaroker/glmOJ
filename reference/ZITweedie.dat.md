@@ -47,4 +47,4 @@ True data-generating model:
 
 - Zero-inflation component: `logit(pi) = 0.5 - 2.5 * x2`.
 
-Approximately 61\\
+Approximately 61% of observed responses are zero.
