@@ -31,7 +31,8 @@ interpret_coef(model, predictor, component = "count")
 - predictor:
 
   Character; the exact term name as it appears in the coefficient table
-  (e.g. `"pctnonwhite10"`, `"EPAregion2"`).
+  (e.g. `"pctnonwhite10"`, `"EPAregion2"`). Optional when the model has
+  exactly one non-intercept term, in which case that term is used.
 
 - component:
 

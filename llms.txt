@@ -312,6 +312,32 @@ criterion (`decide`: `"BIC"` (default), `"AIC"`, `"LogLik"`, or
 - [`countGLM()`](http://oscar.jaroker.com/glmOJ/reference/countGLM.md) :
   Fit and compare count regression models
 
+## Generic Methods
+
+S3 generics for all model classes.
+[`predict()`](https://rdrr.io/r/stats/predict.html) and
+[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) delegate to the
+underlying backend. [`coef()`](https://rdrr.io/r/stats/coef.html)
+returns a named numeric vector of exponentiated coefficients.
+[`coef_table()`](http://oscar.jaroker.com/glmOJ/reference/coef_table.md)
+returns the full table with 95% Wald CIs, p-values, and significance
+stars. For `countGLM` objects all methods automatically use the selected
+best model.
+
+- [`predict(`*`<countGLMfit>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-predict.md)
+  [`predict(`*`<zeroinflGLMfit>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-predict.md)
+  [`predict(`*`<countGLM>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-predict.md)
+  : Predict from a count regression model
+- [`fitted(`*`<countGLMfit>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-fitted.md)
+  [`fitted(`*`<countGLM>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-fitted.md)
+  : Extract fitted values from a count regression model
+- [`coef(`*`<countGLMfit>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-coef.md)
+  [`coef(`*`<zeroinflGLMfit>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-coef.md)
+  [`coef(`*`<countGLM>`*`)`](http://oscar.jaroker.com/glmOJ/reference/glmOJ-coef.md)
+  : Extract model coefficients
+- [`coef_table()`](http://oscar.jaroker.com/glmOJ/reference/coef_table.md)
+  : Coefficient table with confidence intervals and p-values
+
 ## Interpretation
 
 Natural-language interpretation of model coefficients and interactions.
@@ -320,6 +346,18 @@ Natural-language interpretation of model coefficients and interactions.
   : Interpret a model coefficient in natural language
 - [`untangle_interaction()`](http://oscar.jaroker.com/glmOJ/reference/untangle_interaction.md)
   : Untangle a two-way interaction in a fitted model
+
+## Datasets
+
+Real and simulated datasets bundled with the package for use in examples
+and the vignette.
+
+- [`Greenberg26.dat`](http://oscar.jaroker.com/glmOJ/reference/Greenberg26.dat.md)
+  : County-level environmental enforcement penalties (Greenberg 2026)
+- [`Dahir25.dat`](http://oscar.jaroker.com/glmOJ/reference/Dahir25.dat.md)
+  : Census-tract street-camera and crime data (Dahir 2025)
+- [`ZITweedie.dat`](http://oscar.jaroker.com/glmOJ/reference/ZITweedie.dat.md)
+  : Simulated zero-inflated Tweedie count data
 
 # Articles
 

@@ -195,6 +195,43 @@
         </dt>
         <dd>Fit and compare count regression models</dd>
       </dl></div><div class="section level2">
+      <h2 id="generic-methods">Generic Methods<a class="anchor" aria-label="anchor" href="#generic-methods"></a></h2>
+
+      <div class="section-desc"><p>S3 generics for all model classes. <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> delegate to the underlying backend. <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code> returns a named numeric vector of exponentiated coefficients. <code><a href="../reference/coef_table.html">coef_table()</a></code> returns the full table with 95% Wald CIs, p-values, and significance stars. For <code>countGLM</code> objects all methods automatically use the selected best model.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="glmOJ-predict.html">predict(<i>&lt;countGLMfit&gt;</i>)</a></code> <code><a href="glmOJ-predict.html">predict(<i>&lt;zeroinflGLMfit&gt;</i>)</a></code> <code><a href="glmOJ-predict.html">predict(<i>&lt;countGLM&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Predict from a count regression model</dd>
+
+        <dt>
+
+          <code><a href="glmOJ-fitted.html">fitted(<i>&lt;countGLMfit&gt;</i>)</a></code> <code><a href="glmOJ-fitted.html">fitted(<i>&lt;countGLM&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Extract fitted values from a count regression model</dd>
+
+        <dt>
+
+          <code><a href="glmOJ-coef.html">coef(<i>&lt;countGLMfit&gt;</i>)</a></code> <code><a href="glmOJ-coef.html">coef(<i>&lt;zeroinflGLMfit&gt;</i>)</a></code> <code><a href="glmOJ-coef.html">coef(<i>&lt;countGLM&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Extract model coefficients</dd>
+
+        <dt>
+
+          <code><a href="coef_table.html">coef_table()</a></code>
+
+        </dt>
+        <dd>Coefficient table with confidence intervals and p-values</dd>
+      </dl></div><div class="section level2">
       <h2 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a></h2>
 
       <div class="section-desc"><p>Natural-language interpretation of model coefficients and interactions.</p></div>
@@ -217,6 +254,36 @@
 
         </dt>
         <dd>Untangle a two-way interaction in a fitted model</dd>
+      </dl></div><div class="section level2">
+      <h2 id="datasets">Datasets<a class="anchor" aria-label="anchor" href="#datasets"></a></h2>
+
+      <div class="section-desc"><p>Real and simulated datasets bundled with the package for use in examples and the vignette.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="Greenberg26.dat.html">Greenberg26.dat</a></code>
+
+        </dt>
+        <dd>County-level environmental enforcement penalties (Greenberg 2026)</dd>
+
+        <dt>
+
+          <code><a href="Dahir25.dat.html">Dahir25.dat</a></code>
+
+        </dt>
+        <dd>Census-tract street-camera and crime data (Dahir 2025)</dd>
+
+        <dt>
+
+          <code><a href="ZITweedie.dat.html">ZITweedie.dat</a></code>
+
+        </dt>
+        <dd>Simulated zero-inflated Tweedie count data</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

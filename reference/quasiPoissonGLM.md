@@ -9,7 +9,7 @@ but estimates a free scale parameter so that `Var(Y) = phi * mu`.
 ## Usage
 
 ``` r
-quasiPoissonGLM(formula, data, maxit = NULL, ...)
+quasiPoissonGLM(formula, data, maxit = NULL, dispersion_threshold = 1.2, ...)
 ```
 
 ## Arguments
@@ -28,6 +28,11 @@ quasiPoissonGLM(formula, data, maxit = NULL, ...)
   Optional integer; maximum IWLS iterations passed through as
   `control = stats::glm.control(maxit = maxit)`. Ignored when the user
   supplies their own `control` via `...`.
+
+- dispersion_threshold:
+
+  Numeric; dispersion ratios above this value are flagged as
+  overdispersed in the diagnostic plot. Default 1.2.
 
 - ...:
 
