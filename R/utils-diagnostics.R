@@ -36,13 +36,50 @@ subset_complete_cases <- function(formula, data, ziformula = NULL) {
   data[keep, , drop = FALSE]
 }
 
+#' Stop early on degenerate responses (all zero, all constant, all missing)
+#'
+#' Count GLMs cannot identify regression coefficients when the response has no
+#' variation. We check up-front and stop with a clear message rather than
+#' returning a fit whose coefficients are noise.
+#' @noRd
+check_degenerate_response <- function(formula, data, ziformula = NULL) {
+  data_cc <- subset_complete_cases(formula, data, ziformula)
+  if (nrow(data_cc) == 0L) {
+    stop("No complete-case rows remain after dropping missing values.",
+         call. = FALSE)
+  }
+  mf <- stats::model.frame(formula, data_cc)
+  y  <- stats::model.response(mf)
+
+  if (length(y) == 0L) {
+    stop("Response is empty.", call. = FALSE)
+  }
+  if (any(!is.finite(y))) {
+    stop("Response contains non-finite values.", call. = FALSE)
+  }
+  if (all(y == 0)) {
+    stop(
+      "Response is identically zero; a count regression model is not identifiable.",
+      call. = FALSE
+    )
+  }
+  if (length(unique(y)) == 1L) {
+    stop(
+      sprintf("Response is constant (all values equal %s); cannot fit a regression model.",
+              format(y[1L])),
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
+}
+
 #' Check minimum events-per-predictor for count (and ZI) components
 #' @noRd
 check_sample_size <- function(formula, data, ziformula = NULL) {
   data_cc <- subset_complete_cases(formula, data, ziformula)
-  mf <- model.frame(formula, data_cc)
-  y <- model.response(mf)
-  X <- model.matrix(terms(mf), mf)
+  mf <- stats::model.frame(formula, data_cc)
+  y <- stats::model.response(mf)
+  X <- stats::model.matrix(stats::terms(mf), mf)
 
   n_pred <- max(ncol(X) - 1L, 0L)
   n_events <- sum(y > 0)
@@ -60,8 +97,8 @@ check_sample_size <- function(formula, data, ziformula = NULL) {
   }
 
   if (!is.null(ziformula)) {
-    zi_mf <- model.frame(ziformula, data_cc)
-    zi_X <- model.matrix(terms(zi_mf), zi_mf)
+    zi_mf <- stats::model.frame(ziformula, data_cc)
+    zi_X <- stats::model.matrix(stats::terms(zi_mf), zi_mf)
     n_zi_pred <- max(ncol(zi_X) - 1L, 0L)
     n_zeros <- sum(y == 0)
 

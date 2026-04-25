@@ -89,6 +89,7 @@ zeroinflNegbinGLM <- function(formula, data, ziformula = NULL, maxit = NULL,
   } else {
     ziformula
   }
+  check_degenerate_response(formula, data, effective_zi)
   check_sample_size(formula, data, effective_zi)
 
   full_formula <- build_zi_formula(formula, ziformula)

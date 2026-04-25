@@ -268,15 +268,104 @@ plot.countGLM <- function(x, ...) {
 
 # ---- coef methods ------------------------------------------------------
 
+#' Extract model coefficients
+#'
+#' Returns coefficients on the response scale (i.e. exponentiated linear-
+#' predictor coefficients) as a named numeric vector, matching the convention
+#' of [stats::coef()]. For zero-inflated models the count and zero-inflation
+#' components are concatenated into a single vector with `count_` and `zero_`
+#' name prefixes, mirroring [pscl::zeroinfl()].
+#'
+#' Use [coef_table()] to get the full coefficient table including 95\% Wald
+#' CIs, p-values, and significance stars.
+#'
+#' @param object A fitted model object of class `countGLMfit` or `zeroinflGLMfit`.
+#' @param component For zero-inflated models, `"both"` (default) returns the
+#'   concatenated vector; `"count"` returns only the count component;
+#'   `"zero"` returns only the zero-inflation component.
+#' @param ... Unused.
+#'
+#' @return A named numeric vector of exponentiated coefficients.
+#' @name glmOJ-coef
+#' @examples
+#' df <- data.frame(
+#'   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+#'   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
+#' )
+#' fit <- poissonGLM(y ~ x1, data = df)
+#' coef(fit)
+#' coef_table(fit)
+NULL
+
+#' @rdname glmOJ-coef
 #' @export
 coef.countGLMfit <- function(object, ...) {
+  tab <- object$coefficients
+  stats::setNames(tab$exp.coef, tab$term)
+}
+
+#' @rdname glmOJ-coef
+#' @export
+coef.zeroinflGLMfit <- function(object, component = c("both", "count", "zero"), ...) {
+  component <- match.arg(component)
+  tab_count <- object$coefficients$count
+  tab_zero  <- object$coefficients$zero
+  if (component == "count") {
+    return(stats::setNames(tab_count$exp.coef, tab_count$term))
+  }
+  if (component == "zero") {
+    return(stats::setNames(tab_zero$exp.coef, tab_zero$term))
+  }
+  c(
+    stats::setNames(tab_count$exp.coef, paste0("count_", tab_count$term)),
+    stats::setNames(tab_zero$exp.coef,  paste0("zero_",  tab_zero$term))
+  )
+}
+
+#' @rdname glmOJ-coef
+#' @export
+coef.countGLM <- function(object, ...) {
+  coef(object$fits[[object$best_model]], ...)
+}
+
+#' Coefficient table with confidence intervals and p-values
+#'
+#' Returns the full coefficient table (term, exponentiated coefficient,
+#' lower/upper 95\% Wald CI, p-value, significance stars) for a fitted model.
+#' For zero-inflated models, returns a named list with `count` and `zero`
+#' data frames.
+#'
+#' @param object A fitted model of class `countGLMfit`, `zeroinflGLMfit`, or
+#'   `countGLM`.
+#' @param ... Unused.
+#'
+#' @return A data frame, or a named list of two data frames for zero-inflated
+#'   models.
+#' @export
+#' @examples
+#' df <- data.frame(
+#'   y  = c(0L, 1L, 2L, 3L, 5L, 0L, 2L, 4L, 1L, 3L),
+#'   x1 = c(1.2, -0.4, 0.8, -1.1, 2.0, 0.3, -0.9, 1.5, -0.2, 0.7)
+#' )
+#' fit <- poissonGLM(y ~ x1, data = df)
+#' coef_table(fit)
+coef_table <- function(object, ...) {
+  UseMethod("coef_table")
+}
+
+#' @export
+coef_table.countGLMfit <- function(object, ...) {
   object$coefficients
 }
 
 #' @export
-coef.zeroinflGLMfit <- function(object, component = c("count", "zero"), ...) {
-  component <- match.arg(component)
-  object$coefficients[[component]]
+coef_table.zeroinflGLMfit <- function(object, ...) {
+  object$coefficients
+}
+
+#' @export
+coef_table.countGLM <- function(object, ...) {
+  coef_table(object$fits[[object$best_model]], ...)
 }
 
 # ---- print.countGLM ----------------------------------------------------

@@ -78,6 +78,7 @@ negbinGLM <- function(formula, data, assessZeroInflation = TRUE, maxit = NULL,
       is.null(maxit) || (is.numeric(maxit) && length(maxit) == 1L && maxit >= 1)
   )
 
+  check_degenerate_response(formula, data)
   check_sample_size(formula, data)
   dots <- list(...)
   if (!is.null(maxit) && !"control" %in% names(dots)) {

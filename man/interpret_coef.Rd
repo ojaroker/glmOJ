@@ -13,7 +13,9 @@ interpret_coef(model, predictor, component = "count")
 For \code{countGLM}, the best-fitting model is used automatically.}
 
 \item{predictor}{Character; the exact term name as it appears in the
-coefficient table (e.g. \code{"pctnonwhite10"}, \code{"EPAregion2"}).}
+coefficient table (e.g. \code{"pctnonwhite10"}, \code{"EPAregion2"}). Optional
+when the model has exactly one non-intercept term, in which case that
+term is used.}
 
 \item{component}{For zero-inflated models: \code{"count"} (default) for the
 count component, or \code{"zero"} for the zero-inflation component. Ignored

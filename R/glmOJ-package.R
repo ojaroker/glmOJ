@@ -10,4 +10,17 @@
 #'
 #' @docType package
 #' @name glmOJ
+#' @importFrom stats aggregate coef density fitted model.frame model.matrix
+#'   model.offset model.response na.omit ppoints predict quantile residuals
+#'   setNames terms var
+#' @importFrom grDevices nclass.Sturges
 "_PACKAGE"
+
+# NSE column / variable names used inside dplyr / ggplot pipelines.
+# Declared here to silence the "no visible binding for global variable" notes
+# raised by R CMD check for histoqq() and plot_count_data().
+utils::globalVariables(c(
+  "Freq", "Var1", "bin.cut", "bin.idx", "bin.mid", "count", "dens",
+  "density", "deviation", "dx", "dy", "expected.count", "final.x",
+  "final.y", "h", "val", "x", "x.base", "x.c", "y", "y.base", "y.c"
+))

@@ -4,7 +4,7 @@
 \alias{quasiPoissonGLM}
 \title{Fit a quasi-Poisson regression model}
 \usage{
-quasiPoissonGLM(formula, data, maxit = NULL, ...)
+quasiPoissonGLM(formula, data, maxit = NULL, dispersion_threshold = 1.2, ...)
 }
 \arguments{
 \item{formula}{A model formula (e.g. \code{y ~ x1 + x2}). The response must be
@@ -15,6 +15,9 @@ a non-negative integer count variable.}
 \item{maxit}{Optional integer; maximum IWLS iterations passed through as
 \code{control = stats::glm.control(maxit = maxit)}. Ignored when the user
 supplies their own \code{control} via \code{...}.}
+
+\item{dispersion_threshold}{Numeric; dispersion ratios above this value
+are flagged as overdispersed in the diagnostic plot. Default 1.2.}
 
 \item{...}{Additional arguments passed to \code{\link[stats:glm]{stats::glm()}}.}
 }

@@ -108,12 +108,24 @@ test_that("summary.zeroinflPoissonGLM returns a list", {
   expect_type(summary(fit), "list")
 })
 
-test_that("coef.zeroinflGLMfit returns count table by default", {
+test_that("coef.zeroinflGLMfit returns concatenated named vector by default", {
   cc <- coef(fit)
-  expect_named(cc, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
+  expect_type(cc, "double")
+  expect_true(all(grepl("^(count|zero)_", names(cc))))
 })
 
-test_that("coef.zeroinflGLMfit returns zero table when component = 'zero'", {
+test_that("coef.zeroinflGLMfit count/zero components return named numeric vectors", {
+  cc <- coef(fit, component = "count")
   cz <- coef(fit, component = "zero")
-  expect_named(cz, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
+  expect_type(cc, "double")
+  expect_type(cz, "double")
+  expect_true("(Intercept)" %in% names(cc))
+  expect_true("(Intercept)" %in% names(cz))
+})
+
+test_that("coef_table.zeroinflGLMfit returns a list of count and zero data frames", {
+  tab <- coef_table(fit)
+  expect_named(tab, c("count", "zero"))
+  expect_named(tab$count, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
+  expect_named(tab$zero,  c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
 })

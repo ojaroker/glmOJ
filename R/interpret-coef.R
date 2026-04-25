@@ -12,7 +12,9 @@
 #'   [zeroinflTweedieGLM()], or [countGLM()].
 #'   For `countGLM`, the best-fitting model is used automatically.
 #' @param predictor Character; the exact term name as it appears in the
-#'   coefficient table (e.g. `"pctnonwhite10"`, `"EPAregion2"`).
+#'   coefficient table (e.g. `"pctnonwhite10"`, `"EPAregion2"`). Optional
+#'   when the model has exactly one non-intercept term, in which case that
+#'   term is used.
 #' @param component For zero-inflated models: `"count"` (default) for the
 #'   count component, or `"zero"` for the zero-inflation component. Ignored
 #'   for Poisson and negative binomial models.
@@ -25,22 +27,26 @@ interpret_coef <- function(model, predictor, component = "count") {
 
 #' @export
 interpret_coef.poissonGLM <- function(model, predictor, component = "count") {
+  if (missing(predictor)) predictor <- .resolve_predictor(model$coefficients)
   .interp_standard(model, predictor)
 }
 
 #' @export
 interpret_coef.negbinGLM <- function(model, predictor, component = "count") {
+  if (missing(predictor)) predictor <- .resolve_predictor(model$coefficients)
   .interp_standard(model, predictor)
 }
 
 #' @export
 interpret_coef.quasiPoissonGLM <- function(model, predictor,
                                             component = "count") {
+  if (missing(predictor)) predictor <- .resolve_predictor(model$coefficients)
   .interp_standard(model, predictor)
 }
 
 #' @export
 interpret_coef.tweedieGLM <- function(model, predictor, component = "count") {
+  if (missing(predictor)) predictor <- .resolve_predictor(model$coefficients)
   .interp_glmmtmb_standard(model, predictor)
 }
 
@@ -48,6 +54,10 @@ interpret_coef.tweedieGLM <- function(model, predictor, component = "count") {
 interpret_coef.zeroinflTweedieGLM <- function(model, predictor,
                                                component = "count") {
   component <- match.arg(component, c("count", "zero"))
+  if (missing(predictor)) {
+    predictor <- .resolve_predictor(model$coefficients[[component]],
+                                     component = component)
+  }
   .interp_glmmtmb_zeroinfl(model, predictor, component)
 }
 
@@ -55,6 +65,10 @@ interpret_coef.zeroinflTweedieGLM <- function(model, predictor,
 interpret_coef.zeroinflGLMfit <- function(model, predictor,
                                            component = "count") {
   component <- match.arg(component, c("count", "zero"))
+  if (missing(predictor)) {
+    predictor <- .resolve_predictor(model$coefficients[[component]],
+                                     component = component)
+  }
   .interp_zeroinfl(model, predictor, component)
 }
 
@@ -62,7 +76,29 @@ interpret_coef.zeroinflGLMfit <- function(model, predictor,
 interpret_coef.countGLM <- function(model, predictor, component = "count") {
   best <- model$fits[[model$best_model]]
   message("Using best model: ", model$best_model)
-  interpret_coef(best, predictor, component)
+  if (missing(predictor)) {
+    interpret_coef(best, component = component)
+  } else {
+    interpret_coef(best, predictor = predictor, component = component)
+  }
+}
+
+# Auto-detect the predictor when there is exactly one non-intercept term.
+# Otherwise, error with a helpful message listing the available terms.
+.resolve_predictor <- function(coef_df, component = NULL) {
+  candidates <- coef_df$term[coef_df$term != "(Intercept)"]
+  comp_label <- if (is.null(component)) "" else sprintf(" in the %s component", component)
+  if (length(candidates) == 0L) {
+    stop(sprintf("No non-intercept terms available%s.", comp_label),
+         call. = FALSE)
+  }
+  if (length(candidates) > 1L) {
+    stop(sprintf(
+      "`predictor` is required when the model has more than one non-intercept term%s.\n  Available terms: %s",
+      comp_label, paste(candidates, collapse = ", ")
+    ), call. = FALSE)
+  }
+  candidates
 }
 
 # ---------------------------------------------------------------------------

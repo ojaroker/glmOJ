@@ -168,6 +168,7 @@ summarizeCountData = function(formula, data, bins = 20) {
 #'
 #' @importFrom rlang .data
 #' @keywords internal
+#' @noRd
 plot_count_data = function(y, mf, pred_vars, pred_types, bins = 20) {
   df = data.frame(y = y, mf[pred_vars])
   n_pred = length(pred_vars)

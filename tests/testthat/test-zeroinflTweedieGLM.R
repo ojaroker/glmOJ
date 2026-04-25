@@ -136,14 +136,24 @@ test_that("summary.zeroinflTweedieGLM returns a list", {
   expect_type(summary(fit), "list")
 })
 
-test_that("coef.zeroinflGLMfit returns count table by default for zeroinflTweedieGLM", {
+test_that("coef.zeroinflGLMfit returns concatenated named vector by default for zeroinflTweedieGLM", {
   cc <- coef(fit)
-  expect_named(cc, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
+  expect_type(cc, "double")
+  expect_true(all(grepl("^(count|zero)_", names(cc))))
 })
 
-test_that("coef.zeroinflGLMfit returns zero table when component = 'zero'", {
+test_that("coef components return named numeric vectors for zeroinflTweedieGLM", {
+  cc <- coef(fit, component = "count")
   cz <- coef(fit, component = "zero")
-  expect_named(cz, c("term", "exp.coef", "lower.95", "upper.95", "p.value", "stars"))
+  expect_type(cc, "double")
+  expect_type(cz, "double")
+  expect_true("(Intercept)" %in% names(cc))
+  expect_true("(Intercept)" %in% names(cz))
+})
+
+test_that("coef_table.zeroinflGLMfit returns count + zero data frames", {
+  tab <- coef_table(fit)
+  expect_named(tab, c("count", "zero"))
 })
 
 test_that("zeroinflTweedieGLM model slot is a glmmTMB object", {

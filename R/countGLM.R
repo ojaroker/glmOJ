@@ -131,6 +131,9 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   # Report any rows that will be silently dropped due to missing values
   check_na_rows(formula, data, ziformula)
 
+  # Stop early on degenerate (all-zero / constant) responses
+  check_degenerate_response(formula, data, ziformula)
+
   # Detect integer-valued response: used to identify degenerate Tweedie fits
   # where glmmTMB pushes p to the boundary on integer count data.
   integer_response <- tryCatch({
