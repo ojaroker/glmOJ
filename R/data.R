@@ -99,7 +99,7 @@
 #'         and Tweedie power `p = 1.5`.
 #'   \item Zero-inflation component: `logit(pi) = 0.5 - 2.5 * x2`.
 #' }
-#' Approximately 61\% of observed responses are zero.
+#' Approximately 61% of observed responses are zero.
 #'
 #' @format A data frame with 400 rows and 3 columns:
 #'   \describe{

@@ -35,6 +35,6 @@ True data-generating model:
 and Tweedie power \code{p = 1.5}.
 \item Zero-inflation component: \code{logit(pi) = 0.5 - 2.5 * x2}.
 }
-Approximately 61\\% of observed responses are zero.
+Approximately 61\% of observed responses are zero.
 }
 \keyword{datasets}
