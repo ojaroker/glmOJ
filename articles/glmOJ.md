@@ -168,9 +168,12 @@ mod.nb <- negbinGLM(
     CIDDist +
     EPAregion,
   data = Greenberg26.dat,
-  control = stats::glm.control(maxit = 100)
+  maxit = 100
 )
 ```
+
+`maxit` is a convenience argument that sets the maximum IWLS iterations;
+it is equivalent to passing `control = stats::glm.control(maxit = 100)`.
 
 #### Coefficients (exponentiated)
 

@@ -234,8 +234,11 @@ to handle overdispersion.</p>
 <span>    <span class="va">CIDDist</span> <span class="op">+</span></span>
 <span>    <span class="va">EPAregion</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">Greenberg26.dat</span>,</span>
-<span>  control <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/glm.control.html" class="external-link">glm.control</a></span><span class="op">(</span>maxit <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span>  maxit <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><code>maxit</code> is a convenience argument that sets the maximum
+IWLS iterations; it is equivalent to passing
+<code>control = stats::glm.control(maxit = 100)</code>.</p>
 <div class="section level4">
 <h4 id="coefficients-exponentiated-1">Coefficients (exponentiated)<a class="anchor" aria-label="anchor" href="#coefficients-exponentiated-1"></a>
 </h4>
