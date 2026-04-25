@@ -30,6 +30,12 @@ df_na <- data.frame(
   x2 = c("A", NA, "B", "A", "B", NA, "A", "B", "A", "B")
 )
 
+df_offset <- data.frame(
+  y = c(0L, 1L, 2L, 3L, 4L, 1L, 0L, 2L, 1L, 3L),
+  x1 = rnorm(10),
+  exposure = c(1, 2, 1, 4, 2, 1, 3, 2, 1, 5)
+)
+
 # Dataset with only zero counts
 df_zeros <- data.frame(
   y  = rep(0L, 10),
@@ -77,6 +83,16 @@ test_that("summary table has correct columns", {
     result$summary,
     c("mean", "var", "var_mean_ratio", "n_zero", "prop_zero", "n_total")
   )
+})
+
+test_that("offset formulas include exposure-aware summary columns", {
+  result <- summarizeCountData(y ~ x1 + offset(log(exposure)), df_offset)
+  expect_true(all(c("mean_exposure", "min_exposure", "max_exposure", "mean_rate") %in%
+                    names(result$summary)))
+  expect_equal(result$summary$mean_exposure, mean(df_offset$exposure))
+  expect_equal(result$summary$min_exposure, min(df_offset$exposure))
+  expect_equal(result$summary$max_exposure, max(df_offset$exposure))
+  expect_equal(result$summary$mean_rate, mean(df_offset$y / df_offset$exposure))
 })
 
 test_that("summary table values are correct", {

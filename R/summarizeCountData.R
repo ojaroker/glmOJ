@@ -105,6 +105,13 @@ summarizeCountData = function(formula, data, bins = 20) {
     prop_zero = n_zero / n,
     n_total = n
   )
+  if (length(off) > 0L && any(off != 0)) {
+    exposure = exp(off)
+    summary_table$mean_exposure = mean(exposure)
+    summary_table$min_exposure = min(exposure)
+    summary_table$max_exposure = max(exposure)
+    summary_table$mean_rate = mean(y / exposure)
+  }
 
   # Extract predictors. The LHS may be a compound call (e.g., log(y), cbind),
   # so take all variable names and use the first. The response column in the
@@ -221,7 +228,7 @@ plot_count_data = function(y, mf, pred_vars, pred_types, bins = 20) {
         ggplot2::labs(y = "Count")
     }
   } else {
-    # >3 predictors - use first two and warn
+    # >2 predictors - use first two and warn
     warning("More than 2 predictors - plotting first two only (see pairs_plot for all)")
     return(plot_count_data(y, mf, pred_vars[1:2], pred_types[1:2], bins = bins))
   }

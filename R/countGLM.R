@@ -141,6 +141,18 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   # VIF on main-effect terms only (avoids false positives from interaction terms)
   vif <- check_vif(formula, data)
 
+  capture_fit <- function(expr) {
+    warnings <- character(0L)
+    value <- withCallingHandlers(
+      tryCatch(expr, error = function(e) e),
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    )
+    list(value = value, warnings = unique(warnings))
+  }
+
   # ---------------------------------------------------------------------------
   # Step 1: Fit the requested base models (ZI assessment handled below)
   # ---------------------------------------------------------------------------
@@ -152,11 +164,12 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
     tweedie = function() tweedieGLM(formula, data, assessZeroInflation = FALSE,
                                     maxit = maxit, ...)
   )
-  base_fits <- stats::setNames(
-    lapply(families, function(nm) tryCatch(base_fitters[[nm]](),
-                                           error = function(e) e)),
+  base_fit_records <- stats::setNames(
+    lapply(families, function(nm) capture_fit(base_fitters[[nm]]())),
     families
   )
+  base_fits <- lapply(base_fit_records, `[[`, "value")
+  fit_warnings <- lapply(base_fit_records, `[[`, "warnings")
 
   # Pad base_ok to always carry poisson/negbin/tweedie slots so downstream
   # checks like base_ok[["tweedie"]] are safe even when a family was skipped.
@@ -251,7 +264,9 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
 
     if (isTRUE(zi_result$detected)) {
       zi_nm  <- zi_map[[nm]]
-      result <- tryCatch(zi_fitters[[zi_nm]](), error = function(e) e)
+      zi_record <- capture_fit(zi_fitters[[zi_nm]]())
+      result <- zi_record$value
+      fit_warnings[[zi_nm]] <- zi_record$warnings
       if (!inherits(result, "error")) {
         zi_fits[[zi_nm]] <- result
       }
@@ -267,10 +282,9 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
   quasi_fits <- list()
   if (base_ok[["poisson"]] &&
       is_quasipoisson_appropriate(base_fits[["poisson"]])) {
-    qp <- tryCatch(
-      quasiPoissonGLM(formula, data, maxit = maxit, ...),
-      error = function(e) e
-    )
+    qp_record <- capture_fit(quasiPoissonGLM(formula, data, maxit = maxit, ...))
+    qp <- qp_record$value
+    fit_warnings[["quasipoisson"]] <- qp_record$warnings
     if (!inherits(qp, "error")) {
       quasi_fits$quasipoisson <- qp
     }
@@ -323,6 +337,8 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
 
   recommendation <- build_recommendation(fits, best_name, aic_table, bic_table,
                                          metric_table, decide_norm)
+  warnings_by_model <- fit_warnings[names(fits)]
+  attr(fits, "warnings") <- warnings_by_model
 
   structure(
     list(
@@ -336,7 +352,8 @@ countGLM <- function(formula, data, ziformula = NULL, decide = "BIC",
       recommendation = recommendation,
       vif            = vif
     ),
-    class = "countGLM"
+    class = "countGLM",
+    warnings = warnings_by_model
   )
 }
 

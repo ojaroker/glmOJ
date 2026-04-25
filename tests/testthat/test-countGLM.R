@@ -77,7 +77,9 @@ test_that("countGLM each successful fit inherits countGLMfit", {
 
 test_that("countGLM tweedie fit (if present) is a tweedieGLM", {
   tw <- result$fits[["tweedie"]]
-  if (!is.null(tw)) {
+  if (is.null(tw)) {
+    expect_null(tw)
+  } else {
     expect_s3_class(tw, "tweedieGLM")
     expect_s3_class(tw, "countGLMfit")
   }
@@ -89,6 +91,13 @@ test_that("print.countGLM does not error", {
 
 test_that("summary.countGLM does not error", {
   expect_no_error(suppressMessages(summary(result)))
+})
+
+test_that("summary.countGLM returns a structured summary object", {
+  sm <- suppressMessages(summary(result))
+  expect_s3_class(sm, "summary.countGLM")
+  expect_equal(sm$best_model, result$best_model)
+  expect_true("selected_model_summary" %in% names(sm))
 })
 
 test_that("countGLM aic_table is sorted ascending", {
@@ -114,7 +123,9 @@ test_that("countGLM negbin fit has zi_test populated", {
 
 test_that("countGLM tweedie fit has zi_test populated", {
   tw <- result$fits[["tweedie"]]
-  if (!is.null(tw)) {
+  if (is.null(tw)) {
+    expect_null(tw)
+  } else {
     expect_type(tw$diagnostics$zi_test, "list")
     expect_named(tw$diagnostics$zi_test, c("detected", "p_value", "plot"))
   }
@@ -127,8 +138,10 @@ test_that("countGLM ZI models are only fitted when ZI is detected", {
     zeroinfl_negbin  = "negbin",
     zeroinfl_tweedie = "tweedie"
   )
+  n_checked <- 0L
   for (zi_nm in names(zi_base_map)) {
     if (!is.null(result$fits[[zi_nm]])) {
+      n_checked <- n_checked + 1L
       base_nm <- zi_base_map[[zi_nm]]
       base_zi <- result$fits[[base_nm]]$diagnostics$zi_test
       expect_true(
@@ -136,6 +149,9 @@ test_that("countGLM ZI models are only fitted when ZI is detected", {
         label = paste(zi_nm, "should only appear when", base_nm, "detects ZI")
       )
     }
+  }
+  if (n_checked == 0L) {
+    expect_false(any(names(zi_base_map) %in% names(result$fits)))
   }
 })
 
@@ -330,6 +346,8 @@ test_that("countGLM warns and excludes degenerate Tweedie on integer data", {
     expect_false("zeroinfl_tweedie" %in% names(r$fits))
     expect_true(r$best_model %in% c("poisson", "negbin",
                                     "zeroinfl_poisson", "zeroinfl_negbin"))
+  } else {
+    expect_false(any(grepl("degenerate|boundary", warns)))
   }
 })
 

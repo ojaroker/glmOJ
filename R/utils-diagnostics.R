@@ -21,10 +21,26 @@ check_na_rows <- function(formula, data, ziformula = NULL) {
   invisible(NULL)
 }
 
+#' Return the complete-case subset used by a count / ZI fit
+#' @noRd
+subset_complete_cases <- function(formula, data, ziformula = NULL) {
+  vars <- all.vars(formula)
+  if (!is.null(ziformula)) vars <- union(vars, all.vars(ziformula))
+  vars <- intersect(vars, names(data))
+
+  if (length(vars) == 0L) {
+    return(data)
+  }
+
+  keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  data[keep, , drop = FALSE]
+}
+
 #' Check minimum events-per-predictor for count (and ZI) components
 #' @noRd
 check_sample_size <- function(formula, data, ziformula = NULL) {
-  mf <- model.frame(formula, data)
+  data_cc <- subset_complete_cases(formula, data, ziformula)
+  mf <- model.frame(formula, data_cc)
   y <- model.response(mf)
   X <- model.matrix(terms(mf), mf)
 
@@ -44,7 +60,7 @@ check_sample_size <- function(formula, data, ziformula = NULL) {
   }
 
   if (!is.null(ziformula)) {
-    zi_mf <- model.frame(ziformula, data)
+    zi_mf <- model.frame(ziformula, data_cc)
     zi_X <- model.matrix(terms(zi_mf), zi_mf)
     n_zi_pred <- max(ncol(zi_X) - 1L, 0L)
     n_zeros <- sum(y == 0)

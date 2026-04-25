@@ -339,12 +339,41 @@ print.countGLM <- function(x, digits = 4, ...) {
   cat(sprintf("\nSelected model: %s\n", x$best_model))
   cat("\nRecommendation:\n")
   cat(strwrap(x$recommendation, width = 72, prefix = "  "), sep = "\n")
+  warning_summary <- attr(x, "warnings", exact = TRUE)
+  best_warnings <- warning_summary[[x$best_model]]
+  if (length(best_warnings) > 0L) {
+    cat("\nSelected-model warnings:\n")
+    cat(strwrap(
+      paste(unique(best_warnings), collapse = " "),
+      width = 72,
+      prefix = "  "
+    ), sep = "\n")
+  }
   cat("\n")
   invisible(x)
 }
 
 #' @export
 summary.countGLM <- function(object, ...) {
-  cat("Summary of selected model (", object$best_model, "):\n\n", sep = "")
-  invisible(summary(object$fits[[object$best_model]], ...))
+  out <- list(
+    call = object$call,
+    decide = object$decide,
+    best_model = object$best_model,
+    recommendation = object$recommendation,
+    aic_table = object$aic_table,
+    bic_table = object$bic_table,
+    metric_table = object$metric_table,
+    vif = object$vif,
+    warnings = attr(object, "warnings", exact = TRUE),
+    selected_model_summary = summary(object$fits[[object$best_model]], ...)
+  )
+  class(out) <- "summary.countGLM"
+  out
+}
+
+#' @export
+print.summary.countGLM <- function(x, ...) {
+  cat("Summary of selected model (", x$best_model, "):\n\n", sep = "")
+  print(x$selected_model_summary, ...)
+  invisible(x)
 }
