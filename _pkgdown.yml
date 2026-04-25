@@ -6,9 +6,10 @@ template:
 home:
   title: "glmOJ — Count Regression Modeling"
   description: >
-    An R package for fitting, diagnosing, and interpreting count regression
-    models: Poisson, negative binomial, zero-inflated Poisson, and
-    zero-inflated negative binomial.
+    An R package for fitting, diagnosing, and interpreting count and
+    semi-continuous regression models: Poisson, quasi-Poisson, negative
+    binomial, Tweedie, zero-inflated Poisson, zero-inflated negative
+    binomial, and zero-inflated Tweedie.
 
 navbar:
   structure:
@@ -77,9 +78,31 @@ reference:
     contents:
       - countGLM
 
+  - title: "Generic Methods"
+    desc: >
+      S3 generics for all model classes. `predict()` and `fitted()` delegate
+      to the underlying backend. `coef()` returns a named numeric vector of
+      exponentiated coefficients. `coef_table()` returns the full table with
+      95% Wald CIs, p-values, and significance stars. For `countGLM` objects
+      all methods automatically use the selected best model.
+    contents:
+      - glmOJ-predict
+      - glmOJ-fitted
+      - glmOJ-coef
+      - coef_table
+
   - title: "Interpretation"
     desc: >
       Natural-language interpretation of model coefficients and interactions.
     contents:
       - interpret_coef
       - untangle_interaction
+
+  - title: "Datasets"
+    desc: >
+      Real and simulated datasets bundled with the package for use in
+      examples and the vignette.
+    contents:
+      - Greenberg26.dat
+      - Dahir25.dat
+      - ZITweedie.dat
