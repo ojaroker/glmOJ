@@ -264,6 +264,46 @@ test_that("countGLM vif excludes interaction terms from computation", {
   expect_true(all(c("x1", "x2") %in% rownames(r$vif)))
 })
 
+test_that("countGLM vif does not flag polynomial transforms of the same variable", {
+  set.seed(7)
+  n <- 40L
+  x1 <- rnorm(n)
+  df_poly <- data.frame(
+    y  = rpois(n, lambda = exp(0.2 + 0.1 * x1)),
+    x1 = x1
+  )
+  # x1 and I(x1^2) share underlying variable x1 — collinearity between them
+  # is structural. After grouping there's one effective predictor, so vif is
+  # a 1-row sentinel with GVIF = 1 (rather than the spurious high VIF the
+  # raw OLS fit would produce, or NULL).
+  expect_no_warning(
+    r <- countGLM(y ~ x1 + I(x1^2), data = df_poly)
+  )
+  expect_s3_class(r$vif, "data.frame")
+  expect_equal(nrow(r$vif), 1L)
+  expect_equal(r$vif$GVIF, 1)
+  expect_match(rownames(r$vif), "I\\(x1\\^2\\)")
+})
+
+test_that("countGLM vif treats grouped polynomial terms as one predictor", {
+  set.seed(11)
+  n <- 40L
+  x1 <- rnorm(n)
+  x2 <- rnorm(n)
+  df_poly <- data.frame(
+    y  = rpois(n, lambda = exp(0.2 + 0.1 * x1 + 0.1 * x2)),
+    x1 = x1,
+    x2 = x2
+  )
+  # {x1, I(x1^2)} collapses to one representative; vif is computed between
+  # that representative and x2, giving a 2-row data frame.
+  expect_no_warning(
+    r <- countGLM(y ~ x1 + I(x1^2) + x2, data = df_poly)
+  )
+  expect_s3_class(r$vif, "data.frame")
+  expect_equal(nrow(r$vif), 2L)
+})
+
 test_that("countGLM vif warns when a predictor exceeds threshold", {
   set.seed(42)
   n  <- 40L

@@ -477,13 +477,18 @@ is_quasipoisson_appropriate <- function(pois_fit) {
 #' positives from structural collinearity (interaction terms, polynomial
 #' terms, etc.)
 #'
-#' Extracts terms of order 1 from `formula`, fits an OLS model on those
-#' predictors, and returns generalized VIF values (Fox & Monette 1992) for
-#' each term. For single-column (continuous, or two-level factor) terms this
-#' reduces to the usual VIF. For multi-column terms (factors with >2 levels)
-#' it reports GVIF along with its degrees of freedom and the comparable
-#' scalar GVIF^{1/(2*df)}. Warns when any term's GVIF^{1/(2*df)} exceeds
-#' sqrt(5) (the GVIF analogue of the VIF > 5 rule of thumb).
+#' Extracts terms of order 1 from `formula` and further drops any terms
+#' whose underlying variables overlap with another term — e.g. `x` and
+#' `I(x^2)`, or `x` and `log(x)`, are both order-1 but share the same
+#' underlying variable, so collinearity between them is structural and
+#' is excluded from the check. An OLS model is fit on the remaining
+#' predictors and generalized VIF values (Fox & Monette 1992) are returned
+#' for each term. For single-column (continuous, or two-level factor)
+#' terms this reduces to the usual VIF. For multi-column terms (factors
+#' with >2 levels) it reports GVIF along with its degrees of freedom and
+#' the comparable scalar GVIF^{1/(2*df)}. Warns when any term's
+#' GVIF^{1/(2*df)} exceeds sqrt(5) (the GVIF analogue of the VIF > 5
+#' rule of thumb).
 #'
 #' @param formula The count-component formula.
 #' @param data The data frame.
@@ -499,12 +504,58 @@ check_vif <- function(formula, data) {
   term_labels  <- attr(tt, "term.labels")
   term_orders  <- attr(tt, "order")
 
-  # Keep only order-1 terms (main effects); this excludes x1:x2, I(x^2), etc.
+  # Keep only order-1 terms (main effects); this excludes x1:x2 interactions.
   main_labels <- term_labels[term_orders == 1L]
 
   if (length(main_labels) < 2L) {
     return(NULL)
   }
+
+  # Group terms by their underlying variable set and keep one representative
+  # per group — e.g. `x` and `I(x^2)` are both order-1 but share variable
+  # `x`, so collinearity between them is structural and not a true
+  # multicollinearity issue. `all.vars(parse(...))` recovers the variables
+  # behind any transformation: I(x^2), log(x), poly(x, 2), scale(x), etc.
+  # The shortest label is used as the representative (a proxy for "simplest").
+  term_vars <- lapply(main_labels, function(lbl) {
+    tryCatch(all.vars(parse(text = lbl)), error = function(e) character())
+  })
+  var_keys <- vapply(
+    term_vars,
+    function(vs) if (length(vs) == 0L) "" else paste(sort(vs), collapse = "|"),
+    character(1)
+  )
+  groups       <- split(seq_along(main_labels), var_keys)
+  group_labels <- vapply(
+    groups,
+    function(idx) paste(main_labels[idx], collapse = ", "),
+    character(1)
+  )
+  rep_idx <- vapply(
+    groups,
+    function(idx) idx[which.min(nchar(main_labels[idx]))],
+    integer(1)
+  )
+  rep_labels <- main_labels[rep_idx]
+
+  # When dedup leaves only one effective predictor (e.g. `y ~ x + I(x^2)`),
+  # there is nothing to compute VIF *between*, but return a 1-row sentinel
+  # with GVIF = 1 so callers can see the check ran.
+  if (length(rep_labels) < 2L) {
+    out <- data.frame(
+      term              = unname(group_labels),
+      GVIF              = 1,
+      Df                = 1L,
+      `GVIF^(1/(2*Df))` = 1,
+      check.names       = FALSE,
+      stringsAsFactors  = FALSE
+    )
+    rownames(out) <- out$term
+    attr(out, "vif") <- stats::setNames(out$GVIF, out$term)
+    return(out)
+  }
+
+  main_labels <- rep_labels
 
   response     <- deparse(formula[[2L]])
   main_formula <- stats::as.formula(

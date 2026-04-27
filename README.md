@@ -120,7 +120,8 @@ All model fitters compute:
 - **Variance Inflation Factors (VIFs)** — VIFs are computed for each
   predictor to flag multicollinearity. Predictors with a VIF above 5 are
   flagged with a warning so users can investigate correlated predictors
-  before interpreting coefficients.
+  before interpreting coefficients. Interaction terms and higher power terms
+  are grouped to avoid spurious high VIFs from structural multicollinearity.
 
 ## Interpretation
 
