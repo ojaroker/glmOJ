@@ -615,12 +615,12 @@ terms from the formula. Offset terms are excluded as well.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_cam</span><span class="op">$</span><span class="va">vif</span></span>
 <span><span class="co">#&gt;                              term     GVIF Df GVIF^(1/(2*Df))</span></span>
+<span><span class="co">#&gt; hinc                         hinc 1.592488  1        1.261938</span></span>
+<span><span class="co">#&gt; modal_zone             modal_zone 1.040710  5        1.003998</span></span>
 <span><span class="co">#&gt; pnhblk                     pnhblk 1.696259  1        1.302405</span></span>
 <span><span class="co">#&gt; pnhwht                     pnhwht 2.292616  1        1.514139</span></span>
-<span><span class="co">#&gt; total_crime_rate total_crime_rate 1.152382  1        1.073490</span></span>
-<span><span class="co">#&gt; hinc                         hinc 1.592488  1        1.261938</span></span>
 <span><span class="co">#&gt; pvac                         pvac 1.093179  1        1.045552</span></span>
-<span><span class="co">#&gt; modal_zone             modal_zone 1.040710  5        1.003998</span></span></code></pre></div>
+<span><span class="co">#&gt; total_crime_rate total_crime_rate 1.152382  1        1.073490</span></span></code></pre></div>
 <p>VIF = 1 means a predictor is uncorrelated with all others; values up
 to ~5 are generally acceptable. Any VIF &gt; 5 triggers a warning. Here
 all predictors are well below that threshold, confirming that
@@ -638,11 +638,10 @@ for the underlying predictors:</p>
 <span>  data <span class="op">=</span> <span class="va">Dahir25.dat</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">result_quad</span><span class="op">$</span><span class="va">vif</span> <span class="co"># only main-effect terms: pnhblk, pnhwht, total_crime_rate</span></span>
-<span><span class="co">#&gt;                                        term     GVIF Df GVIF^(1/(2*Df))</span></span>
-<span><span class="co">#&gt; pnhblk                               pnhblk 1.683595  1        1.297534</span></span>
-<span><span class="co">#&gt; pnhwht                               pnhwht 1.637775  1        1.279756</span></span>
-<span><span class="co">#&gt; total_crime_rate           total_crime_rate 1.726555  1        1.313984</span></span>
-<span><span class="co">#&gt; I(total_crime_rate^2) I(total_crime_rate^2) 1.648745  1        1.284035</span></span></code></pre></div>
+<span><span class="co">#&gt;                              term     GVIF Df GVIF^(1/(2*Df))</span></span>
+<span><span class="co">#&gt; pnhblk                     pnhblk 1.666566  1        1.290956</span></span>
+<span><span class="co">#&gt; pnhwht                     pnhwht 1.636047  1        1.279080</span></span>
+<span><span class="co">#&gt; total_crime_rate total_crime_rate 1.047353  1        1.023403</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="interpreting-the-winning-model">10. Interpreting the Winning Model<a class="anchor" aria-label="anchor" href="#interpreting-the-winning-model"></a>

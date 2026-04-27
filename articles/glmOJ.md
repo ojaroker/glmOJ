@@ -570,12 +570,12 @@ terms from the formula. Offset terms are excluded as well.
 ``` r
 result_cam$vif
 #>                              term     GVIF Df GVIF^(1/(2*Df))
+#> hinc                         hinc 1.592488  1        1.261938
+#> modal_zone             modal_zone 1.040710  5        1.003998
 #> pnhblk                     pnhblk 1.696259  1        1.302405
 #> pnhwht                     pnhwht 2.292616  1        1.514139
-#> total_crime_rate total_crime_rate 1.152382  1        1.073490
-#> hinc                         hinc 1.592488  1        1.261938
 #> pvac                         pvac 1.093179  1        1.045552
-#> modal_zone             modal_zone 1.040710  5        1.003998
+#> total_crime_rate total_crime_rate 1.152382  1        1.073490
 ```
 
 VIF = 1 means a predictor is uncorrelated with all others; values up to
@@ -597,11 +597,10 @@ result_quad <- suppressWarnings(countGLM(
   data = Dahir25.dat
 ))
 result_quad$vif # only main-effect terms: pnhblk, pnhwht, total_crime_rate
-#>                                        term     GVIF Df GVIF^(1/(2*Df))
-#> pnhblk                               pnhblk 1.683595  1        1.297534
-#> pnhwht                               pnhwht 1.637775  1        1.279756
-#> total_crime_rate           total_crime_rate 1.726555  1        1.313984
-#> I(total_crime_rate^2) I(total_crime_rate^2) 1.648745  1        1.284035
+#>                              term     GVIF Df GVIF^(1/(2*Df))
+#> pnhblk                     pnhblk 1.666566  1        1.290956
+#> pnhwht                     pnhwht 1.636047  1        1.279080
+#> total_crime_rate total_crime_rate 1.047353  1        1.023403
 ```
 
 ### 10. Interpreting the Winning Model

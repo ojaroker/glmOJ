@@ -171,7 +171,7 @@
 <li>
 <strong>Sample size conditions</strong> — The package checks that the dataset has enough observations relative to the number of predictors; a warning is issued when the effective sample-to-parameter ratio is too low to support reliable estimation.</li>
 <li>
-<strong>Variance Inflation Factors (VIFs)</strong> — VIFs are computed for each predictor to flag multicollinearity. Predictors with a VIF above 5 are flagged with a warning so users can investigate correlated predictors before interpreting coefficients.</li>
+<strong>Variance Inflation Factors (VIFs)</strong> — VIFs are computed for each predictor to flag multicollinearity. Predictors with a VIF above 5 are flagged with a warning so users can investigate correlated predictors before interpreting coefficients. Interaction terms and higher power terms are grouped to avoid spurious high VIFs from structural multicollinearity.</li>
 </ul>
 </div>
 <div class="section level2">
